@@ -365,8 +365,10 @@ export const bootstrapRuntime = () => {
 
     setSidebarVariant('tooltip');
 
-    const storedSidebar = getStored(STORAGE_KEYS.sidebarMode) || html.getAttribute('data-sidebar') || 'expanded';
-    setSidebarMode(storedSidebar, { persist: false });
+    const storedSidebar = getStored(STORAGE_KEYS.sidebarMode) || html.getAttribute('data-sidebar');
+    const prefersCompact = window.matchMedia('(max-width: 992px)').matches;
+    const initialSidebar = storedSidebar || (prefersCompact ? 'compact' : 'expanded');
+    setSidebarMode(initialSidebar, { persist: false });
 
     const storedMotion = getStored(STORAGE_KEYS.motion);
     initMotionRuntime({ storedPreference: storedMotion, initial: html.getAttribute('data-motion') });
