@@ -13,18 +13,18 @@ Bu rapor mevcut Blade layout, partial ve bileşenlerini inceleyerek yeni `resour
 | Partial | Yol | Kullanım | Öne Çıkan Bileşenler | Öneri |
 | --- | --- | --- | --- | --- |
 | Sidebar | `resources/views/partials/sidebar.blade.php` | Admin shell içinde navigation. | statik link listeleri | `resources/partials/layout/sidebar.blade.php` altına taşınarak module discovery (config tabanlı) uygulanmalı.
-| Header | `resources/views/partials/header.blade.php` | Üst menü + toolbar. | `<x-ui-toolbar>`, toggle butonları | Header aksiyonları Consoles akışlarına göre dinamikleştirilmeli; toolbar item'ları JSON config ile beslenecek.
-| Toast Region | `resources/views/partials/toast.blade.php` | Küresel toast container. | `<x-ui-toast>` | `resources/partials/ui/toast-region.blade.php` altına taşınıp Vite entry ile lazy-load edilecek.
+| Header | `resources/views/partials/header.blade.php` | Üst menü + toolbar. | `<x-ui.toolbar>`, toggle butonları | Header aksiyonları Consoles akışlarına göre dinamikleştirilmeli; toolbar item'ları JSON config ile beslenecek.
+| Toast Region | `resources/views/partials/toast.blade.php` | Küresel toast container. | `<x-ui.toast>` | `resources/partials/ui/toast-region.blade.php` altına taşınıp Vite entry ile lazy-load edilecek.
 
 ## Blade Componentleri
-`resources/views/components` altında 29 adet `ui-*` bileşeni bulunuyor; hepsi `x-ui-*` prefix'i ile çağrılıyor. En sık kullanılanlar `ui-card`, `ui-button`, `ui-table`, `ui-modal`. `rg` taraması UI galerisi (`resources/views/ui/index.blade.php`) içinde yoğun kullanım gösteriyor.
+`resources/views/components` altında 29 adet `ui-*` bileşeni bulunuyor; hepsi `<x-ui.*>` notasyonu ile çağrılıyor. En sık kullanılanlar `ui-card`, `ui-button`, `ui-table`, `ui-modal`. `rg` taraması UI galerisi (`resources/views/ui/index.blade.php`) içinde yoğun kullanım gösteriyor.
 
 | Bileşen | Yol | Amacı | Öneri |
 | --- | --- | --- | --- |
-| `x-ui-card` | `resources/views/components/ui-card.blade.php` | Kart düzeni | Modüller arası paylaşım için `resources/components/ui/card.blade.php` yolu standardize edilmeli; props tipi PHP attribute ile belgelenmeli.
-| `x-ui-table` | `resources/views/components/ui-table.blade.php` | Responsive tablo ve aksiyon menüsü | Scroll gölgesi ve density kontrolleri JS modülüne bağımlı; module bazlı Vite entry auto-discovery ile table script'i yalnız kullanılan sayfalara dahil edilmeli.
-| `x-ui-modal` | `resources/views/components/ui-modal.blade.php` | Modal kabuğu | Data attributes design token'ları ile hizalanacak; form slot'u typed component'e çevrilecek.
-| `x-ui-toolbar` | `resources/views/components/ui-toolbar.blade.php` | Toolbar buton kümeleri | `resources/js/components/toolbar.js` ile eşleşiyor; toolbar item konfigürasyonu modül config dosyalarına taşınmalı.
+| `<x-ui.card>` | `resources/views/components/ui-card.blade.php` | Kart düzeni | Modüller arası paylaşım için `resources/components/ui/card.blade.php` yolu standardize edilmeli; props tipi PHP attribute ile belgelenmeli.
+| `<x-ui.table>` | `resources/views/components/ui-table.blade.php` | Responsive tablo ve aksiyon menüsü | Scroll gölgesi ve density kontrolleri JS modülüne bağımlı; module bazlı Vite entry auto-discovery ile table script'i yalnız kullanılan sayfalara dahil edilmeli.
+| `<x-ui.modal>` | `resources/views/components/ui-modal.blade.php` | Modal kabuğu | Data attributes design token'ları ile hizalanacak; form slot'u typed component'e çevrilecek.
+| `<x-ui.toolbar>` | `resources/views/components/ui-toolbar.blade.php` | Toolbar buton kümeleri | `resources/js/components/toolbar.js` ile eşleşiyor; toolbar item konfigürasyonu modül config dosyalarına taşınmalı.
 
 > Mevcut component klasörü doğrudan root altında. Yeni yapı: `resources/views/components/ui/*` → modül bazlı alt klasörler (`resources/modules/<module>/views/components`) ile tamamlanacak; çekirdek UI bileşenleri `resources/components/ui` altında kalacak.
 
@@ -34,7 +34,7 @@ Bu rapor mevcut Blade layout, partial ve bileşenlerini inceleyerek yeni `resour
 - Modül spesifik görünümler hâlihazırda ilgili modüllerin `Resources/views` klasörlerinde. Yeni tasarımda bu klasörler `Resources/views/{layouts,partials,components,pages}` olarak yeniden organize edilmeli.
 
 ## Bileşen Kullanım İstatistikleri
-- `x-ui-` prefix'i tüm UI bileşenlerinde tutarlı; `resources/views/ui/index.blade.php` dosyasında 60+ çağrı var.
+- `<x-ui.*>` notasyonu tüm UI bileşenlerinde tutarlı; `resources/views/ui/index.blade.php` dosyasında 60+ çağrı var.
 - `@stack('page-scripts')` ve `@stack('page-styles')` layout üzerinden expose ediliyor; modül view'lerinde `@push` kullanımları standardize edilmeli.
 - Blade componentleri JS tarafında `resources/js/components/*.js` modülleriyle eşleşiyor; tasarım sistemi belgeleri `docs/ui-style-behavior-guide.md` ile uyumlu.
 

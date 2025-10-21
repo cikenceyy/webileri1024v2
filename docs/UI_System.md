@@ -46,7 +46,7 @@ resources/
 
 ## Blade Components
 
-New UI atoms live under `resources/views/components/ui/` and are available via `<x-ui-…>` syntax. See `docs/BladeComponents_Catalog.md` for full API tables.
+New UI atoms live under `resources/views/components/ui/` and are available via `<x-ui.…>` syntax. See `docs/BladeComponents_Catalog.md` for full API tables.
 
 ## Consoles & Pages
 

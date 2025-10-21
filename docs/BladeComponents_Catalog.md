@@ -1,6 +1,7 @@
 # Blade UI Components Catalog
 
-All components live under `resources/views/components/ui/` and are addressable via `<x-ui.*>` or `<x-ui-*>` syntax.
+All components live under `resources/views/components/ui/` and are addressable via the canonical `<x-ui.*>` syntax. Legacy `<x-ui-*>`
+aliases are still registered for backwards compatibility but should be phased out.
 
 ## `<x-ui.button>`
 

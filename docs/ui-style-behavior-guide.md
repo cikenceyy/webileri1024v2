@@ -75,7 +75,7 @@ All modules check `motion-runtime` to disable animation and mark `.is-frozen` wh
   - The searchable whitelist is explicit (e.g. code, name, category). For large datasets, expose extra filters such as date ranges or status chips instead of widening the free-text field.
 - **Row actions**
   - At most two quiet buttons stay inline; additional options collapse into the kebab menu that opens as a `role="menu"`.
-  - Destructive actions route through `<x-ui-confirm>` so ESC/backdrop dismiss consistently restores focus to the originating button.
+  - Destructive actions route through `<x-ui.confirm>` so ESC/backdrop dismiss consistently restores focus to the originating button.
 - **Persistence**
   - Density toggles persist lazily and emit `ui:table:density` for observers.
 

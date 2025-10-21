@@ -14,11 +14,11 @@
 
 | Legacy Usage | New Component | Migration Notes |
 | --- | --- | --- |
-| `<x-ui-button>` | `<x-ui.button>` | New Blade anonymous component provides variant/size/icon API; legacy component remains for compatibility. |
-| `<x-ui-input>` | `<x-ui.input>` | Standardised input wrapper with validation feedback. |
-| `<x-ui-select>` | `<x-ui.select>` | Provides placeholder, option binding, and error state. |
-| `<x-ui-table>` (legacy hyphen) | `<x-ui.table>` | Table component exposes `thead`/`tbody` slots and optional responsive wrapper. |
-| `<x-ui-modal>` | `<x-ui.modal>` | Bootstrap-compatible modal skeleton. |
+| `<x-ui-button>` | `<x-ui.button>` | Canonical component under `ui/` directory; hyphen alias persists only for legacy templates. |
+| `<x-ui-input>` | `<x-ui.input>` | Canonical component under `ui/`; resolves validation errors automatically. |
+| `<x-ui-select>` | `<x-ui.select>` | Canonical component under `ui/`; supports placeholder and multi-select bindings. |
+| `<x-ui-table>` (legacy hyphen) | `<x-ui.table>` | Canonical component under `ui/`; includes density, search and totals controls. |
+| `<x-ui-modal>` | `<x-ui.modal>` | Canonical component under `ui/`; hyphen alias remains temporarily. |
 | `partials.toast` inline markup | `<x-ui.toast>` & `<x-ui.toast-stack>` | Componentised toast stack retains existing JS hooks (`data-ui="toast-container"`). |
 
 ## Assets

@@ -1,33 +1,46 @@
 @props([
-    'id',
     'title' => null,
+    'id' => 'modal',
     'size' => 'md',
+    'escClosable' => true,
+    'ariaLabel' => null,
 ])
 
 @php
-    $dialogClass = match($size) {
-        'sm' => 'modal-sm',
-        'lg' => 'modal-lg',
-        'xl' => 'modal-xl',
-        default => '',
-    };
+    $labelId = $title ? $id . '-title' : null;
 @endphp
 
-<div {{ $attributes->merge(['class' => 'modal fade', 'id' => $id, 'tabindex' => '-1', 'aria-hidden' => 'true']) }}>
-    <div class="modal-dialog {{ $dialogClass }}">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title h5">{{ $title }}</h2>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
-            </div>
-            <div class="modal-body">
-                {{ $slot }}
-            </div>
-            @if(isset($footer))
-                <div class="modal-footer">
-                    {{ $footer }}
-                </div>
+<div
+    {{
+        $attributes->class('ui-modal')->merge([
+            'id' => $id,
+            'data-ui' => 'modal',
+            'data-size' => $size,
+            'data-esc-closable' => $escClosable ? 'true' : 'false',
+            'aria-hidden' => 'true',
+            'hidden' => true,
+        ])
+    }}
+>
+    <div class="ui-modal__overlay" data-action="close"></div>
+    <div
+        class="ui-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        @if($labelId) aria-labelledby="{{ $labelId }}" @endif
+        @if($ariaLabel) aria-label="{{ $ariaLabel }}" @endif
+    >
+        <header class="ui-modal__header">
+            @if($title)
+                <h2 id="{{ $labelId }}" class="ui-modal__title">{{ $title }}</h2>
             @endif
+            <button type="button" class="ui-modal__close" data-action="close" aria-label="Close modal">×</button>
+        </header>
+        <div class="ui-modal__body">
+            {{ $slot }}
         </div>
+        @isset($footer)
+            <footer class="ui-modal__footer">{{ $footer }}</footer>
+        @endisset
     </div>
 </div>

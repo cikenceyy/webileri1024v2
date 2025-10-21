@@ -14,7 +14,7 @@
             @hasSection('navbar-actions')
                 @yield('navbar-actions')
             @else
-                <x-ui-toolbar :items="[
+                <x-ui.toolbar :items="[
                     ['label' => 'Sipariş - Sevkiyat - Fatura', 'icon' => 'bi bi-diagram-3', 'action' => '#'],
                     ['label' => 'Talep -> Satın Alma - Fatura', 'icon' => 'bi bi-bag-check', 'action' => '#'],
                     ['label' => 'İş Emri - Üretim', 'icon' => 'bi bi-cpu', 'action' => '#'],

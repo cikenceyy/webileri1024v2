@@ -90,6 +90,18 @@ html[data-sidebar='compact'] .ui-layout {
   background: color-mix(in srgb, var(--ui-color-danger) 88%, black 12%);
 }
 
+.ui-button--secondary {
+  background: var(--ui-color-surface-alt);
+  border-color: var(--ui-color-border);
+  color: var(--ui-color-text-muted);
+}
+
+.ui-button--secondary:hover {
+  color: var(--ui-color-text);
+  border-color: var(--ui-color-border-strong);
+  background: color-mix(in srgb, var(--ui-color-surface-alt) 80%, var(--ui-color-primary) 20%);
+}
+
 .ui-button--ghost {
   background: transparent;
   border-color: var(--ui-color-border);
@@ -99,6 +111,27 @@ html[data-sidebar='compact'] .ui-layout {
 .ui-button--ghost:hover {
   border-color: var(--ui-color-primary);
   color: var(--ui-color-primary);
+}
+
+.ui-button--outline {
+  background: transparent;
+  border-color: var(--ui-color-primary);
+  color: var(--ui-color-primary);
+}
+
+.ui-button--outline:hover {
+  background: color-mix(in srgb, var(--ui-color-primary) 16%, transparent 84%);
+}
+
+.ui-button--link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ui-color-primary);
+  padding-inline: 0;
+}
+
+.ui-button--link:hover {
+  color: var(--ui-color-primary-strong);
 }
 
 .ui-button--sm {

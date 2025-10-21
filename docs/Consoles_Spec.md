@@ -50,7 +50,7 @@ Bu doküman, O2C/P2P/MTO konsollarının gerektirdiği servis ve veri kaynaklar�
 
 ## Konsol UI Gözlemleri
 
-- Bootstrap 5 tabanlı kart ve tablo bileşenleri `resources/views/components/ui` altındaki `<x-ui-*>` bileşenleri ile tutarlı kullanılabilir.
+- Bootstrap 5 tabanlı kart ve tablo bileşenleri `resources/views/components/ui` altındaki `<x-ui.*>` bileşenleri ile tutarlı kullanılabilir (legacy `<x-ui-*>` çağrıları alias olarak sürüyor).
 - Layout `resources/views/layouts/admin.blade.php` data attribute’ları (`data-module`, `data-page`) ile Vite dinamik import akışına hazır.
 - Konsollar için yeni Blade sayfaları (`resources/views/consoles/*.blade.php`) filtre formu + KPI kartları + aksiyon tablosu şablonunu paylaşır.
 
