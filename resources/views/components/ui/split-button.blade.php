@@ -5,7 +5,7 @@
 ])
 
 <div {{ $attributes->class('ui-split-button')->merge(['data-ui' => 'split-button']) }}>
-    <x-ui-button type="button" :variant="$primaryVariant">{{ $label }}</x-ui-button>
+    <x-ui.button type="button" :variant="$primaryVariant">{{ $label }}</x-ui.button>
     <button class="ui-split-button__toggle" type="button" data-action="toggle" aria-haspopup="menu" aria-expanded="false">
         <span class="visually-hidden">Toggle options</span>
         <span aria-hidden="true" class="ui-icon">▾</span>

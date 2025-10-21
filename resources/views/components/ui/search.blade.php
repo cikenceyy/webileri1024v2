@@ -4,7 +4,7 @@
     'placeholder' => 'Search…',
 ])
 
-<x-ui-input
+<x-ui.input
     {{ $attributes->merge(['type' => 'search']) }}
     :label="$label"
     :name="$name"

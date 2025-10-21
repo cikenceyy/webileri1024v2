@@ -1,41 +1,73 @@
 @props([
-    'type' => 'button',
     'variant' => 'primary',
     'size' => 'md',
     'icon' => null,
+    'type' => 'button',
     'href' => null,
+    'tag' => null,
+    'loading' => false,
 ])
 
 @php
-    $base = 'btn d-inline-flex align-items-center gap-2';
-    $variants = [
-        'primary' => 'btn-primary',
-        'secondary' => 'btn-outline-secondary',
-        'danger' => 'btn-danger',
-        'link' => 'btn-link text-decoration-none',
-    ];
+    $tagName = $tag ?? ($href ? 'a' : 'button');
 
-    $sizes = [
-        'sm' => 'btn-sm',
-        'md' => '',
-        'lg' => 'btn-lg',
-    ];
+    $classes = array_filter([
+        'ui-button',
+        'ui-button--' . $variant,
+        'ui-button--' . $size,
+        $loading ? 'is-loading' : null,
+    ]);
 
-    $classes = trim($base.' '.($variants[$variant] ?? $variants['primary']).' '.($sizes[$size] ?? ''));
+    $iconMarkup = null;
+
+    if ($icon) {
+        $iconMarkup = str_contains($icon, '<')
+            ? $icon
+            : '<i class="' . e($icon) . '" aria-hidden="true"></i>';
+    }
+
+    $commonAttributes = $attributes->class($classes)->merge([
+        'data-ui' => 'button',
+    ]);
+
+    $defaultTagAttributes = $href
+        ? $commonAttributes->merge(['href' => $href])
+        : $commonAttributes;
 @endphp
 
-@if($href)
-    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes, 'role' => 'button']) }}>
-        @if($icon)
-            <i class="{{ $icon }}" aria-hidden="true"></i>
-        @endif
-        <span>{{ $slot }}</span>
-    </a>
-@else
-    <button type="{{ $type }}" {{ $attributes->merge(['class' => $classes]) }}>
-        @if($icon)
-            <i class="{{ $icon }}" aria-hidden="true"></i>
-        @endif
-        <span>{{ $slot }}</span>
-    </button>
-@endif
+@switch($tagName)
+    @case('a')
+        <a href="{{ $href }}" {{ $commonAttributes->merge(['role' => 'button']) }}>
+            @if($iconMarkup)
+                <span class="ui-button__icon" aria-hidden="true">{!! $iconMarkup !!}</span>
+            @endif
+            <span class="ui-button__label">{{ $slot }}</span>
+            @if($loading)
+                <span class="ui-button__spinner" role="status" aria-live="polite"></span>
+            @endif
+        </a>
+        @break
+
+    @case('button')
+        <button {{ $commonAttributes->merge(['type' => $type]) }}>
+            @if($iconMarkup)
+                <span class="ui-button__icon" aria-hidden="true">{!! $iconMarkup !!}</span>
+            @endif
+            <span class="ui-button__label">{{ $slot }}</span>
+            @if($loading)
+                <span class="ui-button__spinner" role="status" aria-live="polite"></span>
+            @endif
+        </button>
+        @break
+
+    @default
+        <{{ $tagName }} {{ $defaultTagAttributes }}>
+            @if($iconMarkup)
+                <span class="ui-button__icon" aria-hidden="true">{!! $iconMarkup !!}</span>
+            @endif
+            <span class="ui-button__label">{{ $slot }}</span>
+            @if($loading)
+                <span class="ui-button__spinner" role="status" aria-live="polite"></span>
+            @endif
+        </{{ $tagName }}>
+@endswitch

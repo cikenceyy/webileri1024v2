@@ -5,7 +5,7 @@
     'error' => null,
 ])
 
-<x-ui-input
+<x-ui.input
     {{ $attributes->merge(['type' => 'date']) }}
     :label="$label"
     :name="$name"
