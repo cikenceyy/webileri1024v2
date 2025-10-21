@@ -20,7 +20,7 @@ class O2CController extends Controller
         $query = O2CQuery::fromArray($request->validated());
         $state = $orchestration->preview($query->toArray());
 
-        return view('consoles.o2c', [
+        return view('consoles::o2c', [
             'state' => $state,
             'filters' => $query->toArray(),
             'module' => 'Consoles',

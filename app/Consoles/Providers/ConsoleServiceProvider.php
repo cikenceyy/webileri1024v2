@@ -11,7 +11,11 @@ class ConsoleServiceProvider extends ServiceProvider
         if (is_file(__DIR__ . '/../Routes/web.php')) {
             $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
         }
-        $this->loadRoutesFrom(__DIR__ .'/../Routes/console.php');
-        $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'console');
+        $this->loadRoutesFrom(__DIR__ . '/../Routes/console.php');
+
+        $viewsPath = __DIR__ . '/../Resources/views';
+
+        $this->loadViewsFrom($viewsPath, 'console');
+        $this->loadViewsFrom($viewsPath, 'consoles');
     }
 }

@@ -9,6 +9,7 @@ import { initDensityToggle } from './components/density-toggle.js';
 import { initToolbar } from './components/toolbar.js';
 import { initScrollShadow } from './components/scroll-shadow.js';
 import { bootstrapRuntime, initRuntimeControls, toggleSidebarMode } from './components/runtime.js';
+import { initSidebarNavigation } from './components/sidebar.js';
 import { initTableCore } from './components/table-core.js';
 
 
@@ -84,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollShadow();
     initTableCore();
     initHeaderEffects();
+    initSidebarNavigation();
 });
 
 export { bus };

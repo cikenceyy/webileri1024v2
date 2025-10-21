@@ -20,7 +20,7 @@ class P2PController extends Controller
         $query = P2PQuery::fromArray($request->validated());
         $state = $orchestration->preview($query->toArray());
 
-        return view('consoles.p2p', [
+        return view('consoles::p2p', [
             'state' => $state,
             'filters' => $query->toArray(),
             'module' => 'Consoles',

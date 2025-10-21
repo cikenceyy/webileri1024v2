@@ -35,9 +35,7 @@
     $moduleSlug = $moduleContext !== '' ? strtolower($moduleContext) : '';
 @endphp
 <body class="ui-body" data-ui="layout" @if($moduleSlug !== '') data-module="{{ $moduleSlug }}" @endif>
-    <header>
-        @include('partials._navbar')
-    </header>
+    @include('partials._navbar')
 
     <div class="ui-layout" data-ui="shell">
         @include('partials._sidebar')

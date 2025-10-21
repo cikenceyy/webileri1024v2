@@ -6,7 +6,7 @@ use App\Consoles\Http\Controllers\P2PController;
 use App\Consoles\Http\Controllers\TodayBoardController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin.consoles')
+Route::prefix('consoles')
     ->as('consoles.')
     ->middleware(['web', 'auth', 'tenant'])
     ->group(static function (): void {

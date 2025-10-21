@@ -14,7 +14,7 @@ class TodayBoardController
             'shipments' => $request->user()?->open_shipments_count ?? 0,
         ];
 
-        return view('consoles.today', [
+        return view('consoles::today', [
             'summary' => $summary,
         ]);
     }

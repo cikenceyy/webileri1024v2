@@ -20,7 +20,7 @@ class MTOController extends Controller
         $query = MTOQuery::fromArray($request->validated());
         $state = $orchestration->preview($query->toArray());
 
-        return view('consoles.mto', [
+        return view('consoles::mto', [
             'state' => $state,
             'filters' => $query->toArray(),
             'module' => 'Consoles',

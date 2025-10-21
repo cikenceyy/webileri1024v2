@@ -2,6 +2,9 @@
 @use 'tokens/spacing' as *;
 @use 'tokens/radius' as *;
 @use 'tokens/typography' as *;
+@use 'tokens/motion';
+@use 'tokens/effects';
+@use 'tokens/zindex';
 
 @use 'vendors/bootstrap';
 
@@ -29,6 +32,7 @@
   --ui-color-shadow: rgba(15, 23, 42, 0.12);
   --ui-color-backdrop: rgba(27, 33, 47, 0.45);
   --ui-color-surface-stronger: #eef1f9;
+  --ui-header-height: 72px;
 
   --ui-space-0: #{$space-0};
   --ui-space-1: #{$space-2};
