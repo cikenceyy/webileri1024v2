@@ -3,22 +3,22 @@
 @section('title', $priceList->name)
 
 @section('content')
-<x-ui.page-header :title="$priceList->name" description="Fiyat listesi detayları">
+<x-ui-page-header :title="$priceList->name" description="Fiyat listesi detayları">
     <x-slot name="actions">
         <a href="{{ route('admin.inventory.pricelists.index') }}" class="btn btn-outline-secondary">Listeye Dön</a>
         @can('update', $priceList)
-            <x-ui.button variant="primary" href="{{ route('admin.inventory.pricelists.edit', $priceList) }}">Düzenle</x-ui.button>
+            <x-ui-button variant="primary" href="{{ route('admin.inventory.pricelists.edit', $priceList) }}">Düzenle</x-ui-button>
         @endcan
     </x-slot>
-</x-ui.page-header>
+</x-ui-page-header>
 
 @if(session('status'))
-    <x-ui.alert type="success" dismissible>{{ session('status') }}</x-ui.alert>
+    <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
 @endif
 
 <div class="row g-4">
     <div class="col-lg-5">
-        <x-ui.card>
+        <x-ui-card>
             <dl class="row mb-0">
                 <dt class="col-sm-5 text-muted">Ad</dt>
                 <dd class="col-sm-7 fw-semibold">{{ $priceList->name }}</dd>
@@ -28,11 +28,11 @@
                 <dd class="col-sm-7">{{ strtoupper($priceList->currency) }}</dd>
                 <dt class="col-sm-5 text-muted">Durum</dt>
                 <dd class="col-sm-7">
-                    <x-ui.badge :type="$priceList->active ? 'success' : 'secondary'" soft>{{ $priceList->active ? 'Aktif' : 'Pasif' }}</x-ui.badge>
+                    <x-ui-badge :type="$priceList->active ? 'success' : 'secondary'" soft>{{ $priceList->active ? 'Aktif' : 'Pasif' }}</x-ui-badge>
                 </dd>
             </dl>
-        </x-ui.card>
-        <x-ui.card class="mt-4">
+        </x-ui-card>
+        <x-ui-card class="mt-4">
             <h2 class="h6">Yeni Satır</h2>
             @can('update', $priceList)
                 <form method="POST" action="{{ route('admin.inventory.pricelists.items.store', $priceList) }}" data-pricelist-item-form>
@@ -62,20 +62,20 @@
                             @enderror
                         </div>
                         <div class="col-12">
-                            <x-ui.input type="number" step="0.01" min="0" name="price" label="Fiyat" placeholder="0,00" required :value="old('price')" />
+                            <x-ui-input type="number" step="0.01" min="0" name="price" label="Fiyat" placeholder="0,00" required :value="old('price')" />
                         </div>
                     </div>
                     <div class="d-flex justify-content-end mt-3">
-                        <x-ui.button type="submit" variant="primary">Satır Ekle</x-ui.button>
+                        <x-ui-button type="submit" variant="primary">Satır Ekle</x-ui-button>
                     </div>
                 </form>
             @else
                 <p class="text-muted mb-0">Bu listede değişiklik yapma yetkiniz yok.</p>
             @endcan
-        </x-ui.card>
+        </x-ui-card>
     </div>
     <div class="col-lg-7">
-        <x-ui.card>
+        <x-ui-card>
             <h2 class="h6 mb-3">Satırlar</h2>
             @if($priceList->items->isEmpty())
                 <p class="text-muted mb-0">Henüz bir fiyat satırı eklenmemiş.</p>
@@ -101,7 +101,7 @@
                                             <form method="POST" action="{{ route('admin.inventory.pricelists.items.destroy', [$priceList, $item]) }}" onsubmit="return confirm('Satırı kaldırmak istediğinize emin misiniz?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <x-ui.button type="submit" variant="danger" size="sm">Sil</x-ui.button>
+                                                <x-ui-button type="submit" variant="danger" size="sm">Sil</x-ui-button>
                                             </form>
                                         @endcan
                                     </td>
@@ -111,7 +111,7 @@
                     </table>
                 </div>
             @endif
-        </x-ui.card>
+        </x-ui-card>
     </div>
 </div>
 @endsection

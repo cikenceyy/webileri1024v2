@@ -8,22 +8,22 @@
         @csrf
         <div class="row g-3">
             <div class="col-md-4">
-                <x-ui.select name="type" :label="__('Type')">
+                <x-ui-select name="type" :label="__('Type')">
                     <option value="billing">{{ __('Billing') }}</option>
                     <option value="shipping">{{ __('Shipping') }}</option>
-                </x-ui.select>
+                </x-ui-select>
             </div>
-            <div class="col-md-8"><x-ui.input name="line1" :label="__('Line 1')" required /></div>
-            <div class="col-md-6"><x-ui.input name="line2" :label="__('Line 2')" /></div>
-            <div class="col-md-6"><x-ui.input name="line3" :label="__('Line 3')" /></div>
-            <div class="col-md-6"><x-ui.input name="city" :label="__('City')" /></div>
-            <div class="col-md-3"><x-ui.input name="state" :label="__('State')" /></div>
-            <div class="col-md-3"><x-ui.input name="postal_code" :label="__('Postal Code')" /></div>
-            <div class="col-md-4"><x-ui.input name="country" :label="__('Country')" placeholder="TR" /></div>
-            <div class="col-12"><x-ui.checkbox name="is_primary" :label="__('Primary for this type')" value="1" /></div>
+            <div class="col-md-8"><x-ui-input name="line1" :label="__('Line 1')" required /></div>
+            <div class="col-md-6"><x-ui-input name="line2" :label="__('Line 2')" /></div>
+            <div class="col-md-6"><x-ui-input name="line3" :label="__('Line 3')" /></div>
+            <div class="col-md-6"><x-ui-input name="city" :label="__('City')" /></div>
+            <div class="col-md-3"><x-ui-input name="state" :label="__('State')" /></div>
+            <div class="col-md-3"><x-ui-input name="postal_code" :label="__('Postal Code')" /></div>
+            <div class="col-md-4"><x-ui-input name="country" :label="__('Country')" placeholder="TR" /></div>
+            <div class="col-12"><x-ui-checkbox name="is_primary" :label="__('Primary for this type')" value="1" /></div>
         </div>
         <div class="d-flex gap-2">
-            <x-ui.button type="submit">{{ __('Save') }}</x-ui.button>
+            <x-ui-button type="submit">{{ __('Save') }}</x-ui-button>
             <button class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#address-form">{{ __('Cancel') }}</button>
         </div>
     </form>
@@ -43,7 +43,7 @@
             <form method="post" action="{{ route('admin.marketing.addresses.destroy', $address) }}">
                 @csrf
                 @method('delete')
-                <x-ui.button type="submit" variant="danger" size="sm">{{ __('Remove') }}</x-ui.button>
+                <x-ui-button type="submit" variant="danger" size="sm">{{ __('Remove') }}</x-ui-button>
             </form>
         </li>
     @empty

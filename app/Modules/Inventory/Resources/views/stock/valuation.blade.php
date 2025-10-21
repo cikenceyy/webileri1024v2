@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
 @section('content')
-    <x-ui.page-header title="Envanter Değerlemesi" description="Ağırlıklı ortalama maliyet ile stok değeri." />
+    <x-ui-page-header title="Envanter Değerlemesi" description="Ağırlıklı ortalama maliyet ile stok değeri." />
 
-    <x-ui.card>
+    <x-ui-card>
         @if($rows->count())
             <div class="table-responsive">
-                <x-ui.table dense>
+                <x-ui-table dense>
                     <thead>
                         <tr>
                             <th>Ürün</th>
@@ -36,10 +36,10 @@
                             <th class="text-end fw-semibold">{{ number_format($totalValue, 2, ',', '.') }} {{ config('inventory.default_currency', 'TRY') }}</th>
                         </tr>
                     </tfoot>
-                </x-ui.table>
+                </x-ui-table>
             </div>
         @else
-            <x-ui.empty title="Değerleme bulunamadı" description="Stok hareketleri kayıtlı değil." />
+            <x-ui-empty title="Değerleme bulunamadı" description="Stok hareketleri kayıtlı değil." />
         @endif
-    </x-ui.card>
+    </x-ui-card>
 @endsection

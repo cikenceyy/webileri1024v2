@@ -3,8 +3,8 @@
         @csrf
         <input type="hidden" name="related_type" value="{{ $relatedType }}">
         <input type="hidden" name="related_id" value="{{ $relatedId }}">
-        <x-ui.textarea name="body" :label="__('Add note')" rows="3" required />
-        <x-ui.button type="submit">{{ __('Save Note') }}</x-ui.button>
+        <x-ui-textarea name="body" :label="__('Add note')" rows="3" required />
+        <x-ui-button type="submit">{{ __('Save Note') }}</x-ui-button>
     </form>
 </div>
 
@@ -18,7 +18,7 @@
             <form method="post" action="{{ route('admin.marketing.notes.destroy', $note) }}">
                 @csrf
                 @method('delete')
-                <x-ui.button type="submit" variant="danger" size="sm">{{ __('Remove') }}</x-ui.button>
+                <x-ui-button type="submit" variant="danger" size="sm">{{ __('Remove') }}</x-ui-button>
             </form>
         </li>
     @empty

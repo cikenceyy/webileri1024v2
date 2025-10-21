@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
 @section('content')
-<x-ui.page-header :title="__('Opportunities')">
+<x-ui-page-header :title="__('Opportunities')">
     <x-slot:name>actions</x-slot:name>
-    <x-ui.button variant="primary" href="{{ route('admin.marketing.opportunities.create') }}">{{ __('New Opportunity') }}</x-ui.button>
-</x-ui.page-header>
+    <x-ui-button variant="primary" href="{{ route('admin.marketing.opportunities.create') }}">{{ __('New Opportunity') }}</x-ui-button>
+</x-ui-page-header>
 
-<x-ui.card>
+<x-ui-card>
     <div class="table-responsive">
         <table class="table align-middle">
             <thead>
@@ -33,12 +33,12 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6"><x-ui.empty :title="__('No opportunities.')" /></td>
+                        <td colspan="6"><x-ui-empty :title="__('No opportunities.')" /></td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
     <div class="mt-3">{{ $opportunities->links() }}</div>
-</x-ui.card>
+</x-ui-card>
 @endsection

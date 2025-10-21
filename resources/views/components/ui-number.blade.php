@@ -8,7 +8,7 @@
     'max' => null,
 ])
 
-<x-ui.input
+<x-ui-input
     {{ $attributes->merge(['type' => 'number', 'inputmode' => 'decimal']) }}
     :label="$label"
     :name="$name"

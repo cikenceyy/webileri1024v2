@@ -3,20 +3,20 @@
 @section('title', $invoice->invoice_no)
 
 @section('content')
-    <x-ui.page-header :title="$invoice->invoice_no" :description="$invoice->customer?->name">
+    <x-ui-page-header :title="$invoice->invoice_no" :description="$invoice->customer?->name">
         <x-slot name="actions">
             <a class="btn btn-icon btn-secondary" href="{{ route('admin.finance.invoices.edit', $invoice) }}">{{ __('Edit') }}</a>
             <a class="btn btn-icon btn-outline-secondary" target="_blank" rel="noopener" href="{{ route('admin.finance.invoices.print', $invoice) }}">{{ __('Yazdır') }}</a>
             <a class="btn btn-icon btn-primary" href="{{ route('admin.finance.allocations.index', ['invoice_id' => $invoice->getKey()]) }}">{{ __('Tahsilat ile Eşle') }}</a>
         </x-slot>
-    </x-ui.page-header>
+    </x-ui-page-header>
 
     <div class="row g-3">
         <div class="col-lg-8">
-            <x-ui.card>
+            <x-ui-card>
                 <h6 class="fw-semibold mb-3">{{ __('Line Items') }}</h6>
                 <div class="table-responsive">
-                    <x-ui.table class="table-compact">
+                    <x-ui-table class="table-compact">
                         <thead>
                             <tr>
                                 <th>{{ __('Description') }}</th>
@@ -39,14 +39,14 @@
                                 </tr>
                             @endforeach
                         </tbody>
-                    </x-ui.table>
+                    </x-ui-table>
                 </div>
-            </x-ui.card>
+            </x-ui-card>
 
-            <x-ui.card class="mt-3">
+            <x-ui-card class="mt-3">
                 <h6 class="fw-semibold mb-3">{{ __('Allocations') }}</h6>
                 <div class="table-responsive">
-                    <x-ui.table class="table-compact">
+                    <x-ui-table class="table-compact">
                         <thead>
                             <tr>
                                 <th>{{ __('Receipt') }}</th>
@@ -63,16 +63,16 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3"><x-ui.empty title="{{ __('No allocations yet') }}" /></td>
+                                    <td colspan="3"><x-ui-empty title="{{ __('No allocations yet') }}" /></td>
                                 </tr>
                             @endforelse
                         </tbody>
-                    </x-ui.table>
+                    </x-ui-table>
                 </div>
-            </x-ui.card>
+            </x-ui-card>
         </div>
         <div class="col-lg-4">
-            <x-ui.card>
+            <x-ui-card>
                 <div class="d-flex justify-content-between">
                     <span>{{ __('Subtotal') }}</span>
                     <span>{{ number_format($invoice->subtotal, 2) }} {{ $invoice->currency }}</span>
@@ -100,9 +100,9 @@
                 </div>
                 <div class="mt-3">
                     <p class="mb-1 text-muted">{{ __('Status') }}</p>
-                    <x-ui.badge type="info">{{ ucfirst($invoice->status) }}</x-ui.badge>
+                    <x-ui-badge type="info">{{ ucfirst($invoice->status) }}</x-ui-badge>
                 </div>
-            </x-ui.card>
+            </x-ui-card>
         </div>
     </div>
 @endsection

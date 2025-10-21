@@ -212,7 +212,7 @@
                                     data-column-id="{{ $column['id'] }}"
                                 >
                                     @if(is_array($value) && ($value['type'] ?? null) === 'badge')
-                                        <x-ui.badge :variant="$value['variant'] ?? 'info'">{{ $value['label'] ?? '' }}</x-ui.badge>
+                                        <x-ui-badge :variant="$value['variant'] ?? 'info'">{{ $value['label'] ?? '' }}</x-ui-badge>
                                     @elseif(is_array($value) && ($value['type'] ?? null) === 'clamp')
                                         <span class="u-clamp-{{ $value['lines'] ?? 2 }}">{{ $value['value'] ?? '' }}</span>
                                     @else
@@ -231,9 +231,9 @@
                                     @if(isset($rowActionsSlot))
                                         {{ $rowActionsSlot }}
                                     @elseif(isset($row['actions']))
-                                        <x-ui.row-actions :actions="$row['actions']" />
+                                        <x-ui-row-actions :actions="$row['actions']" />
                                     @elseif($rowActions)
-                                        <x-ui.row-actions :actions="$rowActions" />
+                                        <x-ui-row-actions :actions="$rowActions" />
                                     @endif
                                 </td>
                             @endif

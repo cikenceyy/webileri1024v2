@@ -8,18 +8,18 @@
 | `resources/views/legacy/layouts/admin.blade.php` | `resources/views/layouts/admin.blade.php` | Bridge | Allows `@extends('legacy.layouts.admin')` to inherit the new shell without code changes. |
 | `resources/views/partials/header.blade.php` | `resources/views/partials/_navbar.blade.php` | Delegated | Old include now proxies to the modern navbar partial. |
 | `resources/views/partials/sidebar.blade.php` | `resources/views/partials/_sidebar.blade.php` | Delegated | Keeps historical CSS hooks while exposing Bootstrap Icons. |
-| `resources/views/partials/toast.blade.php` | `<x-ui.toast-stack>` | Delegated | Legacy container now wraps the reusable toast stack component. |
+| `resources/views/partials/toast.blade.php` | `<x-ui-toast-stack>` | Delegated | Legacy container now wraps the reusable toast stack component. |
 
 ## Components
 
 | Legacy Usage | New Component | Migration Notes |
 | --- | --- | --- |
-| `<x-ui-button>` | `<x-ui.button>` | New Blade anonymous component provides variant/size/icon API; legacy component remains for compatibility. |
-| `<x-ui-input>` | `<x-ui.input>` | Standardised input wrapper with validation feedback. |
-| `<x-ui-select>` | `<x-ui.select>` | Provides placeholder, option binding, and error state. |
-| `<x-ui-table>` (legacy hyphen) | `<x-ui.table>` | Table component exposes `thead`/`tbody` slots and optional responsive wrapper. |
-| `<x-ui-modal>` | `<x-ui.modal>` | Bootstrap-compatible modal skeleton. |
-| `partials.toast` inline markup | `<x-ui.toast>` & `<x-ui.toast-stack>` | Componentised toast stack retains existing JS hooks (`data-ui="toast-container"`). |
+| `<x-ui-button>` | `<x-ui-button>` | New Blade anonymous component provides variant/size/icon API; legacy component remains for compatibility. |
+| `<x-ui-input>` | `<x-ui-input>` | Standardised input wrapper with validation feedback. |
+| `<x-ui-select>` | `<x-ui-select>` | Provides placeholder, option binding, and error state. |
+| `<x-ui-table>` (legacy hyphen) | `<x-ui-table>` | Table component exposes `thead`/`tbody` slots and optional responsive wrapper. |
+| `<x-ui-modal>` | `<x-ui-modal>` | Bootstrap-compatible modal skeleton. |
+| `partials.toast` inline markup | `<x-ui-toast>` & `<x-ui-toast-stack>` | Componentised toast stack retains existing JS hooks (`data-ui="toast-container"`). |
 
 ## Assets
 
@@ -44,7 +44,7 @@
 @extends('legacy.layouts.admin')  → leave as-is; bridge forwards to new layout
 @include('partials.header')        → now renders `_navbar`
 @include('partials.sidebar')       → now renders `_sidebar`
-@include('partials.toast')         → now renders `<x-ui.toast-stack>`
+@include('partials.toast')         → now renders `<x-ui-toast-stack>`
 ```
 
 Modules can gradually swap `@extends('legacy.layouts.admin')` with `@extends('layouts.admin')` once verified.

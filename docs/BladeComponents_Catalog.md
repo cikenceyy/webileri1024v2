@@ -1,8 +1,8 @@
 # Blade UI Components Catalog
 
-All components live under `resources/views/components/ui/` and are addressable via `<x-ui.*>` or `<x-ui-*>` syntax.
+All components live under `resources/views/components/` using the flat `<x-ui-*>` syntax exclusively.
 
-## `<x-ui.button>`
+## `<x-ui-button>`
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -17,10 +17,10 @@ Slots: default slot renders button label.
 Example:
 
 ```blade
-<x-ui.button variant="secondary" icon="bi bi-plus">Yeni Kayıt</x-ui.button>
+<x-ui-button variant="secondary" icon="bi bi-plus">Yeni Kayıt</x-ui-button>
 ```
 
-## `<x-ui.input>`
+## `<x-ui-input>`
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -33,7 +33,7 @@ Example:
 
 Automatically renders validation feedback using `$errors`.
 
-## `<x-ui.select>`
+## `<x-ui-select>`
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -43,7 +43,7 @@ Automatically renders validation feedback using `$errors`.
 | `placeholder` | string/null | `null` | Adds a blank option as placeholder. |
 | `value` | mixed | `old($name)` | Derived from passed attributes or old input. |
 
-## `<x-ui.table>`
+## `<x-ui-table>`
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -55,7 +55,7 @@ Slots:
 * `tbody` — Optional body rows.
 * Default slot — Additional markup (e.g., `<caption>`).
 
-## `<x-ui.modal>`
+## `<x-ui-modal>`
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -68,7 +68,7 @@ Slots:
 * Default slot renders modal body.
 * `footer` slot for action buttons.
 
-## `<x-ui.toast>`
+## `<x-ui-toast>`
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -79,12 +79,12 @@ Slots:
 
 Renders markup compatible with existing toast runtime (`data-ui="toast"`).
 
-## `<x-ui.toast-stack>`
+## `<x-ui-toast-stack>`
 
 Container component providing `data-ui="toast-container"` for runtime-generated notifications. Accepts additional classes via standard attributes.
 
 Example placement in layout:
 
 ```blade
-<x-ui.toast-stack class="ui-toast-region__inner" />
+<x-ui-toast-stack class="ui-toast-region__inner" />
 ```

@@ -10,7 +10,7 @@
                     <form method="post" action="{{ route('admin.marketing.activities.destroy', $activity) }}">
                         @csrf
                         @method('delete')
-                        <x-ui.button type="submit" size="sm" variant="danger">{{ __('Remove') }}</x-ui.button>
+                        <x-ui-button type="submit" size="sm" variant="danger">{{ __('Remove') }}</x-ui-button>
                     </form>
                 @endcan
             </div>

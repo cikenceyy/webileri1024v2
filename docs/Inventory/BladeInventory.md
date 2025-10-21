@@ -26,7 +26,7 @@ Bu rapor mevcut Blade layout, partial ve bileşenlerini inceleyerek yeni `resour
 | `x-ui-modal` | `resources/views/components/ui-modal.blade.php` | Modal kabuğu | Data attributes design token'ları ile hizalanacak; form slot'u typed component'e çevrilecek.
 | `x-ui-toolbar` | `resources/views/components/ui-toolbar.blade.php` | Toolbar buton kümeleri | `resources/js/components/toolbar.js` ile eşleşiyor; toolbar item konfigürasyonu modül config dosyalarına taşınmalı.
 
-> Mevcut component klasörü doğrudan root altında. Yeni yapı: `resources/views/components/ui/*` → modül bazlı alt klasörler (`resources/modules/<module>/views/components`) ile tamamlanacak; çekirdek UI bileşenleri `resources/components/ui` altında kalacak.
+> Mevcut component klasörü kök altında düz isimlendirmeyle (`resources/views/components/ui-*.blade.php`). Modül bazlı alt klasörler (`resources/modules/<module>/views/components`) ilerleyen adımlarda eklenecek; çekirdek UI bileşenleri bu düz dizinde kalacak.
 
 ## Sayfalar ve Görünümler
 - Çekirdek UI Galerisi: `resources/views/ui/index.blade.php` ve `resources/views/ui/form.blade.php` tasarım sistemi örnekleri sunuyor. Bu dosyalar yeni `resources/pages/ui` klasörüne taşınmalı.

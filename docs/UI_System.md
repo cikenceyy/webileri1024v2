@@ -7,7 +7,7 @@ resources/
 ├── views/
 │   ├── layouts/            # shared shells (admin)
 │   ├── partials/           # navbar, sidebar, footer bridges
-│   ├── components/ui/      # Blade UI atoms (button, input, table, ...)
+│   ├── components/        # Blade UI atoms (ui-*.blade.php for button, input, table, ...)
 │   ├── consoles/           # action consoles (today board prototype)
 │   ├── pages/              # neutral pages ready for module adoption
 │   ├── legacy/             # backward-compat delegates for old includes
@@ -46,11 +46,11 @@ resources/
 
 ## Blade Components
 
-New UI atoms live under `resources/views/components/ui/` and are available via `<x-ui-…>` syntax. See `docs/BladeComponents_Catalog.md` for full API tables.
+New UI atoms live under `resources/views/components/` as flat files (`ui-*.blade.php`) and are available via `<x-ui-…>` syntax. See `docs/BladeComponents_Catalog.md` for full API tables.
 
 ## Consoles & Pages
 
-* `resources/views/consoles/today.blade.php` now demonstrates rendering the Today Board summary with `<x-ui.table>` and the new layout. The existing rich console at `core/boards/today.blade.php` remains intact and will be migrated module-by-module.
+* `resources/views/consoles/today.blade.php` now demonstrates rendering the Today Board summary with `<x-ui-table>` and the new layout. The existing rich console at `core/boards/today.blade.php` remains intact and will be migrated module-by-module.
 * `resources/views/pages/` reserved for shared neutral pages; existing module views stay under `resources/views/core/` until migrated.
 
 ## Asset Entries & Hooks

@@ -6,7 +6,7 @@
 @section('content')
     <div class="container py-3">
         <h1 class="h4 mb-3">Günlük Kontrol Kulesi</h1>
-        <x-ui.table>
+        <x-ui-table>
             @slot('thead')
                 <tr>
                     <th scope="col">Blok</th>
@@ -23,6 +23,6 @@
                     <td>{{ $summary['shipments'] ?? 0 }}</td>
                 </tr>
             @endslot
-        </x-ui.table>
+        </x-ui-table>
     </div>
 @endsection
