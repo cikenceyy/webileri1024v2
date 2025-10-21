@@ -44,6 +44,12 @@ class MarketingServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+
+        // Load module assets
+        $this->loadRoutesFrom(__DIR__ . '/../Routes/admin.php');
+        $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'marketing');
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/migrations');
+
         $this->registerPolicies();
         $this->registerObservers();
         $this->registerCompatAliases();

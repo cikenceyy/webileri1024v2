@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('shipments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+            $table->bigIncrements('id'); 
+            $table->unsignedBigInteger('company_id')->constrained()->cascadeOnDelete();
             $table->string('shipment_no', 32);
             $table->date('ship_date');
             $table->string('status', 16)->default('draft');

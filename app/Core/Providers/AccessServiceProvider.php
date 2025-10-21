@@ -31,10 +31,14 @@ class AccessServiceProvider extends ServiceProvider
         /** @var PermissionRegistrar $registrar */
         $registrar = app(PermissionRegistrar::class);
 
-        $tenant = tenant();
-        if (is_object($tenant) && isset($tenant->id)) {
-            $registrar->setPermissionsTeamId((int) $tenant->id);
+        // HATAYI ÖNLE: tenant() tanımlı mı kontrol et
+        if (function_exists('tenant')) {
+            $tenant = tenant();
+            if (is_object($tenant) && isset($tenant->id)) {
+                $registrar->setPermissionsTeamId((int) $tenant->id);
+            }
         }
+    
 
         $resolved = $this->resolvePermissionCatalogue();
 
@@ -45,7 +49,9 @@ class AccessServiceProvider extends ServiceProvider
         }
 
         Gate::before(static function ($user, $ability) {
-            return method_exists($user, 'hasRole') && $user->hasRole('biz') ? true : null;
+            return method_exists($user, 'hasRole') 
+            && ($user->hasRole('biz') || $user->hasRole('patron') || $user->hasRole('owner')) 
+            ? true : null;
         });
     }
 

@@ -35,6 +35,8 @@ return [
 
     'enable_teams' => true,
 
+    'teams' => true,
+
     'team_model' => App\Core\Support\Models\Company::class,
 
     'team_foreign_key' => 'company_id',

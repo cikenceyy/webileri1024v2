@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RolesAndPermissionsSeeder::class);
+        $this->call(GrantOwnerAllPermissionsSeeder::class);
 
         if (app()->environment('local') || (bool) env('SEED_LOCAL_KOBIS', false)) {
             $this->call(LocalTenantSeeder::class);

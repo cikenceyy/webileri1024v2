@@ -26,6 +26,7 @@ return new class extends Migration
 
         DB::table('po_lines')
             ->select('id', 'uuid')
+            ->orderBy('id')
             ->lazy()
             ->each(function ($row): void {
                 if (! $row->uuid) {
@@ -35,6 +36,7 @@ return new class extends Migration
 
         DB::table('grn_lines')
             ->select('id', 'uuid')
+            ->orderBy('id')
             ->lazy()
             ->each(function ($row): void {
                 if (! $row->uuid) {
