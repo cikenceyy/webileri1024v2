@@ -12,7 +12,7 @@
 @endpush
 
 @section('content')
-<x-ui-content class="ui-gallery" data-ui="gallery">
+<x-ui.content class="ui-gallery" data-ui="gallery">
     <section class="ui-gallery__section" id="tables">
         <header class="ui-gallery__header">
             <div>
@@ -112,7 +112,7 @@
                 ];
             @endphp
 
-            <x-ui-table
+            <x-ui.table
                 id="gallery-table"
                 tableId="inventory-main"
                 :columns="$inventoryColumns"
@@ -130,15 +130,15 @@
                         <button type="button" class="ui-gallery__toggle" data-action="table-reset" data-target="#gallery-table">Varsayılan</button>
                     </div>
                 </x-slot>
-            </x-ui-table>
+            </x-ui.table>
 
-            <x-ui-card title="Arama Akışı" subtitle="GET + scopeSearch" class="ui-gallery__card">
+            <x-ui.card title="Arama Akışı" subtitle="GET + scopeSearch" class="ui-gallery__card">
                 <ul class="ui-gallery__list">
                     <li>Form GET ile <code>?q=</code> parametresi gönderir; JS yalnızca tabloyu <abbr title="Asynchronous JavaScript and XML">AJAX</abbr> yerine <code>aria-busy</code> ile işaretler.</li>
                     <li>Controller <code>scopeSearch($q)</code> çağırır, aranabilir alan beyaz listesini (kod, ad, kategori) kullanır ve sonuçları sayfalar.</li>
                     <li>Toplamlar server tarafında hesaplanıp <code>:totals</code> slotuna verilir; sonuç yoksa boş durum + “Filtreleri temizle” bağlantısı döner.</li>
                 </ul>
-            </x-ui-card>
+            </x-ui.card>
 
             <figure class="ui-gallery__diagram" aria-describedby="column-diagram-note">
                 <figcaption id="column-diagram-note">Kolon Reçetesi</figcaption>
@@ -156,5 +156,5 @@
 
 
 
-</x-ui-content>
+</x-ui.content>
 @endsection

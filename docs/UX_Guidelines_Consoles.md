@@ -19,7 +19,7 @@ Bu rehber, `/consoles/*` ekranlarında uygulanacak tasarım kalıplarını ve er
 
 - Her tablo başlığı `<th scope="col">` ile tanımlanır; tablo satırları minimal ama screen reader dostu `<div class="fw-semibold">` + `<small>` kombinasyonuna sahiptir.
 - Filtre formları etiket (`<label>`) ile input eşleştirmesine dikkat eder; form kontrol boyutları `.form-control-sm` olup klavye erişimini engellemez.
-- Toast bildirimi `x-ui.toast-stack` bileşeni layout içinde global olarak bulunur; işlemler geri bildirim mesajını session flash üzerinden iletir.
+- Toast bildirimi `<x-ui.toast-stack>` bileşeni layout içinde global olarak bulunur; işlemler geri bildirim mesajını session flash üzerinden iletir.
 
 ## Renk ve İkonografi
 

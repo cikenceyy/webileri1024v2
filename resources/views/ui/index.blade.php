@@ -12,7 +12,7 @@
 @endpush
 
 @section('content')
-<x-ui-content class="ui-gallery" data-ui="gallery">
+<x-ui.content class="ui-gallery" data-ui="gallery">
     <section class="ui-gallery__section">
         <header class="ui-gallery__header">
             <div>
@@ -33,13 +33,13 @@
             </div>
         </header>
         <div class="ui-gallery__grid ui-gallery__grid--intro">
-            <x-ui-card title="Header" subtitle="Blur yalnız scroll sonrası" class="ui-gallery__card">
+            <x-ui.card title="Header" subtitle="Blur yalnız scroll sonrası" class="ui-gallery__card">
                 <ul class="ui-gallery__list">
                     <li>64px sabit yükseklik, scroll &gt; 8px olduğunda blur + shadow tetiklenir.</li>
                     <li>Focus-visible ring ile toggle erişilebilirliği.</li>
                 </ul>
-            </x-ui-card>
-            <x-ui-card
+            </x-ui.card>
+            <x-ui.card
                 title="Tema dengesi"
                 subtitle="Yüzey parlaklığı × mikro gölge"
                 class="ui-gallery__card ui-gallery__card--compare"
@@ -91,20 +91,20 @@
                     </div>
                 </div>
                 <p class="ui-gallery__theme-note" data-ui="theme-compare-note">Soft Indigo tonunda parlak yüzey + kadife gölge en dengeli AA kontrastı sağlar.</p>
-            </x-ui-card>
-            <x-ui-card title="Sidebar" subtitle="Dar mod A/B" class="ui-gallery__card">
+            </x-ui.card>
+            <x-ui.card title="Sidebar" subtitle="Dar mod A/B" class="ui-gallery__card">
                 <p>Sidebar genişliği 280px; dar modda ikon + tooltip veya mikro-chip etiketleri.</p>
                 <div class="ui-gallery__sidebar-variants">
                     <span class="ui-gallery__toggle-label">Etiket modu</span>
                     <button type="button" class="ui-gallery__toggle" data-action="sidebar-variant" data-variant="tooltip" aria-pressed="false">Tooltip</button>
                     <button type="button" class="ui-gallery__toggle" data-action="sidebar-variant" data-variant="chip" aria-pressed="false">Chip</button>
                 </div>
-            </x-ui-card>
-            <x-ui-card title="Toast bölgesi" subtitle="En fazla üç öğe" class="ui-gallery__card">
+            </x-ui.card>
+            <x-ui.card title="Toast bölgesi" subtitle="En fazla üç öğe" class="ui-gallery__card">
                 <p>Toast kuyruğu event bus üzerinden yönetilir, 3 öğe sınırı ile temiz kalır.</p>
-                <x-ui-button data-action="toast" data-message="Yeni sipariş oluşturuldu">Örnek toast</x-ui-button>
-            </x-ui-card>
-            <x-ui-card title="Movement Grammar" subtitle="Her hareket tek sözlükten" class="ui-gallery__card">
+                <x-ui.button data-action="toast" data-message="Yeni sipariş oluşturuldu">Örnek toast</x-ui.button>
+            </x-ui.card>
+            <x-ui.card title="Movement Grammar" subtitle="Her hareket tek sözlükten" class="ui-gallery__card">
                 <p class="ui-gallery__description">Drawer, modal, tablo ve toast hareketleri aynı token setini kullanır.</p>
                 <dl class="ui-gallery__grammar">
                     <div class="ui-gallery__grammar-item">
@@ -125,7 +125,7 @@
                     </div>
                 </dl>
                 <p class="ui-gallery__description ui-gallery__description--note">Overlay açıkken tablolar ve listeler <code>.is-frozen</code> ile hareketi durdurur.</p>
-            </x-ui-card>
+            </x-ui.card>
         </div>
     </section>
 
@@ -137,21 +137,21 @@
             </div>
         </header>
         <div class="ui-gallery__grid ui-gallery__grid--forms">
-            <x-ui-card title="Input ailesi" class="ui-gallery__card">
-                <x-ui-input label="Şirket" name="company" placeholder="Acme" help="Şirket adı" />
-                <x-ui-input label="E-posta" name="email" type="email" error="Geçerli e-posta girin" />
-                <x-ui-input label="Sorumlu" name="owner" value="Ayşe Yılmaz" disabled />
-                <x-ui-number label="Adet" name="units" help="Stok adedi" />
-                <x-ui-date label="Teslimat" name="delivery" />
-                <x-ui-search placeholder="SKU ara" />
-                <x-ui-textarea label="Notlar" name="notes">Teslimat detayı…</x-ui-textarea>
-                <x-ui-switch label="Stok uyarıları" name="alerts" />
-                <x-ui-select label="Durum" name="status" :options="['draft' => 'Taslak', 'active' => 'Aktif', 'archived' => 'Arşiv']" />
-            </x-ui-card>
-            <x-ui-card title="Inline edit" class="ui-gallery__card">
-                <x-ui-inline-edit name="project" value="Kış Kampanyası" />
-                <x-ui-inline-edit name="owner" placeholder="Sorumlu ekle" />
-            </x-ui-card>
+            <x-ui.card title="Input ailesi" class="ui-gallery__card">
+                <x-ui.input label="Şirket" name="company" placeholder="Acme" help="Şirket adı" />
+                <x-ui.input label="E-posta" name="email" type="email" error="Geçerli e-posta girin" />
+                <x-ui.input label="Sorumlu" name="owner" value="Ayşe Yılmaz" disabled />
+                <x-ui.number label="Adet" name="units" help="Stok adedi" />
+                <x-ui.date label="Teslimat" name="delivery" />
+                <x-ui.search placeholder="SKU ara" />
+                <x-ui.textarea label="Notlar" name="notes">Teslimat detayı…</x-ui.textarea>
+                <x-ui.switch label="Stok uyarıları" name="alerts" />
+                <x-ui.select label="Durum" name="status" :options="['draft' => 'Taslak', 'active' => 'Aktif', 'archived' => 'Arşiv']" />
+            </x-ui.card>
+            <x-ui.card title="Inline edit" class="ui-gallery__card">
+                <x-ui.inline-edit name="project" value="Kış Kampanyası" />
+                <x-ui.inline-edit name="owner" placeholder="Sorumlu ekle" />
+            </x-ui.card>
         </div>
     </section>
 
@@ -269,7 +269,7 @@
                 ];
             @endphp
 
-            <x-ui-table
+            <x-ui.table
                 id="gallery-table"
                 tableId="inventory-main"
                 :columns="$inventoryColumns"
@@ -287,15 +287,15 @@
                         <button type="button" class="ui-gallery__toggle" data-action="table-reset" data-target="#gallery-table">Varsayılan</button>
                     </div>
                 </x-slot>
-            </x-ui-table>
+            </x-ui.table>
 
-            <x-ui-card title="Arama Akışı" subtitle="GET + scopeSearch" class="ui-gallery__card">
+            <x-ui.card title="Arama Akışı" subtitle="GET + scopeSearch" class="ui-gallery__card">
                 <ul class="ui-gallery__list">
                     <li>Form GET ile <code>?q=</code> parametresi gönderir; JS yalnızca tabloyu <abbr title="Asynchronous JavaScript and XML">AJAX</abbr> yerine <code>aria-busy</code> ile işaretler.</li>
                     <li>Controller <code>scopeSearch($q)</code> çağırır, aranabilir alan beyaz listesini (kod, ad, kategori) kullanır ve sonuçları sayfalar.</li>
                     <li>Toplamlar server tarafında hesaplanıp <code>:totals</code> slotuna verilir; sonuç yoksa boş durum + “Filtreleri temizle” bağlantısı döner.</li>
                 </ul>
-            </x-ui-card>
+            </x-ui.card>
 
             <figure class="ui-gallery__diagram" aria-describedby="column-diagram-note">
                 <figcaption id="column-diagram-note">Kolon Reçetesi</figcaption>
@@ -314,39 +314,39 @@
             <h2 class="ui-gallery__title">Konteyner &amp; Overlay</h2>
         </header>
         <div class="ui-gallery__grid">
-            <x-ui-card title="Kart" subtitle="Radius = 0" class="ui-gallery__card">
+            <x-ui.card title="Kart" subtitle="Radius = 0" class="ui-gallery__card">
                 <x-slot name="actions">
-                    <x-ui-button size="sm">Aksiyon</x-ui-button>
+                    <x-ui.button size="sm">Aksiyon</x-ui.button>
                 </x-slot>
-                <x-ui-badge variant="info">Yeni</x-ui-badge>
+                <x-ui.badge variant="info">Yeni</x-ui.badge>
                 <p>8/16/24 ritmi, kart içi boşluk 16px.</p>
-            </x-ui-card>
-            <x-ui-card title="Drawer" subtitle="Yatay animasyon" class="ui-gallery__card">
-                <x-ui-drawer id="demo-drawer" title="Yeni Sipariş" width="lg">
+            </x-ui.card>
+            <x-ui.card title="Drawer" subtitle="Yatay animasyon" class="ui-gallery__card">
+                <x-ui.drawer id="demo-drawer" title="Yeni Sipariş" width="lg">
                     <p>Drawer PE: JS yoksa form sayfası olarak açılır; açıkken gövde scroll kilitlenir.</p>
                     <p>Tablo satırı tetiklediğinde state korunur, kapanınca odak aksiyona döner.</p>
                     <x-slot name="footer">
-                        <x-ui-button data-action="close" variant="ghost">Kapat</x-ui-button>
-                        <x-ui-button>Kaydet</x-ui-button>
+                        <x-ui.button data-action="close" variant="ghost">Kapat</x-ui.button>
+                        <x-ui.button>Kaydet</x-ui.button>
                     </x-slot>
-                </x-ui-drawer>
-                <x-ui-button data-action="open" data-target="#demo-drawer">Drawer Aç</x-ui-button>
-            </x-ui-card>
-            <x-ui-card title="Modal" subtitle="Dikey animasyon" class="ui-gallery__card">
-                <x-ui-modal id="demo-modal" title="Önizleme" size="sm">
+                </x-ui.drawer>
+                <x-ui.button data-action="open" data-target="#demo-drawer">Drawer Aç</x-ui.button>
+            </x-ui.card>
+            <x-ui.card title="Modal" subtitle="Dikey animasyon" class="ui-gallery__card">
+                <x-ui.modal id="demo-modal" title="Önizleme" size="sm">
                     <p>Overlay portal sistemiyle body altında katmanlanır; blur + tek gölge.</p>
                     <p>ESC kapatır, focus tetikleyiciye döner.</p>
                     <x-slot name="footer">
-                        <x-ui-button data-action="close" variant="ghost">Vazgeç</x-ui-button>
-                        <x-ui-button>Onayla</x-ui-button>
+                        <x-ui.button data-action="close" variant="ghost">Vazgeç</x-ui.button>
+                        <x-ui.button>Onayla</x-ui.button>
                     </x-slot>
-                </x-ui-modal>
-                <x-ui-button data-action="open" data-target="#demo-modal">Modal Aç</x-ui-button>
-            </x-ui-card>
-            <x-ui-card title="Toast" subtitle="Event bus" class="ui-gallery__card">
-                <x-ui-toast title="Stok düşük" message="SKU-131 için stok 5" />
-                <x-ui-button data-action="toast" data-message="Yeni toast">Toast Göster</x-ui-button>
-            </x-ui-card>
+                </x-ui.modal>
+                <x-ui.button data-action="open" data-target="#demo-modal">Modal Aç</x-ui.button>
+            </x-ui.card>
+            <x-ui.card title="Toast" subtitle="Event bus" class="ui-gallery__card">
+                <x-ui.toast title="Stok düşük" message="SKU-131 için stok 5" />
+                <x-ui.button data-action="toast" data-message="Yeni toast">Toast Göster</x-ui.button>
+            </x-ui.card>
         </div>
     </section>
 
@@ -355,15 +355,15 @@
             <h2 class="ui-gallery__title">Navigasyon &amp; Toolbar</h2>
         </header>
         <div class="ui-gallery__grid">
-            <x-ui-card title="Breadcrumbs" class="ui-gallery__card">
-                <x-ui-breadcrumbs :items="[
+            <x-ui.card title="Breadcrumbs" class="ui-gallery__card">
+                <x-ui.breadcrumbs :items="[
                     ['label' => 'Ana sayfa', 'url' => '#'],
                     ['label' => 'Envanter', 'url' => '#'],
                     ['label' => 'SKU-131']
                 ]" />
-            </x-ui-card>
-            <x-ui-card title="Tabs" class="ui-gallery__card">
-                <x-ui-tabs :tabs="[
+            </x-ui.card>
+            <x-ui.card title="Tabs" class="ui-gallery__card">
+                <x-ui.tabs :tabs="[
                     ['id' => 'tab-overview', 'label' => 'Özet'],
                     ['id' => 'tab-activity', 'label' => 'Aktivite'],
                     ['id' => 'tab-files', 'label' => 'Dosyalar']
@@ -377,13 +377,13 @@
                     <div id="tab-files-panel" role="tabpanel" aria-labelledby="tab-files-tab" class="ui-tabs__panel" hidden>
                         <p>Dosya listesi.</p>
                     </div>
-                </x-ui-tabs>
-            </x-ui-card>
-            <x-ui-card title="Pagination" class="ui-gallery__card">
-                <x-ui-pagination :current="2" :total="6" />
-            </x-ui-card>
-            <x-ui-card title="Toolbar" class="ui-gallery__card">
-                <x-ui-toolbar :items="[
+                </x-ui.tabs>
+            </x-ui.card>
+            <x-ui.card title="Pagination" class="ui-gallery__card">
+                <x-ui.pagination :current="2" :total="6" />
+            </x-ui.card>
+            <x-ui.card title="Toolbar" class="ui-gallery__card">
+                <x-ui.toolbar :items="[
                     ['label' => 'Filtre', 'icon' => '⛃', 'action' => 'filter'],
                     ['label' => 'Temizle', 'icon' => '✕', 'action' => 'filter-clear'],
                     ['label' => 'Yoğunluk', 'icon' => '☰', 'action' => 'density']
@@ -391,9 +391,9 @@
                     <span class="ui-toolbar__badge" data-ui="toolbar-filter-badge" hidden>
                         <span aria-hidden="true">●</span> Aktif filtre
                     </span>
-                    <x-ui-button size="sm" variant="ghost">Paylaş</x-ui-button>
-                </x-ui-toolbar>
-            </x-ui-card>
+                    <x-ui.button size="sm" variant="ghost">Paylaş</x-ui.button>
+                </x-ui.toolbar>
+            </x-ui.card>
         </div>
     </section>
 
@@ -402,31 +402,31 @@
             <h2 class="ui-gallery__title">Durum &amp; Geri Bildirim</h2>
         </header>
         <div class="ui-gallery__grid">
-            <x-ui-card title="Badges" class="ui-gallery__card">
-                <x-ui-badge variant="info">Bilgi</x-ui-badge>
-                <x-ui-badge variant="success">Başarılı</x-ui-badge>
-                <x-ui-badge variant="warning">Uyarı</x-ui-badge>
-            </x-ui-card>
-            <x-ui-card title="KPI" class="ui-gallery__card">
-                <x-ui-kpi label="Aylık gelir" value="₺280K" delta="%12↑" trend="Yükselen" />
-            </x-ui-card>
-            <x-ui-card title="Stat" class="ui-gallery__card">
-                <x-ui-stat label="Aktif abonelik" value="1.240" description="12 yeni" />
-            </x-ui-card>
-            <x-ui-card title="Boş durum" class="ui-gallery__card">
-                <x-ui-empty />
-            </x-ui-card>
-            <x-ui-card title="Skeleton" class="ui-gallery__card">
-                <x-ui-skeleton :lines="4" />
-            </x-ui-card>
-            <x-ui-card title="Spinner" class="ui-gallery__card">
-                <x-ui-spinner />
-            </x-ui-card>
-            <x-ui-card title="Confirm" class="ui-gallery__card">
-                <x-ui-confirm id="confirm-delete" title="Kaydı sil" message="Seçili kaydı silmek üzeresiniz." type="danger" />
-                <x-ui-button data-action="open" data-target="#confirm-delete">Silme onayı</x-ui-button>
-            </x-ui-card>
-            <x-ui-card title="Algısal hız kiti" class="ui-gallery__card ui-gallery__card--speed">
+            <x-ui.card title="Badges" class="ui-gallery__card">
+                <x-ui.badge variant="info">Bilgi</x-ui.badge>
+                <x-ui.badge variant="success">Başarılı</x-ui.badge>
+                <x-ui.badge variant="warning">Uyarı</x-ui.badge>
+            </x-ui.card>
+            <x-ui.card title="KPI" class="ui-gallery__card">
+                <x-ui.kpi label="Aylık gelir" value="₺280K" delta="%12↑" trend="Yükselen" />
+            </x-ui.card>
+            <x-ui.card title="Stat" class="ui-gallery__card">
+                <x-ui.stat label="Aktif abonelik" value="1.240" description="12 yeni" />
+            </x-ui.card>
+            <x-ui.card title="Boş durum" class="ui-gallery__card">
+                <x-ui.empty />
+            </x-ui.card>
+            <x-ui.card title="Skeleton" class="ui-gallery__card">
+                <x-ui.skeleton :lines="4" />
+            </x-ui.card>
+            <x-ui.card title="Spinner" class="ui-gallery__card">
+                <x-ui.spinner />
+            </x-ui.card>
+            <x-ui.card title="Confirm" class="ui-gallery__card">
+                <x-ui.confirm id="confirm-delete" title="Kaydı sil" message="Seçili kaydı silmek üzeresiniz." type="danger" />
+                <x-ui.button data-action="open" data-target="#confirm-delete">Silme onayı</x-ui.button>
+            </x-ui.card>
+            <x-ui.card title="Algısal hız kiti" class="ui-gallery__card ui-gallery__card--speed">
                 <div class="ui-gallery__speed" data-ui="speed-demo">
                     <div class="ui-gallery__speed-track" data-variant="skeleton">
                         <span class="ui-gallery__speed-label">Skeleton → İçerik</span>
@@ -442,7 +442,7 @@
                     <button type="button" class="ui-gallery__toggle" data-action="speed" data-target="content" aria-pressed="false">Anlık</button>
                 </div>
                 <p class="ui-gallery__description ui-gallery__description--note">Kademeli geçiş skeleton opaklığını artırırken reduced motion’da ikisi de anlık gösterilir.</p>
-            </x-ui-card>
+            </x-ui.card>
         </div>
     </section>
 
@@ -452,18 +452,18 @@
             <p class="ui-gallery__description">Klavye akışı, focus geri dönüşü ve ESC davranışı canlı test edilir.</p>
         </header>
         <div class="ui-gallery__grid ui-gallery__grid--a11y">
-            <x-ui-card title="Klavye kısayolları" class="ui-gallery__card">
+            <x-ui.card title="Klavye kısayolları" class="ui-gallery__card">
                 <ul class="ui-gallery__list">
                     <li><strong>Tab / Shift+Tab:</strong> Krom ve içerik içinde doğal odak sırası.</li>
                     <li><strong>Enter / Space:</strong> Data-action butonlarını tetikler.</li>
                     <li><strong>ESC:</strong> Açık modal veya drawer kapanır, tetikleyen odağa döner.</li>
                 </ul>
-            </x-ui-card>
-            <x-ui-card title="Focus ring" class="ui-gallery__card">
+            </x-ui.card>
+            <x-ui.card title="Focus ring" class="ui-gallery__card">
                 <p>:focus-visible mixini tüm etkileşimli öğelerde sınamak için aşağıdaki butonu kullanın.</p>
-                <x-ui-button class="ui-gallery__focus-demo">Focus turunu başlat</x-ui-button>
-            </x-ui-card>
+                <x-ui.button class="ui-gallery__focus-demo">Focus turunu başlat</x-ui.button>
+            </x-ui.card>
         </div>
     </section>
-</x-ui-content>
+</x-ui.content>
 @endsection
