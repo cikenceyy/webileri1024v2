@@ -10,7 +10,7 @@
             <span class="text-muted">@yield('section', 'Dashboard')</span>
         </div>
 
-        <div class="ms-auto" role="toolbar" aria-label="Header actions">
+        <div class="ms-auto d-flex align-items-center gap-3" role="toolbar" aria-label="Header actions">
             @hasSection('navbar-actions')
                 @yield('navbar-actions')
             @else
@@ -20,6 +20,13 @@
                     ['label' => 'İş Emri - Üretim', 'icon' => 'bi bi-cpu', 'action' => '#'],
                 ]" />
             @endif
+
+            @auth
+                <form method="POST" action="{{ route('admin.auth.logout') }}" class="d-flex">
+                    @csrf
+                    <x-ui-button type="submit" variant="outline-secondary" size="sm">{{ __('Çıkış Yap') }}</x-ui-button>
+                </form>
+            @endauth
         </div>
     </div>
 </nav>
