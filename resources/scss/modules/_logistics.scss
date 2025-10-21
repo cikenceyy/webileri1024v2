@@ -1,0 +1,26 @@
+body[data-module='logistics'] {
+  [data-logistics-filters][data-state='filtered'] {
+    border-color: color-mix(in srgb, var(--ui-color-primary) 50%, transparent);
+    background: color-mix(in srgb, var(--ui-color-primary) 6%, white 94%);
+  }
+
+  [data-logistics-row][data-hover='true'] {
+    background: color-mix(in srgb, var(--ui-color-primary) 8%, white 92%);
+  }
+
+  [data-logistics-status][data-status-tone='warning'] {
+    color: #ad5f00;
+  }
+
+  [data-logistics-status][data-status-tone='success'] {
+    color: #1a7f42;
+  }
+
+  [data-logistics-status][data-status-tone='danger'] {
+    color: #b3261e;
+  }
+
+  [data-logistics-status][data-status-tone='info'] {
+    color: #1a56db;
+  }
+}

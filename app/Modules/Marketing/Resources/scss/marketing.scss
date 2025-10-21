@@ -1,0 +1,48 @@
+[data-module='marketing'] {
+    .marketing-hero--active {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(37, 99, 235, 0.08));
+        border-radius: var(--ui-radius-md, 10px);
+        padding: 1.25rem;
+    }
+
+    [data-marketing-filters][data-state='filtered'],
+    [data-crm-filters][data-state='filtered'] {
+        border-color: var(--ui-color-primary);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-color-primary) 20%, transparent);
+    }
+
+    [data-marketing-orders] [data-marketing-order-row][data-hover='true'],
+    [data-crm-orders] [data-crm-order-row][data-hover='true'] {
+        background: color-mix(in srgb, var(--ui-color-primary) 6%, white 94%);
+    }
+
+    [data-marketing-line-editor],
+    [data-crm-line-editor] {
+        border: 1px solid var(--ui-color-border-strong);
+        border-radius: var(--ui-radius-lg);
+        padding: var(--ui-space-3);
+        background: #fff;
+    }
+
+    [data-marketing-line-editor] table,
+    [data-crm-line-editor] table {
+        border-color: var(--ui-color-border);
+    }
+
+    [data-marketing-line-editor] thead th,
+    [data-crm-line-editor] thead th {
+        background: var(--ui-color-surface-subtle);
+    }
+
+    [data-marketing-line-add],
+    [data-crm-line-add] {
+        margin-top: var(--ui-space-2);
+    }
+
+    [data-marketing-line-totals],
+    [data-crm-line-totals] {
+        background: var(--ui-color-surface-subtle);
+        border-radius: var(--ui-radius-md);
+        padding: var(--ui-space-2);
+    }
+}

@@ -1,0 +1,95 @@
+.ui-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--ui-z-header);
+  min-height: 64px;
+  background: color-mix(in srgb, var(--ui-color-surface-alt) 94%, transparent);
+  border-bottom: 1px solid transparent;
+  transition: background var(--ui-time-fast) var(--ui-ease-standard),
+    border-color var(--ui-time-fast) var(--ui-ease-standard),
+    backdrop-filter var(--ui-time-fast) var(--ui-ease-standard),
+    box-shadow var(--ui-time-fast) var(--ui-ease-standard);
+}
+
+.ui-header::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  height: 1px;
+  background: transparent;
+  transition: background var(--ui-time-fast) var(--ui-ease-standard);
+}
+
+.ui-header[data-scrolled='true'] {
+  backdrop-filter: var(--ui-blur-header);
+  background: color-mix(in srgb, var(--ui-color-surface-alt) 88%, transparent);
+  border-bottom-color: transparent;
+  box-shadow: 0 1px 12px rgba(24, 34, 54, 0.08);
+}
+
+.ui-header[data-scrolled='true']::after {
+  background: var(--ui-color-border);
+}
+
+.ui-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  gap: var(--ui-space-3);
+}
+
+.ui-header__toggle {
+  background: transparent;
+  border: none;
+  padding: var(--ui-space-1);
+  color: var(--ui-color-text-muted);
+  transition: color var(--ui-time-fast) var(--ui-ease-standard);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--ui-color-text);
+  }
+}
+
+.ui-header__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-header__product {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ui-color-text);
+  transition: color var(--ui-time-fast) var(--ui-ease-standard);
+}
+
+.ui-header[data-scrolled='true'] .ui-header__product {
+  color: color-mix(in srgb, var(--ui-color-text) 96%, white 4%);
+}
+
+.ui-header__section {
+  color: var(--ui-color-text-muted);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ui-header__actions {
+  margin-inline-start: auto;
+}
+
+html[data-motion='reduced'] .ui-header,
+html[data-motion='reduced'] .ui-header::after {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion-override='true']) .ui-header,
+  html:not([data-motion-override='true']) .ui-header::after {
+    transition: none;
+  }
+}

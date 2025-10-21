@@ -1,0 +1,26 @@
+@use 'tokens/colors' as *;
+@use 'tokens/spacing' as *;
+@use 'tokens/radius' as *;
+@use 'tokens/typography' as *;
+
+@use 'vendors/bootstrap';
+
+:root {
+  --ui-color-text: #1f2430;
+  --ui-color-primary: #4f46e5;
+  --ui-color-accent: #fb923c;
+  --ui-radius-md: #{$radius-md};
+  --ui-font-family: #{$font-family-base};
+}
+
+body {
+  font-family: var(--ui-font-family);
+  color: var(--ui-color-text);
+  background-color: #fff;
+}
+
+main {
+  padding-block: #{$space-5};
+}
+
+@import 'bootstrap-icons/font/bootstrap-icons.css';

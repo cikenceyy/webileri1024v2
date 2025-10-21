@@ -1,0 +1,33 @@
+.u-truncate {
+  @include truncate;
+}
+
+.u-clamp-2 {
+  @include clamp(2);
+}
+
+.u-stack-16 > * + * {
+  margin-top: var(--ui-space-2);
+}
+
+.u-stack-24 > * + * {
+  margin-top: var(--ui-space-3);
+}
+
+.u-cluster-24 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-3);
+}
+
+.u-scroll-shadow::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  @include scroll-shadow-x;
+}

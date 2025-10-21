@@ -1,0 +1,52 @@
+.ui-alert {
+  --ui-alert-border: var(--ui-color-info);
+  --ui-alert-bg: color-mix(in srgb, var(--ui-alert-border) 12%, transparent);
+  --ui-alert-color: var(--ui-alert-border);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2);
+  border-radius: var(--ui-radius-md);
+  border: 1px solid color-mix(in srgb, var(--ui-alert-border) 20%, transparent);
+  background: var(--ui-alert-bg);
+  color: var(--ui-alert-color);
+  position: relative;
+}
+
+.ui-alert[data-tone='success'] {
+  --ui-alert-border: var(--ui-color-success);
+}
+
+.ui-alert[data-tone='warning'] {
+  --ui-alert-border: var(--ui-color-warning);
+}
+
+.ui-alert[data-tone='danger'] {
+  --ui-alert-border: var(--ui-color-danger);
+}
+
+.ui-alert__body {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.ui-alert__title {
+  font-weight: 600;
+  margin: 0;
+}
+
+.ui-alert__close {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--ui-radius-pill);
+  line-height: 1;
+}
+
+.ui-alert__close:hover,
+.ui-alert__close:focus-visible {
+  background: color-mix(in srgb, var(--ui-alert-border) 10%, transparent);
+}

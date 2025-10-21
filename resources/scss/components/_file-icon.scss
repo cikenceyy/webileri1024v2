@@ -1,0 +1,49 @@
+.ui-file-icon {
+  --ui-file-icon-size: 40px;
+  --ui-file-icon-color: var(--ui-color-primary);
+  --ui-file-icon-bg: color-mix(in srgb, var(--ui-file-icon-color) 14%, transparent);
+  width: var(--ui-file-icon-size);
+  height: var(--ui-file-icon-size);
+  border-radius: var(--ui-radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: calc(var(--ui-file-icon-size) / 3);
+  text-transform: uppercase;
+  background: var(--ui-file-icon-bg);
+  color: var(--ui-file-icon-color);
+  letter-spacing: 0.04em;
+}
+
+.ui-file-icon[data-kind='image'] {
+  --ui-file-icon-color: #f97316;
+}
+
+.ui-file-icon[data-kind='pdf'] {
+  --ui-file-icon-color: #ef4444;
+}
+
+.ui-file-icon[data-kind='doc'] {
+  --ui-file-icon-color: #2563eb;
+}
+
+.ui-file-icon[data-kind='sheet'] {
+  --ui-file-icon-color: #16a34a;
+}
+
+.ui-file-icon[data-kind='archive'] {
+  --ui-file-icon-color: #d97706;
+}
+
+.ui-file-icon[data-kind='audio'] {
+  --ui-file-icon-color: #7c3aed;
+}
+
+.ui-file-icon[data-kind='video'] {
+  --ui-file-icon-color: #0ea5e9;
+}
+
+.ui-file-icon[data-kind='code'] {
+  --ui-file-icon-color: #0ea5e9;
+}

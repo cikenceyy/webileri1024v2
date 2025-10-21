@@ -1,0 +1,12 @@
+// Color design tokens (Sass variables only)
+$ui-indigo:  #4f46e5;
+$ui-blue:    #2563eb;
+$ui-orange:  #fb923c;
+$ui-gray-900:#111827;
+$ui-gray-700:#374151;
+$ui-gray-100:#f3f4f6;
+
+// Bootstrap theme overrides can import these tokens.
+$primary:   $ui-indigo;
+$secondary: $ui-blue;
+$warning:   $ui-orange;

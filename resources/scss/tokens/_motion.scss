@@ -1,0 +1,45 @@
+:root {
+  --t-fast: 120ms;
+  --t-med: 200ms;
+  --t-slow: 260ms;
+  --motion-distance-modal: 8px;
+  --motion-distance-drawer: 12px;
+  --ease-soft: cubic-bezier(.22, 1, .36, 1);
+  --ease-out: cubic-bezier(.16, .84, .44, 1);
+  --ui-time-fast: var(--t-fast);
+  --ui-time-base: var(--t-med);
+  --ui-time-slow: var(--t-slow);
+  --ui-time-custom: var(--ui-time-base);
+  --ui-ease-standard: var(--ease-soft);
+  --ui-ease-soft: var(--ease-soft);
+  --ui-ease-out: var(--ease-out);
+}
+
+html[data-motion='reduced'] {
+  --t-fast: 0ms;
+  --t-med: 0ms;
+  --t-slow: 0ms;
+  --ui-time-fast: 0ms;
+  --ui-time-base: 0ms;
+  --ui-time-slow: 0ms;
+  --ui-time-custom: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion-override='true']) {
+    --t-fast: 0ms;
+    --t-med: 0ms;
+    --t-slow: 0ms;
+    --ui-time-fast: 0ms;
+    --ui-time-base: 0ms;
+    --ui-time-slow: 0ms;
+    --ui-time-custom: 0ms;
+  }
+}
+
+html[data-motion='reduced'] *,
+html.is-motion-reduced * {
+  transition-duration: 0ms !important;
+  animation-duration: 0ms !important;
+  animation-iteration-count: 1 !important;
+}

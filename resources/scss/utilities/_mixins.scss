@@ -1,0 +1,27 @@
+@mixin focus-ring {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+
+@mixin clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@mixin sticky-top($offset: 0) {
+  position: sticky;
+  top: $offset;
+  z-index: var(--ui-z-sticky);
+}
+
+@mixin scroll-shadow-x {
+  background: linear-gradient(to right, var(--ui-color-surface) 0%, rgba(246, 247, 251, 0) 60%);
+}
+
+@mixin truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
