@@ -49,27 +49,27 @@
      data-category-default="{{ $activeCategory }}"
      data-category-limits='@json($categoryLimits)'
      data-picker-mode="{{ $pickerMode ? '1' : '0' }}">
-    <x-ui.page-header title="Drive" description="Sabit kategorilerle dosyalarınızı yönetin">
+    <x-ui-page-header title="Drive" description="Sabit kategorilerle dosyalarınızı yönetin">
         @if(! $pickerMode)
             <x-slot name="actions">
                 @can('create', \App\Modules\Drive\Domain\Models\Media::class)
-                    <x-ui.button variant="primary" data-action="drive-open-upload">Dosya Yükle</x-ui.button>
+                    <x-ui-button variant="primary" data-action="drive-open-upload">Dosya Yükle</x-ui-button>
                 @endcan
             </x-slot>
         @endif
-    </x-ui.page-header>
+    </x-ui-page-header>
 
     @if(session('status'))
-        <x-ui.alert type="success" dismissible>{{ session('status') }}</x-ui.alert>
+        <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
     @endif
 
     @if($errors->any())
-        <x-ui.alert type="danger" dismissible>
+        <x-ui-alert type="danger" dismissible>
             {{ $errors->first() }}
-        </x-ui.alert>
+        </x-ui-alert>
     @endif
 
-    <x-ui.card class="mb-4">
+    <x-ui-card class="mb-4">
         <div class="d-flex flex-column gap-3">
             <div class="d-flex flex-column flex-lg-row gap-3 justify-content-between align-items-lg-center">
                 <nav class="drive-tabs" aria-label="Drive sekmeleri">
@@ -96,11 +96,11 @@
                            ])) }}"
                            @if($isActive) aria-current="page" @endif>
                             <span>{{ $label }}</span>
-                            <x-ui.badge type="secondary" tone="soft" class="drive-tabs__count">{{ $total }}</x-ui.badge>
+                            <x-ui-badge type="secondary" tone="soft" class="drive-tabs__count">{{ $total }}</x-ui-badge>
                             @if(! is_null($important) && $important > 0)
-                                <x-ui.badge type="warning" tone="soft" class="drive-tabs__important">
+                                <x-ui-badge type="warning" tone="soft" class="drive-tabs__important">
                                     ★ {{ $important }}
-                                </x-ui.badge>
+                                </x-ui-badge>
                             @endif
                         </a>
                     @endforeach
@@ -121,52 +121,52 @@
                 @endif
                 <div class="row g-3">
                     <div class="col-12 col-md-4">
-                        <x-ui.input name="q" :value="request('q')" label="Ara" placeholder="Dosya adı veya tür" />
+                        <x-ui-input name="q" :value="request('q')" label="Ara" placeholder="Dosya adı veya tür" />
                     </div>
                     <div class="col-6 col-md-2">
-                        <x-ui.input name="ext" :value="request('ext')" label="Uzantı" placeholder="pdf" />
+                        <x-ui-input name="ext" :value="request('ext')" label="Uzantı" placeholder="pdf" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-ui.input name="mime" :value="request('mime')" label="MIME" placeholder="image/png" />
+                        <x-ui-input name="mime" :value="request('mime')" label="MIME" placeholder="image/png" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-ui.input name="uploader" :value="request('uploader')" label="Yükleyen ID" placeholder="1" />
+                        <x-ui-input name="uploader" :value="request('uploader')" label="Yükleyen ID" placeholder="1" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-ui.input type="date" name="date_from" :value="request('date_from')" label="Başlangıç" />
+                        <x-ui-input type="date" name="date_from" :value="request('date_from')" label="Başlangıç" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-ui.input type="date" name="date_to" :value="request('date_to')" label="Bitiş" />
+                        <x-ui-input type="date" name="date_to" :value="request('date_to')" label="Bitiş" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-ui.input type="number" name="size_min" :value="request('size_min')" label="Min. Boyut (MB)" min="0" step="1" />
+                        <x-ui-input type="number" name="size_min" :value="request('size_min')" label="Min. Boyut (MB)" min="0" step="1" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-ui.input type="number" name="size_max" :value="request('size_max')" label="Maks. Boyut (MB)" min="0" step="1" />
+                        <x-ui-input type="number" name="size_max" :value="request('size_max')" label="Maks. Boyut (MB)" min="0" step="1" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-ui.select name="sort" label="Sırala" :options="[
+                        <x-ui-select name="sort" label="Sırala" :options="[
                             'created_at' => 'Tarih',
                             'size' => 'Boyut',
                             'original_name' => 'Ad',
                         ]" :value="request('sort', 'created_at')" />
                     </div>
                     <div class="col-6 col-md-2">
-                        <x-ui.select name="dir" label="Yön" :options="[
+                        <x-ui-select name="dir" label="Yön" :options="[
                             'asc' => 'Artan',
                             'desc' => 'Azalan',
                         ]" :value="request('dir', 'desc')" />
                     </div>
                     <div class="col-12 col-md-2 align-self-end">
-                        <x-ui.button type="submit" variant="secondary" class="w-100">Filtrele</x-ui.button>
+                        <x-ui-button type="submit" variant="secondary" class="w-100">Filtrele</x-ui-button>
                     </div>
                 </div>
             </form>
         </div>
-    </x-ui.card>
+    </x-ui-card>
 
     @if(! $pickerMode)
-        <x-ui.card class="mb-4" id="drive-upload-panel" data-drive-upload-panel hidden>
+        <x-ui-card class="mb-4" id="drive-upload-panel" data-drive-upload-panel hidden>
             <div class="drive-upload" data-drive-dropzone>
                 <div class="drive-upload__header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
@@ -174,8 +174,8 @@
                         <p class="text-muted mb-0">Dosyaları sürükleyip bırakın veya bilgisayarınızdan seçin. Aynı anda en fazla 10 dosya yüklenebilir.</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                        <x-ui.select name="upload_category" label="Kategori" class="mb-0" data-drive-category-select :options="$categories" :value="$activeCategory" />
-                        <x-ui.button variant="ghost" data-action="drive-close-upload" aria-label="Yükleme panelini kapat">Kapat</x-ui.button>
+                        <x-ui-select name="upload_category" label="Kategori" class="mb-0" data-drive-category-select :options="$categories" :value="$activeCategory" />
+                        <x-ui-button variant="ghost" data-action="drive-close-upload" aria-label="Yükleme panelini kapat">Kapat</x-ui-button>
                     </div>
                 </div>
                 <div class="drive-upload__drop" tabindex="0" role="button">
@@ -204,13 +204,13 @@
                     <div class="drive-upload__progress-items" data-drive-progress-items></div>
                 </div>
             </div>
-        </x-ui.card>
+        </x-ui-card>
     @endif
 
     @if($mediaItems->count())
         <div class="d-none d-lg-block">
-            <x-ui.card>
-                <x-ui.table dense>
+            <x-ui-card>
+                <x-ui-table dense>
                     <thead>
                         <tr>
                             <th scope="col">Dosya</th>
@@ -231,17 +231,17 @@
                                 @class(['drive-row', 'is-important' => $media->is_important])
                             >
                                 <td>
-                                    <x-ui.file-icon :ext="$media->ext" size="28" class="me-2" />
+                                    <x-ui-file-icon :ext="$media->ext" size="28" class="me-2" />
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2 drive-file-cell">
                                         <span class="fw-semibold text-ellipsis" title="{{ $media->original_name }}">{{ $media->original_name }}</span>
-                                        <x-ui.badge
+                                        <x-ui-badge
                                             type="warning"
                                             tone="soft"
                                             data-drive-important-badge
                                             @if(! $media->is_important) hidden @endif
-                                        >★</x-ui.badge>
+                                        >★</x-ui-badge>
                                     </div>
                                     <div class="text-muted small text-uppercase">{{ $media->ext }}</div>
                                 </td>
@@ -291,7 +291,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <input type="hidden" name="tab" value="{{ $tab }}">
-                                                    <x-ui.button type="submit" variant="danger" size="sm">Sil</x-ui.button>
+                                                    <x-ui-button type="submit" variant="danger" size="sm">Sil</x-ui-button>
                                                 </form>
                                             @endcan
                                         @endif
@@ -300,22 +300,22 @@
                             </tr>
                         @endforeach
                     </tbody>
-                </x-ui.table>
-            </x-ui.card>
+                </x-ui-table>
+            </x-ui-card>
         </div>
 
         <div class="d-lg-none">
             <div class="row g-3">
                 @foreach($mediaItems as $media)
                     <div class="col-12">
-                        <x-ui.card
+                        <x-ui-card
                             class="h-100 drive-row {{ $media->is_important ? 'is-important' : '' }}"
                             data-drive-row
                             data-id="{{ $media->id }}"
                             data-important="{{ $media->is_important ? '1' : '0' }}"
                         >
                             <div class="d-flex align-items-start gap-3">
-                                <x-ui.file-icon :ext="$media->ext" size="36" />
+                                <x-ui-file-icon :ext="$media->ext" size="36" />
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                         <div>
@@ -323,12 +323,12 @@
                                             <div class="text-muted small">{{ $media->mime }} · {{ $formatSize($media->size) }}</div>
                                         </div>
                                         @if(! $pickerMode)
-                                            <x-ui.badge
+                                            <x-ui-badge
                                                 type="warning"
                                                 tone="soft"
                                                 data-drive-important-badge
                                                 @if(! $media->is_important) hidden @endif
-                                            >★</x-ui.badge>
+                                            >★</x-ui-badge>
                                         @endif
                                     </div>
                                     <div class="drive-actions drive-actions--wrap">
@@ -367,32 +367,32 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <input type="hidden" name="tab" value="{{ $tab }}">
-                                                    <x-ui.button type="submit" variant="danger" size="sm">Sil</x-ui.button>
+                                                    <x-ui-button type="submit" variant="danger" size="sm">Sil</x-ui-button>
                                                 </form>
                                             @endcan
                                         @endif
                                     </div>
                                 </div>
                             </div>
-                        </x-ui.card>
+                        </x-ui-card>
                     </div>
                 @endforeach
             </div>
         </div>
     @else
-        <x-ui.empty icon="folder" title="Henüz dosya yok" description="İlk dosyanızı yüklediğinizde burada görünecek." />
+        <x-ui-empty icon="folder" title="Henüz dosya yok" description="İlk dosyanızı yüklediğinizde burada görünecek." />
     @endif
 
     <div class="mt-4">
-        <x-ui.pagination :paginator="$mediaItems" />
+        <x-ui-pagination :paginator="$mediaItems" />
     </div>
 </div>
 
 @if(! $pickerMode)
-    <x-ui.modal id="driveReplaceModal" :title="'Dosyayı değiştir'">
+    <x-ui-modal id="driveReplaceModal" :title="'Dosyayı değiştir'">
         <div class="drive-replace" data-drive-replace-modal>
             <p class="drive-replace__summary" data-drive-replace-name></p>
-            <x-ui.input
+            <x-ui-input
                 type="file"
                 name="drive_replace"
                 id="drive-replace-input"
@@ -402,9 +402,9 @@
             <div class="drive-replace__error" data-drive-replace-error hidden></div>
         </div>
         <x-slot name="footer">
-            <x-ui.button variant="ghost" data-action="close">Vazgeç</x-ui.button>
-            <x-ui.button variant="primary" data-action="drive-submit-replace">Değiştir</x-ui.button>
+            <x-ui-button variant="ghost" data-action="close">Vazgeç</x-ui-button>
+            <x-ui-button variant="primary" data-action="drive-submit-replace">Değiştir</x-ui-button>
         </x-slot>
-    </x-ui.modal>
+    </x-ui-modal>
 @endif
 @endsection

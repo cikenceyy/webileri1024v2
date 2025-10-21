@@ -10,10 +10,7 @@ import { initToolbar } from './components/toolbar.js';
 import { initScrollShadow } from './components/scroll-shadow.js';
 import { bootstrapRuntime, initRuntimeControls, toggleSidebarMode } from './components/runtime.js';
 import { initTableCore } from './components/table-core.js';
-import { initDriveModule } from './modules/drive.js';
-import { initInventoryModule } from './modules/inventory.js';
-import { initLogisticsModule } from './modules/logistics.js';
-import { initFinanceModule } from './modules/finance.js';
+
 
 const initActions = () => {
     document.addEventListener('click', (event) => {
@@ -87,11 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollShadow();
     initTableCore();
     initHeaderEffects();
-    initDriveModule();
-    initInventoryModule();
-    initLogisticsModule();
-    initFinanceModule();
-
 });
 
 export { bus };

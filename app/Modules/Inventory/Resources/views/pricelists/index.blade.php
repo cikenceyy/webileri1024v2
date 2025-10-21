@@ -3,33 +3,33 @@
 @section('title', 'Fiyat Listeleri')
 
 @section('content')
-<x-ui.page-header title="Fiyat Listeleri" description="Satış ve satın alma fiyat listeleri">
+<x-ui-page-header title="Fiyat Listeleri" description="Satış ve satın alma fiyat listeleri">
     <x-slot name="actions">
         @can('create', \App\Modules\Inventory\Domain\Models\PriceList::class)
-            <x-ui.button variant="primary" href="{{ route('admin.inventory.pricelists.create') }}">Yeni Liste</x-ui.button>
+            <x-ui-button variant="primary" href="{{ route('admin.inventory.pricelists.create') }}">Yeni Liste</x-ui-button>
         @endcan
     </x-slot>
-</x-ui.page-header>
+</x-ui-page-header>
 
 @if(session('status'))
-    <x-ui.alert type="success" dismissible>{{ session('status') }}</x-ui.alert>
+    <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
 @endif
 
-<x-ui.card class="mb-4" data-inventory-filters>
+<x-ui-card class="mb-4" data-inventory-filters>
     <form method="GET" action="{{ route('admin.inventory.pricelists.index') }}" class="row g-3">
         <div class="col-md-8">
-            <x-ui.input name="q" label="Ara" :value="$filters['q'] ?? ''" placeholder="Liste adı" />
+            <x-ui-input name="q" label="Ara" :value="$filters['q'] ?? ''" placeholder="Liste adı" />
         </div>
         <div class="col-md-4 d-flex gap-2 align-items-end">
-            <x-ui.button type="submit" class="flex-grow-1">Filtrele</x-ui.button>
+            <x-ui-button type="submit" class="flex-grow-1">Filtrele</x-ui-button>
             <a href="{{ route('admin.inventory.pricelists.index') }}" class="btn btn-outline-secondary">Sıfırla</a>
         </div>
     </form>
-</x-ui.card>
+</x-ui-card>
 
 @if($priceLists->count())
-    <x-ui.card>
-        <x-ui.table dense>
+    <x-ui-card>
+        <x-ui-table dense>
             <thead>
                 <tr>
                     <th>Ad</th>
@@ -46,7 +46,7 @@
                         <td>{{ $list->type === 'sale' ? 'Satış' : 'Satın Alma' }}</td>
                         <td>{{ strtoupper($list->currency) }}</td>
                         <td>
-                            <x-ui.badge :type="$list->active ? 'success' : 'secondary'" soft>{{ $list->active ? 'Aktif' : 'Pasif' }}</x-ui.badge>
+                            <x-ui-badge :type="$list->active ? 'success' : 'secondary'" soft>{{ $list->active ? 'Aktif' : 'Pasif' }}</x-ui-badge>
                         </td>
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-2">
@@ -58,7 +58,7 @@
                                     <form method="POST" action="{{ route('admin.inventory.pricelists.destroy', $list) }}" onsubmit="return confirm('Listeyi silmek istediğinize emin misiniz?');">
                                         @csrf
                                         @method('DELETE')
-                                        <x-ui.button type="submit" variant="danger" size="sm">Sil</x-ui.button>
+                                        <x-ui-button type="submit" variant="danger" size="sm">Sil</x-ui-button>
                                     </form>
                                 @endcan
                             </div>
@@ -66,13 +66,13 @@
                     </tr>
                 @endforeach
             </tbody>
-        </x-ui.table>
-    </x-ui.card>
+        </x-ui-table>
+    </x-ui-card>
 
     <div class="mt-4">
         {{ $priceLists->links() }}
     </div>
 @else
-    <x-ui.empty title="Liste yok" description="Yeni bir fiyat listesi oluşturun." />
+    <x-ui-empty title="Liste yok" description="Yeni bir fiyat listesi oluşturun." />
 @endif
 @endsection

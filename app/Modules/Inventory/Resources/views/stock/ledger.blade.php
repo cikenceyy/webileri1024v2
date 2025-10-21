@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
 @section('content')
-    <x-ui.page-header title="Stok Hareket Defteri" description="Tüm stok giriş/çıkış hareketlerini izleyin." />
+    <x-ui-page-header title="Stok Hareket Defteri" description="Tüm stok giriş/çıkış hareketlerini izleyin." />
 
-    <x-ui.card class="mb-4">
+    <x-ui-card class="mb-4">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
                 <label class="form-label">Ambar</label>
@@ -42,21 +42,21 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <x-ui.input type="date" name="date_from" label="Başlangıç Tarihi" value="{{ $filters['date_from'] ?? '' }}" />
+                <x-ui-input type="date" name="date_from" label="Başlangıç Tarihi" value="{{ $filters['date_from'] ?? '' }}" />
             </div>
             <div class="col-md-3">
-                <x-ui.input type="date" name="date_to" label="Bitiş Tarihi" value="{{ $filters['date_to'] ?? '' }}" />
+                <x-ui-input type="date" name="date_to" label="Bitiş Tarihi" value="{{ $filters['date_to'] ?? '' }}" />
             </div>
             <div class="col-md-3">
                 <button type="submit" class="btn btn-primary">Filtrele</button>
             </div>
         </form>
-    </x-ui.card>
+    </x-ui-card>
 
-    <x-ui.card>
+    <x-ui-card>
         @if($movements->count())
             <div class="table-responsive">
-                <x-ui.table dense>
+                <x-ui-table dense>
                     <thead>
                         <tr>
                             <th>Tarih</th>
@@ -90,13 +90,13 @@
                             </tr>
                         @endforeach
                     </tbody>
-                </x-ui.table>
+                </x-ui-table>
             </div>
             <div class="mt-3">
                 {{ $movements->links() }}
             </div>
         @else
-            <x-ui.empty title="Hareket bulunamadı" description="Seçilen filtreler için kayıt yok." />
+            <x-ui-empty title="Hareket bulunamadı" description="Seçilen filtreler için kayıt yok." />
         @endif
-    </x-ui.card>
+    </x-ui-card>
 @endsection

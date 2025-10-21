@@ -3,17 +3,17 @@
 @section('title', __('Bank Accounts'))
 
 @section('content')
-    <x-ui.page-header :title="__('Bank Accounts')">
+    <x-ui-page-header :title="__('Bank Accounts')">
         <x-slot name="actions">
             @can('create', App\Modules\Finance\Domain\Models\BankAccount::class)
-                <x-ui.button tag="a" :href="route('admin.finance.bank-accounts.create')" variant="primary">{{ __('Add Account') }}</x-ui.button>
+                <x-ui-button tag="a" :href="route('admin.finance.bank-accounts.create')" variant="primary">{{ __('Add Account') }}</x-ui-button>
             @endcan
         </x-slot>
-    </x-ui.page-header>
+    </x-ui-page-header>
 
-    <x-ui.card>
+    <x-ui-card>
         <div class="table-responsive">
-            <x-ui.table class="table-compact">
+            <x-ui-table class="table-compact">
                 <thead>
                     <tr>
                         <th>{{ __('Name') }}</th>
@@ -33,19 +33,19 @@
                             <td>{{ $account->is_default ? __('Yes') : __('No') }}</td>
                             <td>{{ ucfirst($account->status) }}</td>
                             <td class="text-end">
-                                <x-ui.button tag="a" size="sm" :href="route('admin.finance.bank-accounts.edit', $account)" variant="secondary">{{ __('Edit') }}</x-ui.button>
+                                <x-ui-button tag="a" size="sm" :href="route('admin.finance.bank-accounts.edit', $account)" variant="secondary">{{ __('Edit') }}</x-ui-button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6"><x-ui.empty title="{{ __('No bank accounts yet') }}" /></td>
+                            <td colspan="6"><x-ui-empty title="{{ __('No bank accounts yet') }}" /></td>
                         </tr>
                     @endforelse
                 </tbody>
-            </x-ui.table>
+            </x-ui-table>
         </div>
         <div class="mt-3">
             {{ $accounts->links() }}
         </div>
-    </x-ui.card>
+    </x-ui-card>
 @endsection

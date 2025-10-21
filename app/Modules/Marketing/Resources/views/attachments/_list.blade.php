@@ -3,8 +3,8 @@
         @csrf
         <input type="hidden" name="related_type" value="{{ $relatedType }}">
         <input type="hidden" name="related_id" value="{{ $relatedId }}">
-        <x-ui.input name="media_id" :label="__('Media ID')" required />
-        <x-ui.button type="submit">{{ __('Attach') }}</x-ui.button>
+        <x-ui-input name="media_id" :label="__('Media ID')" required />
+        <x-ui-button type="submit">{{ __('Attach') }}</x-ui-button>
     </form>
 </div>
 
@@ -18,7 +18,7 @@
             <form method="post" action="{{ route('admin.marketing.attachments.destroy', $attachment) }}">
                 @csrf
                 @method('delete')
-                <x-ui.button type="submit" variant="danger" size="sm">{{ __('Remove') }}</x-ui.button>
+                <x-ui-button type="submit" variant="danger" size="sm">{{ __('Remove') }}</x-ui-button>
             </form>
         </li>
     @empty

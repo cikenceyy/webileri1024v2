@@ -3,23 +3,23 @@
 @section('title', 'Şirket Ayarları')
 
 @section('content')
-<x-ui.page-header title="Şirket Ayarları" description="Şirket bilgilerinizi ve alan adlarınızı yönetin">
+<x-ui-page-header title="Şirket Ayarları" description="Şirket bilgilerinizi ve alan adlarınızı yönetin">
     <x-slot name="actions">
         @can('update', $company)
-            <x-ui.button form="companySettingsForm" type="submit" variant="primary">
+            <x-ui-button form="companySettingsForm" type="submit" variant="primary">
                 Kaydet
-            </x-ui.button>
+            </x-ui-button>
         @endcan
     </x-slot>
-</x-ui.page-header>
+</x-ui-page-header>
 
 @if(session('status'))
-    <x-ui.alert type="success" dismissible>{{ session('status') }}</x-ui.alert>
+    <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
 @endif
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <x-ui.card>
+        <x-ui-card>
             <form
                 id="companySettingsForm"
                 method="POST"
@@ -29,14 +29,14 @@
                 @csrf
                 @method('PUT')
 
-                <x-ui.input
+                <x-ui-input
                     name="name"
                     label="Şirket Adı"
                     :value="old('name', $company->name)"
                     required
                 />
 
-                <x-ui.input
+                <x-ui-input
                     class="mt-3"
                     name="theme_color"
                     label="Tema Rengi"
@@ -67,7 +67,7 @@
 
                     <div class="border rounded p-3 d-flex align-items-center gap-3 bg-light" data-company-logo-preview>
                         @if($logoMedia)
-                            <x-ui.file-icon :ext="$logoMedia->ext" size="36" />
+                            <x-ui-file-icon :ext="$logoMedia->ext" size="36" />
                             <div class="flex-grow-1">
                                 <div class="fw-semibold text-ellipsis">{{ $logoMedia->original_name }}</div>
                                 <div class="text-muted small">
@@ -86,29 +86,29 @@
 
                 @can('update', $company)
                     <div class="mt-4 d-flex justify-content-end">
-                        <x-ui.button type="submit" variant="primary">Kaydet</x-ui.button>
+                        <x-ui-button type="submit" variant="primary">Kaydet</x-ui-button>
                     </div>
                 @endcan
             </form>
-        </x-ui.card>
+        </x-ui-card>
     </div>
 
     <div class="col-lg-6">
-        <x-ui.card>
+        <x-ui-card>
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <h2 class="h5 mb-0">Alan Adları</h2>
                 <span class="badge bg-light text-dark">Primary: {{ $company->domain }}</span>
             </div>
 
-            <x-ui.alert type="info" class="mb-4">
+            <x-ui-alert type="info" class="mb-4">
                 Birincil alan adını değiştirdiğinizde, yönetim paneline yeni alan adıyla erişmeniz gerekir.
-            </x-ui.alert>
+            </x-ui-alert>
 
             @can('create', \App\Core\Support\Models\CompanyDomain::class)
                 <form method="POST" action="{{ route('admin.settings.company.domains.store') }}" class="row g-2 align-items-end mb-4">
                     @csrf
                     <div class="col-md-7">
-                        <x-ui.input
+                        <x-ui-input
                             name="domain"
                             label="Yeni Alan Adı"
                             placeholder="example.com"
@@ -122,17 +122,17 @@
                         </div>
                     </div>
                     <div class="col-md-2 d-flex justify-content-end">
-                        <x-ui.button type="submit" class="w-100">Ekle</x-ui.button>
+                        <x-ui-button type="submit" class="w-100">Ekle</x-ui-button>
                     </div>
                 </form>
             @endcan
 
             @error('domain')
-                <x-ui.alert type="danger" class="mb-3">{{ $message }}</x-ui.alert>
+                <x-ui-alert type="danger" class="mb-3">{{ $message }}</x-ui-alert>
             @enderror
 
             @if($domains->count())
-                <x-ui.table dense>
+                <x-ui-table dense>
                     <thead>
                         <tr>
                             <th scope="col">Alan Adı</th>
@@ -146,9 +146,9 @@
                                 <td class="align-middle">{{ $domain->domain }}</td>
                                 <td class="align-middle">
                                     @if($domain->is_primary)
-                                        <x-ui.badge type="success" soft>Primary</x-ui.badge>
+                                        <x-ui-badge type="success" soft>Primary</x-ui-badge>
                                     @else
-                                        <x-ui.badge type="secondary" soft>Alias</x-ui.badge>
+                                        <x-ui-badge type="secondary" soft>Alias</x-ui-badge>
                                     @endif
                                 </td>
                                 <td class="align-middle text-end">
@@ -157,7 +157,7 @@
                                             @if(! $domain->is_primary)
                                                 <form method="POST" action="{{ route('admin.settings.company.domains.make_primary', $domain) }}">
                                                     @csrf
-                                                    <x-ui.button type="submit" variant="outline" size="sm">Primary Yap</x-ui.button>
+                                                    <x-ui-button type="submit" variant="outline" size="sm">Primary Yap</x-ui-button>
                                                 </form>
                                             @endif
                                         @endcan
@@ -169,9 +169,9 @@
                                             >
                                                 @csrf
                                                 @method('DELETE')
-                                                <x-ui.button type="submit" variant="danger" size="sm" @disabled($domain->is_primary && $domains->count() <= 1)>
+                                                <x-ui-button type="submit" variant="danger" size="sm" @disabled($domain->is_primary && $domains->count() <= 1)>
                                                     Sil
-                                                </x-ui.button>
+                                                </x-ui-button>
                                             </form>
                                         @endcan
                                     </div>
@@ -179,15 +179,15 @@
                             </tr>
                         @endforeach
                     </tbody>
-                </x-ui.table>
+                </x-ui-table>
             @else
-                <x-ui.empty title="Alan adı bulunmuyor" description="Yeni alan adları ekleyerek alternatif giriş adresleri tanımlayın." />
+                <x-ui-empty title="Alan adı bulunmuyor" description="Yeni alan adları ekleyerek alternatif giriş adresleri tanımlayın." />
             @endif
-        </x-ui.card>
+        </x-ui-card>
     </div>
 </div>
 
-<x-ui.modal id="companyLogoPickerModal" size="xl">
+<x-ui-modal id="companyLogoPickerModal" size="xl">
     <x-slot name="title">Drive'dan Logo Seç</x-slot>
     <div class="ratio ratio-16x9" data-drive-picker-container>
         <iframe
@@ -197,5 +197,5 @@
             data-drive-picker-frame
         ></iframe>
     </div>
-</x-ui.modal>
+</x-ui-modal>
 @endsection

@@ -3,4 +3,4 @@
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', WelcomeController::class)->middleware('http.cache:300');
+Route::get('/', WelcomeController::class . '@index');

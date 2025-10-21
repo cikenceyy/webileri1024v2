@@ -7,7 +7,7 @@
 
 <div class="row g-4">
     <div class="col-md-6">
-        <x-ui.input
+        <x-ui-input
             name="sku"
             label="SKU"
             :value="old('sku', $product?->sku)"
@@ -16,7 +16,7 @@
         />
     </div>
     <div class="col-md-6">
-        <x-ui.input
+        <x-ui-input
             name="name"
             label="Ürün Adı"
             :value="old('name', $product?->name)"
@@ -25,17 +25,17 @@
         />
     </div>
     <div class="col-md-4">
-        <x-ui.select name="category_id" label="Kategori">
+        <x-ui-select name="category_id" label="Kategori">
             <option value="">(Belirtilmemiş)</option>
             @foreach($categories as $category)
                 <option value="{{ $category->id }}" @selected(old('category_id', $product?->category_id) == $category->id)>
                     {{ $category->name }}
                 </option>
             @endforeach
-        </x-ui.select>
+        </x-ui-select>
     </div>
     <div class="col-md-4">
-        <x-ui.input
+        <x-ui-input
             name="barcode"
             label="Barkod"
             :value="old('barcode', $product?->barcode)"
@@ -43,17 +43,17 @@
         />
     </div>
     <div class="col-md-4">
-        <x-ui.select name="base_unit_id" label="Temel Birim">
+        <x-ui-select name="base_unit_id" label="Temel Birim">
             <option value="">(Varsayılan)</option>
             @foreach($units as $unit)
                 <option value="{{ $unit->id }}" @selected(old('base_unit_id', $product?->base_unit_id) == $unit->id)>
                     {{ $unit->code }} — {{ $unit->name }}
                 </option>
             @endforeach
-        </x-ui.select>
+        </x-ui-select>
     </div>
     <div class="col-md-4">
-        <x-ui.input
+        <x-ui-input
             type="number"
             step="0.01"
             min="0"
@@ -64,7 +64,7 @@
         />
     </div>
     <div class="col-md-4">
-        <x-ui.input
+        <x-ui-input
             name="unit"
             label="Görünen Birim"
             :value="old('unit', $product?->unit ?? config('inventory.default_unit'))"
@@ -72,7 +72,7 @@
         />
     </div>
     <div class="col-md-4">
-        <x-ui.input
+        <x-ui-input
             type="number"
             step="0.001"
             min="0"
@@ -83,19 +83,19 @@
         />
     </div>
     <div class="col-md-4">
-        <x-ui.select name="status" label="Durum" required>
+        <x-ui-select name="status" label="Durum" required>
             @php($statusValue = old('status', $product?->status ?? 'active'))
             <option value="active" @selected($statusValue === 'active')>Aktif</option>
             <option value="inactive" @selected($statusValue === 'inactive')>Pasif</option>
-        </x-ui.select>
+        </x-ui-select>
     </div>
     <div class="col-12">
-        <x-ui.textarea
+        <x-ui-textarea
             name="description"
             label="Açıklama"
             rows="4"
             placeholder="Ürün detaylarını ekleyin"
-        >{{ old('description', $product?->description) }}</x-ui.textarea>
+        >{{ old('description', $product?->description) }}</x-ui-textarea>
     </div>
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -124,7 +124,7 @@
         >
             @if($selectedMedia)
                 <div class="inventory-media-preview">
-                    <x-ui.file-icon :ext="$selectedMedia->ext" size="36" />
+                    <x-ui-file-icon :ext="$selectedMedia->ext" size="36" />
                     <div class="inventory-media-preview__meta">
                         <div class="inventory-media-preview__name">{{ $selectedMedia->original_name }}</div>
                         <div class="inventory-media-preview__desc">{{ $selectedMedia->mime }} · {{ number_format(($selectedMedia->size ?? 0) / 1024, 1, ',', '.') }} KB</div>

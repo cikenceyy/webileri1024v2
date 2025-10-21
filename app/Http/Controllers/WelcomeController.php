@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Contracts\View\View;
-
-class WelcomeController
+class WelcomeController extends Controller
 {
-    public function __invoke(): View
+    public function index()
     {
         return view('welcome');
     }

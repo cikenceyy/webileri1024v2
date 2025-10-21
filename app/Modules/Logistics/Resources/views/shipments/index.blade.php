@@ -5,18 +5,18 @@
 @section('module', 'logistics')
 
 @section('content')
-<x-ui.page-header title="Sevkiyatlar" description="Gönderim süreçlerinizi yönetin">
+<x-ui-page-header title="Sevkiyatlar" description="Gönderim süreçlerinizi yönetin">
     <x-slot name="actions">
         @can('create', \App\Modules\Logistics\Domain\Models\Shipment::class)
-            <x-ui.button variant="primary" href="{{ route('admin.logistics.shipments.create') }}">
+            <x-ui-button variant="primary" href="{{ route('admin.logistics.shipments.create') }}">
                 Yeni Sevkiyat
-            </x-ui.button>
+            </x-ui-button>
         @endcan
     </x-slot>
-</x-ui.page-header>
+</x-ui-page-header>
 
 @if(session('status'))
-    <x-ui.alert type="success" dismissible>{{ session('status') }}</x-ui.alert>
+    <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
 @endif
 
 @php
@@ -49,10 +49,10 @@
     ];
 @endphp
 
-<x-ui.card class="mb-4" data-logistics-filters>
+<x-ui-card class="mb-4" data-logistics-filters>
     <form method="GET" action="{{ route('admin.logistics.shipments.index') }}" class="row g-3 align-items-end">
         <div class="col-md-3">
-            <x-ui.input
+            <x-ui-input
                 name="q"
                 label="Ara"
                 :value="$filters['q'] ?? ''"
@@ -60,7 +60,7 @@
             />
         </div>
         <div class="col-md-3">
-            <x-ui.select name="status" label="Durum">
+            <x-ui-select name="status" label="Durum">
                 @php($statusValue = $filters['status'] ?? '')
                 <option value="">Tümü</option>
                 <option value="draft" @selected($statusValue === 'draft')>Taslak</option>
@@ -68,10 +68,10 @@
                 <option value="in_transit" @selected($statusValue === 'in_transit')>Yolda</option>
                 <option value="delivered" @selected($statusValue === 'delivered')>Teslim Edildi</option>
                 <option value="cancelled" @selected($statusValue === 'cancelled')>İptal</option>
-            </x-ui.select>
+            </x-ui-select>
         </div>
         <div class="col-md-3">
-            <x-ui.input
+            <x-ui-input
                 name="carrier"
                 label="Kargo Firması"
                 :value="$filters['carrier'] ?? ''"
@@ -79,27 +79,27 @@
             />
         </div>
         <div class="col-md-3">
-            <x-ui.select name="customer_id" label="Müşteri">
+            <x-ui-select name="customer_id" label="Müşteri">
                 <option value="">Tümü</option>
                 @foreach($customerOptions as $option)
                     <option value="{{ $option['value'] }}" @selected((int) ($filters['customer_id'] ?? 0) === (int) $option['value'])>
                         {{ $option['label'] }}
                     </option>
                 @endforeach
-            </x-ui.select>
+            </x-ui-select>
         </div>
         <div class="col-md-3">
-            <x-ui.select name="order_id" label="Sipariş">
+            <x-ui-select name="order_id" label="Sipariş">
                 <option value="">Tümü</option>
                 @foreach($orderOptions as $option)
                     <option value="{{ $option['value'] }}" @selected((int) ($filters['order_id'] ?? 0) === (int) $option['value'])>
                         {{ $option['label'] }}
                     </option>
                 @endforeach
-            </x-ui.select>
+            </x-ui-select>
         </div>
         <div class="col-md-3">
-            <x-ui.input
+            <x-ui-input
                 type="date"
                 name="date_from"
                 label="Başlangıç Tarihi"
@@ -107,7 +107,7 @@
             />
         </div>
         <div class="col-md-3">
-            <x-ui.input
+            <x-ui-input
                 type="date"
                 name="date_to"
                 label="Bitiş Tarihi"
@@ -115,15 +115,15 @@
             />
         </div>
         <div class="col-md-3 d-flex gap-2">
-            <x-ui.button type="submit" class="flex-grow-1">Filtrele</x-ui.button>
+            <x-ui-button type="submit" class="flex-grow-1">Filtrele</x-ui-button>
             <a class="btn btn-outline-secondary" href="{{ route('admin.logistics.shipments.index') }}">Sıfırla</a>
         </div>
     </form>
-</x-ui.card>
+</x-ui-card>
 
 @if($shipments->count())
-    <x-ui.card data-logistics-table>
-        <x-ui.table dense>
+    <x-ui-card data-logistics-table>
+        <x-ui-table dense>
             <thead>
                 <tr>
                     <th scope="col"><a href="{{ $sortUrl('shipment_no') }}" class="table-sort {{ $sort === 'shipment_no' ? 'active' : '' }}">No @if($sort === 'shipment_no')<span aria-hidden="true">{{ $dir === 'asc' ? '↑' : '↓' }}</span>@endif</a></th>
@@ -154,7 +154,7 @@
                         <td class="align-middle">{{ $shipment->carrier ?? '—' }}</td>
                         <td class="align-middle">{{ $shipment->tracking_no ?? '—' }}</td>
                         <td class="align-middle">
-                            <x-ui.badge
+                            <x-ui-badge
                                 :type="match($shipment->status) {
                                     'delivered' => 'success',
                                     'in_transit' => 'info',
@@ -166,7 +166,7 @@
                                 data-logistics-status="{{ $shipment->status }}"
                             >
                                 {{ $statusLabels[$shipment->status] ?? ucfirst($shipment->status) }}
-                            </x-ui.badge>
+                            </x-ui-badge>
                         </td>
                         <td class="align-middle text-end">
                             <div class="d-flex justify-content-end gap-2">
@@ -183,7 +183,7 @@
                                     >
                                         @csrf
                                         @method('DELETE')
-                                        <x-ui.button type="submit" size="sm" variant="danger">Sil</x-ui.button>
+                                        <x-ui-button type="submit" size="sm" variant="danger">Sil</x-ui-button>
                                     </form>
                                 @endcan
                             </div>
@@ -191,19 +191,19 @@
                     </tr>
                 @endforeach
             </tbody>
-        </x-ui.table>
-    </x-ui.card>
+        </x-ui-table>
+    </x-ui-card>
 
     <div class="mt-4">
         {{ $shipments->links() }}
     </div>
 @else
-    <x-ui.empty title="Sevkiyat bulunamadı" description="İlk sevkiyat kaydınızı oluşturarak başlayın.">
+    <x-ui-empty title="Sevkiyat bulunamadı" description="İlk sevkiyat kaydınızı oluşturarak başlayın.">
         @can('create', \App\Modules\Logistics\Domain\Models\Shipment::class)
             <x-slot name="actions">
-                <x-ui.button variant="primary" href="{{ route('admin.logistics.shipments.create') }}">Sevkiyat Oluştur</x-ui.button>
+                <x-ui-button variant="primary" href="{{ route('admin.logistics.shipments.create') }}">Sevkiyat Oluştur</x-ui-button>
             </x-slot>
         @endcan
-    </x-ui.empty>
+    </x-ui-empty>
 @endif
 @endsection

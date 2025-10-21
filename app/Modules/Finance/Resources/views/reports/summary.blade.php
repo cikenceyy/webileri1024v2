@@ -3,17 +3,17 @@
 @section('title', __('A/R Summary'))
 
 @section('content')
-    <x-ui.page-header :title="__('Accounts Receivable Summary')">
+    <x-ui-page-header :title="__('Accounts Receivable Summary')">
         <x-slot name="actions">
             <a class="btn btn-icon btn-outline-secondary" href="{{ route('admin.finance.reports.summary', ['print' => 1]) }}" target="_blank" rel="noopener">{{ __('Yazdır') }}</a>
             <a class="btn btn-icon btn-outline-primary" href="{{ route('admin.finance.reports.summary', ['format' => 'csv']) }}">{{ __('CSV Dışa Aktar') }}</a>
         </x-slot>
-    </x-ui.page-header>
+    </x-ui-page-header>
 
     <div class="row g-3 mb-4">
         @forelse($totals as $summary)
             <div class="col-md-4">
-                <x-ui.card>
+                <x-ui-card>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-muted">{{ __('Para Birimi') }}</span>
                         <span class="fw-semibold">{{ $summary['currency'] }}</span>
@@ -32,20 +32,20 @@
                             <span>{{ number_format($summary['outstanding'], 2) }}</span>
                         </div>
                     </div>
-                </x-ui.card>
+                </x-ui-card>
             </div>
         @empty
             <div class="col-12">
-                <x-ui.card>
-                    <x-ui.empty title="{{ __('Kayıt bulunamadı') }}" />
-                </x-ui.card>
+                <x-ui-card>
+                    <x-ui-empty title="{{ __('Kayıt bulunamadı') }}" />
+                </x-ui-card>
             </div>
         @endforelse
     </div>
 
-    <x-ui.card>
+    <x-ui-card>
         <div class="table-responsive">
-            <x-ui.table class="table-compact">
+            <x-ui-table class="table-compact">
                 <thead>
                     <tr>
                         <th>{{ __('Müşteri') }}</th>
@@ -66,11 +66,11 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5"><x-ui.empty title="{{ __('Kayıt bulunamadı') }}" /></td>
+                            <td colspan="5"><x-ui-empty title="{{ __('Kayıt bulunamadı') }}" /></td>
                         </tr>
                     @endforelse
                 </tbody>
-            </x-ui.table>
+            </x-ui-table>
         </div>
-    </x-ui.card>
+    </x-ui-card>
 @endsection

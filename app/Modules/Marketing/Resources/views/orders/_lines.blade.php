@@ -27,7 +27,7 @@
                 @forelse($displayLines as $index => $line)
                     <tr data-crm-line-row data-marketing-line-row>
                         <td>
-                            <x-ui.input
+                            <x-ui-input
                                 class="mb-0"
                                 name="lines[{{ $index }}][description]"
                                 data-field="description"
@@ -36,7 +36,7 @@
                             />
                         </td>
                         <td>
-                            <x-ui.input
+                            <x-ui-input
                                 class="mb-0"
                                 name="lines[{{ $index }}][qty]"
                                 data-field="qty"
@@ -47,7 +47,7 @@
                             />
                         </td>
                         <td>
-                            <x-ui.input
+                            <x-ui-input
                                 class="mb-0"
                                 name="lines[{{ $index }}][unit_price]"
                                 data-field="unit_price"
@@ -58,7 +58,7 @@
                             />
                         </td>
                         <td>
-                            <x-ui.input
+                            <x-ui-input
                                 class="mb-0"
                                 name="lines[{{ $index }}][discount_rate]"
                                 data-field="discount_rate"
@@ -68,7 +68,7 @@
                             />
                         </td>
                         <td>
-                            <x-ui.input
+                            <x-ui-input
                                 class="mb-0"
                                 name="lines[{{ $index }}][tax_rate]"
                                 data-field="tax_rate"
@@ -84,11 +84,11 @@
                     </tr>
                 @empty
                     <tr data-crm-line-row data-marketing-line-row>
-                        <td><x-ui.input class="mb-0" name="lines[0][description]" data-field="description" required /></td>
-                        <td><x-ui.input class="mb-0" name="lines[0][qty]" data-field="qty" type="number" step="0.001" value="1" required /></td>
-                        <td><x-ui.input class="mb-0" name="lines[0][unit_price]" data-field="unit_price" type="number" step="0.01" value="0" required /></td>
-                        <td><x-ui.input class="mb-0" name="lines[0][discount_rate]" data-field="discount_rate" type="number" step="0.01" value="0" /></td>
-                        <td><x-ui.input class="mb-0" name="lines[0][tax_rate]" data-field="tax_rate" type="number" step="0.01" value="{{ (float) config('marketing.module.default_tax_rate', 20) }}" /></td>
+                        <td><x-ui-input class="mb-0" name="lines[0][description]" data-field="description" required /></td>
+                        <td><x-ui-input class="mb-0" name="lines[0][qty]" data-field="qty" type="number" step="0.001" value="1" required /></td>
+                        <td><x-ui-input class="mb-0" name="lines[0][unit_price]" data-field="unit_price" type="number" step="0.01" value="0" required /></td>
+                        <td><x-ui-input class="mb-0" name="lines[0][discount_rate]" data-field="discount_rate" type="number" step="0.01" value="0" /></td>
+                        <td><x-ui-input class="mb-0" name="lines[0][tax_rate]" data-field="tax_rate" type="number" step="0.01" value="{{ (float) config('marketing.module.default_tax_rate', 20) }}" /></td>
                         <td class="text-end fw-semibold" data-field="line_total">0.00</td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-outline-danger" data-crm-line-remove data-marketing-line-remove>&times;</button>
@@ -100,7 +100,7 @@
     </div>
 
     <div class="d-flex gap-2">
-        <x-ui.button type="button" variant="outline" data-crm-line-add data-marketing-line-add>{{ __('Add Line') }}</x-ui.button>
+        <x-ui-button type="button" variant="outline" data-crm-line-add data-marketing-line-add>{{ __('Add Line') }}</x-ui-button>
     </div>
 
     <div class="mt-3 ms-auto" style="max-width: 320px;" data-crm-line-totals data-marketing-line-totals>
@@ -112,11 +112,11 @@
 
     <template data-crm-line-template data-marketing-line-template>
         <tr data-crm-line-row data-marketing-line-row>
-            <td><x-ui.input class="mb-0" name="lines[__INDEX__][description]" data-field="description" required /></td>
-            <td><x-ui.input class="mb-0" name="lines[__INDEX__][qty]" data-field="qty" type="number" step="0.001" value="1" required /></td>
-            <td><x-ui.input class="mb-0" name="lines[__INDEX__][unit_price]" data-field="unit_price" type="number" step="0.01" value="0" required /></td>
-            <td><x-ui.input class="mb-0" name="lines[__INDEX__][discount_rate]" data-field="discount_rate" type="number" step="0.01" value="0" /></td>
-            <td><x-ui.input class="mb-0" name="lines[__INDEX__][tax_rate]" data-field="tax_rate" type="number" step="0.01" value="{{ (float) config('marketing.module.default_tax_rate', 20) }}" /></td>
+            <td><x-ui-input class="mb-0" name="lines[__INDEX__][description]" data-field="description" required /></td>
+            <td><x-ui-input class="mb-0" name="lines[__INDEX__][qty]" data-field="qty" type="number" step="0.001" value="1" required /></td>
+            <td><x-ui-input class="mb-0" name="lines[__INDEX__][unit_price]" data-field="unit_price" type="number" step="0.01" value="0" required /></td>
+            <td><x-ui-input class="mb-0" name="lines[__INDEX__][discount_rate]" data-field="discount_rate" type="number" step="0.01" value="0" /></td>
+            <td><x-ui-input class="mb-0" name="lines[__INDEX__][tax_rate]" data-field="tax_rate" type="number" step="0.01" value="{{ (float) config('marketing.module.default_tax_rate', 20) }}" /></td>
             <td class="text-end fw-semibold" data-field="line_total">0.00</td>
             <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" data-crm-line-remove data-marketing-line-remove>&times;</button></td>
         </tr>

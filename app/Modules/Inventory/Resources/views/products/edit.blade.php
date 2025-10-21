@@ -3,9 +3,9 @@
 @section('title', 'Ürünü Düzenle')
 
 @section('content')
-<x-ui.page-header title="Ürünü Düzenle" description="{{ $product->name }} kaydını güncelleyin" />
+<x-ui-page-header title="Ürünü Düzenle" description="{{ $product->name }} kaydını güncelleyin" />
 
-<x-ui.card>
+<x-ui-card>
     <form method="POST" action="{{ route('admin.inventory.products.update', $product) }}" data-inventory-product-form data-drive-modal-id="drivePickerModal">
         @csrf
         @method('PUT')
@@ -13,12 +13,12 @@
 
         <div class="mt-4 d-flex justify-content-end gap-2">
             <a href="{{ route('admin.inventory.products.index') }}" class="btn btn-outline-secondary">Geri</a>
-            <x-ui.button type="submit" variant="primary">Güncelle</x-ui.button>
+            <x-ui-button type="submit" variant="primary">Güncelle</x-ui-button>
         </div>
     </form>
-</x-ui.card>
+</x-ui-card>
 
-<x-ui.modal id="drivePickerModal" size="xl">
+<x-ui-modal id="drivePickerModal" size="xl">
     <x-slot name="title">Drive'dan Görsel Seç</x-slot>
     <div class="ratio ratio-16x9" data-drive-picker-container>
         <iframe
@@ -28,5 +28,5 @@
             data-drive-picker-frame
         ></iframe>
     </div>
-</x-ui.modal>
+</x-ui-modal>
 @endsection

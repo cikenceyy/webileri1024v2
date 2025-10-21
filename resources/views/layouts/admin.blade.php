@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    <x-ui.toast-stack />
+    <x-ui-toast-stack />
 
     @stack('page-scripts')
     @stack('scripts')

@@ -1,18 +1,18 @@
 @extends('layouts.admin')
 
 @section('content')
-<x-ui.page-header :title="$customer->name" :description="$customer->code">
+<x-ui-page-header :title="$customer->name" :description="$customer->code">
     <x-slot:name>actions</x-slot:name>
-    <x-ui.button variant="secondary" href="{{ route('admin.marketing.customers.edit', $customer) }}">{{ __('Edit') }}</x-ui.button>
-</x-ui.page-header>
+    <x-ui-button variant="secondary" href="{{ route('admin.marketing.customers.edit', $customer) }}">{{ __('Edit') }}</x-ui-button>
+</x-ui-page-header>
 
 <div class="row g-4">
     <div class="col-lg-4">
-        <x-ui.card>
+        <x-ui-card>
             <div class="d-flex flex-column gap-2">
                 <div><strong>{{ __('Email') }}:</strong> {{ $customer->email ?: '—' }}</div>
                 <div><strong>{{ __('Phone') }}:</strong> {{ $customer->phone ?: '—' }}</div>
-                <div><strong>{{ __('Status') }}:</strong> <x-ui.badge :type="$customer->status === 'active' ? 'success' : 'secondary'">{{ ucfirst($customer->status) }}</x-ui.badge></div>
+                <div><strong>{{ __('Status') }}:</strong> <x-ui-badge :type="$customer->status === 'active' ? 'success' : 'secondary'">{{ ucfirst($customer->status) }}</x-ui-badge></div>
                 <div><strong>{{ __('Payment Terms') }}:</strong> {{ $customer->payment_terms ?: '—' }}</div>
                 <div><strong>{{ __('Credit Limit') }}:</strong> {{ number_format($customer->credit_limit, 2) }}</div>
                 <div><strong>{{ __('Balance') }}:</strong> {{ number_format($customer->balance, 2) }}</div>
@@ -20,11 +20,11 @@
                     <div class="text-muted">{{ $customer->address ?: '—' }}</div>
                 </div>
             </div>
-        </x-ui.card>
+        </x-ui-card>
     </div>
     <div class="col-lg-8">
-        <x-ui.card>
-            <x-ui.tabs id="customer-tabs">
+        <x-ui-card>
+            <x-ui-tabs id="customer-tabs">
                 <x-slot name="tabs">
                     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-contacts">{{ __('Contacts') }}</button>
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-addresses">{{ __('Addresses') }}</button>
@@ -75,8 +75,8 @@
                         @include('marketing::attachments._list', ['attachments' => $attachments, 'relatedType' => get_class($customer), 'relatedId' => $customer->id])
                     </div>
                 </div>
-            </x-ui.tabs>
-        </x-ui.card>
+            </x-ui-tabs>
+        </x-ui-card>
     </div>
 </div>
 @endsection

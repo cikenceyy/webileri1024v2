@@ -3,15 +3,15 @@
 @section('title', $receipt->receipt_no)
 
 @section('content')
-    <x-ui.page-header :title="$receipt->receipt_no" :description="$receipt->customer?->name">
+    <x-ui-page-header :title="$receipt->receipt_no" :description="$receipt->customer?->name">
         <x-slot name="actions">
-            <x-ui.button tag="a" :href="route('admin.finance.receipts.edit', $receipt)" variant="secondary">{{ __('Edit') }}</x-ui.button>
+            <x-ui-button tag="a" :href="route('admin.finance.receipts.edit', $receipt)" variant="secondary">{{ __('Edit') }}</x-ui-button>
         </x-slot>
-    </x-ui.page-header>
+    </x-ui-page-header>
 
     <div class="row g-3">
         <div class="col-lg-8">
-            <x-ui.card>
+            <x-ui-card>
                 <div class="d-flex justify-content-between mb-2">
                     <span>{{ __('Receipt Date') }}</span>
                     <span>{{ $receipt->receipt_date?->format('d.m.Y') }}</span>
@@ -32,10 +32,10 @@
                     <p class="mb-1 text-muted">{{ __('Notes') }}</p>
                     <p class="mb-0">{{ $receipt->notes ?: '—' }}</p>
                 </div>
-            </x-ui.card>
+            </x-ui-card>
         </div>
         <div class="col-lg-4">
-            <x-ui.card>
+            <x-ui-card>
                 <h6 class="fw-semibold mb-3">{{ __('Allocations') }}</h6>
                 <ul class="list-unstyled mb-0">
                     @forelse($receipt->allocations as $allocation)
@@ -47,7 +47,7 @@
                         <li>{{ __('No allocations yet.') }}</li>
                     @endforelse
                 </ul>
-            </x-ui.card>
+            </x-ui-card>
         </div>
     </div>
 @endsection

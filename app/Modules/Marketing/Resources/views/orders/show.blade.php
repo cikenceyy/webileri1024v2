@@ -3,29 +3,29 @@
 @php use Illuminate\Support\Facades\Route; @endphp
 
 @section('content')
-<x-ui.page-header :title="$order->order_no" :description="$order->customer?->name">
+<x-ui-page-header :title="$order->order_no" :description="$order->customer?->name">
     <x-slot name="actions">
         <a class="btn btn-icon btn-secondary" href="{{ route('admin.marketing.orders.edit', $order) }}">{{ __('Edit') }}</a>
         <a class="btn btn-icon btn-outline-secondary" target="_blank" rel="noopener" href="{{ route('admin.marketing.orders.print', $order) }}">{{ __('Yazdır') }}</a>
         @if(function_exists('route') && Route::has('admin.finance.invoices.from-order'))
-            <x-ui.button variant="primary" href="{{ route('admin.finance.invoices.from-order', $order) }}">{{ __('Fatura Oluştur') }}</x-ui.button>
+            <x-ui-button variant="primary" href="{{ route('admin.finance.invoices.from-order', $order) }}">{{ __('Fatura Oluştur') }}</x-ui-button>
         @endif
         @if(function_exists('route') && Route::has('admin.logistics.shipments.create'))
-            <x-ui.button variant="outline" href="{{ route('admin.logistics.shipments.create', ['order_id' => $order->getKey(), 'customer_id' => $order->customer_id]) }}">{{ __('Sevkiyat Oluştur') }}</x-ui.button>
+            <x-ui-button variant="outline" href="{{ route('admin.logistics.shipments.create', ['order_id' => $order->getKey(), 'customer_id' => $order->customer_id]) }}">{{ __('Sevkiyat Oluştur') }}</x-ui-button>
         @endif
     </x-slot>
-</x-ui.page-header>
+</x-ui-page-header>
 
-<x-ui.card>
+<x-ui-card>
     <div class="row g-3">
         <div class="col-md-3"><strong>{{ __('Status') }}:</strong> {{ ucfirst($order->status) }}</div>
         <div class="col-md-3"><strong>{{ __('Order Date') }}:</strong> {{ optional($order->order_date)->format('d.m.Y') }}</div>
         <div class="col-md-3"><strong>{{ __('Due Date') }}:</strong> {{ optional($order->due_date)->format('d.m.Y') ?: '—' }}</div>
         <div class="col-md-3"><strong>{{ __('Total') }}:</strong> {{ number_format($order->total_amount, 2) }}</div>
     </div>
-</x-ui.card>
+</x-ui-card>
 
-<x-ui.card class="mt-4">
+<x-ui-card class="mt-4">
     <div class="table-responsive">
         <table class="table">
             <thead>
@@ -58,5 +58,5 @@
         <div>{{ __('Tax') }}: {{ number_format($order->tax_total, 2) }}</div>
         <div class="fw-semibold">{{ __('Total') }}: {{ number_format($order->total_amount, 2) }}</div>
     </div>
-</x-ui.card>
+</x-ui-card>
 @endsection

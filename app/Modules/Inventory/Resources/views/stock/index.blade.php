@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-    <x-ui.page-header title="Stok Durumu" description="Ambar bazında mevcut stokları görüntüleyin.">
+    <x-ui-page-header title="Stok Durumu" description="Ambar bazında mevcut stokları görüntüleyin.">
         <x-slot:actions>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.inventory.stock.in.form') }}" class="btn btn-sm btn-primary">Stok Girişi</a>
@@ -10,16 +10,16 @@
                 <a href="{{ route('admin.inventory.stock.adjust.form') }}" class="btn btn-sm btn-outline-secondary">Düzeltme</a>
             </div>
         </x-slot:actions>
-    </x-ui.page-header>
+    </x-ui-page-header>
 
     @if(session('status'))
-        <x-ui.alert type="success" class="mb-3">{{ session('status') }}</x-ui.alert>
+        <x-ui-alert type="success" class="mb-3">{{ session('status') }}</x-ui-alert>
     @endif
 
-    <x-ui.card class="mb-4" data-inventory-filters>
+    <x-ui-card class="mb-4" data-inventory-filters>
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4">
-                <x-ui.input name="q" label="Ürün Ara" value="{{ $filters['q'] ?? '' }}" placeholder="SKU veya ürün adı" />
+                <x-ui-input name="q" label="Ürün Ara" value="{{ $filters['q'] ?? '' }}" placeholder="SKU veya ürün adı" />
             </div>
             <div class="col-md-4">
                 <label class="form-label">Ambar</label>
@@ -43,12 +43,12 @@
                 <button type="submit" class="btn btn-primary w-100">Filtrele</button>
             </div>
         </form>
-    </x-ui.card>
+    </x-ui-card>
 
-    <x-ui.card>
+    <x-ui-card>
         @if($items->count())
             <div class="table-responsive">
-                <x-ui.table dense>
+                <x-ui-table dense>
                     <thead>
                         <tr>
                             <th>Ambar</th>
@@ -83,13 +83,13 @@
                             </tr>
                         @endforeach
                     </tbody>
-                </x-ui.table>
+                </x-ui-table>
             </div>
             <div class="mt-3">
                 {{ $items->links() }}
             </div>
         @else
-            <x-ui.empty title="Stok kaydı bulunamadı" description="Filtreleri değiştirerek tekrar deneyin." />
+            <x-ui-empty title="Stok kaydı bulunamadı" description="Filtreleri değiştirerek tekrar deneyin." />
         @endif
-    </x-ui.card>
+    </x-ui-card>
 @endsection

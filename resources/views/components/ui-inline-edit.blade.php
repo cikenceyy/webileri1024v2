@@ -22,8 +22,8 @@
         <label class="visually-hidden" for="{{ $inputId }}">{{ $placeholder }}</label>
         <input id="{{ $inputId }}" name="{{ $name }}" class="ui-inline-edit__input" value="{{ $value }}">
         <div class="ui-inline-edit__actions">
-            <x-ui.button type="submit" size="sm">Save</x-ui.button>
-            <x-ui.button type="button" size="sm" variant="ghost" data-action="cancel">Cancel</x-ui.button>
+            <x-ui-button type="submit" size="sm">Save</x-ui-button>
+            <x-ui-button type="button" size="sm" variant="ghost" data-action="cancel">Cancel</x-ui-button>
         </div>
     </form>
     <div class="ui-inline-edit__feedback" aria-live="polite" data-ui="inline-status"></div>

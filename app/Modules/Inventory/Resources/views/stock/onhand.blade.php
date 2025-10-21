@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
 @section('content')
-    <x-ui.page-header title="Anlık Stok" description="Ambar ve varyant bazında güncel stok miktarları.">
+    <x-ui-page-header title="Anlık Stok" description="Ambar ve varyant bazında güncel stok miktarları.">
         <x-slot:actions>
             <a href="{{ request()->fullUrlWithQuery(['download' => 'csv']) }}" class="btn btn-sm btn-outline-secondary">CSV indir</a>
         </x-slot:actions>
-    </x-ui.page-header>
+    </x-ui-page-header>
 
-    <x-ui.card class="mb-4">
+    <x-ui-card class="mb-4">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4">
                 <label class="form-label">Ambar</label>
@@ -40,12 +40,12 @@
                 <button type="submit" class="btn btn-primary">Filtrele</button>
             </div>
         </form>
-    </x-ui.card>
+    </x-ui-card>
 
-    <x-ui.card>
+    <x-ui-card>
         @if($items->count())
             <div class="table-responsive">
-                <x-ui.table dense>
+                <x-ui-table dense>
                     <thead>
                         <tr>
                             <th>Ambar</th>
@@ -71,10 +71,10 @@
                             </tr>
                         @endforeach
                     </tbody>
-                </x-ui.table>
+                </x-ui-table>
             </div>
         @else
-            <x-ui.empty title="Stok kaydı yok" description="Filtreleri değiştirerek tekrar deneyin." />
+            <x-ui-empty title="Stok kaydı yok" description="Filtreleri değiştirerek tekrar deneyin." />
         @endif
-    </x-ui.card>
+    </x-ui-card>
 @endsection

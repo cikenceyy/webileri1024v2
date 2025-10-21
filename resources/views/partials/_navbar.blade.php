@@ -10,16 +10,23 @@
             <span class="text-muted">@yield('section', 'Dashboard')</span>
         </div>
 
-        <div class="ms-auto" role="toolbar" aria-label="Header actions">
+        <div class="ms-auto d-flex align-items-center gap-3" role="toolbar" aria-label="Header actions">
             @hasSection('navbar-actions')
                 @yield('navbar-actions')
             @else
-                <x-ui.toolbar :items="[
+                <x-ui-toolbar :items="[
                     ['label' => 'Sipariş - Sevkiyat - Fatura', 'icon' => 'bi bi-diagram-3', 'action' => '#'],
                     ['label' => 'Talep -> Satın Alma - Fatura', 'icon' => 'bi bi-bag-check', 'action' => '#'],
                     ['label' => 'İş Emri - Üretim', 'icon' => 'bi bi-cpu', 'action' => '#'],
                 ]" />
             @endif
+
+            @auth
+                <form method="POST" action="{{ route('admin.auth.logout') }}" class="d-flex">
+                    @csrf
+                    <x-ui-button type="submit" variant="outline-secondary" size="sm">{{ __('Çıkış Yap') }}</x-ui-button>
+                </form>
+            @endauth
         </div>
     </div>
 </nav>

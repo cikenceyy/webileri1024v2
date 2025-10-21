@@ -3,35 +3,35 @@
 @section('title', $product->name)
 
 @section('content')
-<x-ui.page-header :title="$product->name" description="Ürün detayları">
+<x-ui-page-header :title="$product->name" description="Ürün detayları">
     <x-slot name="actions">
         @can('update', $product)
-            <x-ui.button variant="outline" href="{{ route('admin.inventory.products.edit', $product) }}">Düzenle</x-ui.button>
+            <x-ui-button variant="outline" href="{{ route('admin.inventory.products.edit', $product) }}">Düzenle</x-ui-button>
         @endcan
-        <x-ui.button variant="secondary" href="{{ route('admin.inventory.products.index') }}">Listeye Dön</x-ui.button>
+        <x-ui-button variant="secondary" href="{{ route('admin.inventory.products.index') }}">Listeye Dön</x-ui-button>
     </x-slot>
-</x-ui.page-header>
+</x-ui-page-header>
 
 @if(session('status'))
-    <x-ui.alert type="success" dismissible>{{ session('status') }}</x-ui.alert>
+    <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
 @endif
 
 <div class="row g-4">
     <div class="col-xl-6">
-        <x-ui.card>
+        <x-ui-card>
             <div class="d-flex align-items-center gap-3">
                 <div class="flex-shrink-0">
                     @if($product->media)
-                        <x-ui.file-icon :ext="$product->media->ext" size="56" />
+                        <x-ui-file-icon :ext="$product->media->ext" size="56" />
                     @else
-                        <x-ui.file-icon ext="file" size="56" />
+                        <x-ui-file-icon ext="file" size="56" />
                     @endif
                 </div>
                 <div class="flex-grow-1">
                     <div class="text-muted small">SKU</div>
                     <div class="fw-semibold fs-5">{{ $product->sku }}</div>
                     <div class="text-muted small">Durum</div>
-                    <x-ui.badge :type="$product->status === 'active' ? 'success' : 'secondary'" soft>{{ $product->status === 'active' ? 'Aktif' : 'Pasif' }}</x-ui.badge>
+                    <x-ui-badge :type="$product->status === 'active' ? 'success' : 'secondary'" soft>{{ $product->status === 'active' ? 'Aktif' : 'Pasif' }}</x-ui-badge>
                 </div>
             </div>
             <hr>
@@ -61,10 +61,10 @@
                     <p class="mb-0">{{ $product->description ?: '—' }}</p>
                 </div>
             </div>
-        </x-ui.card>
+        </x-ui-card>
     </div>
     <div class="col-xl-6">
-        <x-ui.card>
+        <x-ui-card>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 mb-0">Galeri</h2>
                 @can('attachMedia', $product)
@@ -72,19 +72,19 @@
                 @endcan
             </div>
             @if($product->gallery->isEmpty())
-                <x-ui.empty title="Galeri boş" description="Drive'dan görseller ekleyebilirsiniz.">
+                <x-ui-empty title="Galeri boş" description="Drive'dan görseller ekleyebilirsiniz.">
                     @can('attachMedia', $product)
                         <x-slot name="actions">
-                            <x-ui.button variant="primary" type="button" data-action="open-gallery-picker" data-gallery-target="productGalleryInput">Görsel Seç</x-ui.button>
+                            <x-ui-button variant="primary" type="button" data-action="open-gallery-picker" data-gallery-target="productGalleryInput">Görsel Seç</x-ui-button>
                         </x-slot>
                     @endcan
-                </x-ui.empty>
+                </x-ui-empty>
             @else
                 <div class="list-group list-group-flush">
                     @foreach($product->gallery as $item)
                         <div class="list-group-item d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-3">
-                                <x-ui.file-icon :ext="$item->media?->ext" size="28" />
+                                <x-ui-file-icon :ext="$item->media?->ext" size="28" />
                                 <div>
                                     <div class="fw-semibold">{{ $item->media?->original_name ?? 'Silinmiş dosya' }}</div>
                                     <div class="text-muted small">{{ $item->media?->mime }}</div>
@@ -94,7 +94,7 @@
                                 <form method="POST" action="{{ route('admin.inventory.products.gallery.remove', [$product, $item]) }}" onsubmit="return confirm('Görseli kaldırmak istediğinize emin misiniz?');">
                                     @csrf
                                     @method('DELETE')
-                                    <x-ui.button variant="ghost" size="sm">Kaldır</x-ui.button>
+                                    <x-ui-button variant="ghost" size="sm">Kaldır</x-ui-button>
                                 </form>
                             @endcan
                         </div>
@@ -106,16 +106,16 @@
                     @csrf
                     <input type="hidden" name="media_id" id="productGalleryInput">
                     <div class="small text-muted mb-2" data-gallery-selection aria-live="polite">Henüz bir dosya seçilmedi.</div>
-                    <x-ui.button type="submit" variant="primary">Seçilen Görseli Ekle</x-ui.button>
+                    <x-ui-button type="submit" variant="primary">Seçilen Görseli Ekle</x-ui-button>
                 </form>
             @endcan
-        </x-ui.card>
+        </x-ui-card>
     </div>
 </div>
 
 <div class="row g-4 mt-1">
     <div class="col-xl-6">
-        <x-ui.card>
+        <x-ui-card>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 mb-0">Fiyat Listeleri</h2>
                 <a href="{{ route('admin.inventory.pricelists.index') }}" class="btn btn-sm btn-outline-secondary">Tüm listeler</a>
@@ -139,7 +139,7 @@
                                         <td>{{ $priceList->name }} ({{ strtoupper($priceList->currency) }})</td>
                                         <td>{{ number_format((float) $item->price, 2, ',', '.') }}</td>
                                         <td class="text-end">
-                                            <x-ui.badge :type="$priceList->active ? 'success' : 'secondary'" soft>{{ $priceList->active ? 'Aktif' : 'Pasif' }}</x-ui.badge>
+                                            <x-ui-badge :type="$priceList->active ? 'success' : 'secondary'" soft>{{ $priceList->active ? 'Aktif' : 'Pasif' }}</x-ui-badge>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -148,10 +148,10 @@
                     </table>
                 </div>
             @endif
-        </x-ui.card>
+        </x-ui-card>
     </div>
     <div class="col-xl-6">
-        <x-ui.card>
+        <x-ui-card>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 mb-0">Varyantlar</h2>
                 <a class="btn btn-sm btn-outline-secondary" href="{{ route('admin.inventory.products.variants.index', $product) }}">Varyantları Yönet</a>
@@ -180,13 +180,13 @@
                                         @else
                                             <div class="d-flex flex-wrap gap-2">
                                                 @foreach($variant->options as $key => $value)
-                                                    <x-ui.badge type="secondary" soft>{{ $key }}: {{ $value }}</x-ui.badge>
+                                                    <x-ui-badge type="secondary" soft>{{ $key }}: {{ $value }}</x-ui-badge>
                                                 @endforeach
                                             </div>
                                         @endif
                                     </td>
                                     <td>
-                                        <x-ui.badge :type="$variant->status === 'active' ? 'success' : 'secondary'" soft>{{ $variant->status === 'active' ? 'Aktif' : 'Pasif' }}</x-ui.badge>
+                                        <x-ui-badge :type="$variant->status === 'active' ? 'success' : 'secondary'" soft>{{ $variant->status === 'active' ? 'Aktif' : 'Pasif' }}</x-ui-badge>
                                     </td>
                                 </tr>
                             @endforeach
@@ -194,13 +194,13 @@
                     </table>
                 </div>
             @endif
-        </x-ui.card>
+        </x-ui-card>
     </div>
 </div>
 
 <div class="row g-4 mt-1">
     <div class="col-xl-6">
-        <x-ui.card>
+        <x-ui-card>
             <h2 class="h5 mb-3">Stok Durumu</h2>
             @if($stockByWarehouse->isEmpty())
                 <p class="text-muted mb-0">Bu ürün için stok kaydı bulunmuyor.</p>
@@ -253,10 +253,10 @@
                     </table>
                 </div>
             @endif
-        </x-ui.card>
+        </x-ui-card>
     </div>
     <div class="col-xl-6">
-        <x-ui.card>
+        <x-ui-card>
             <h2 class="h5 mb-3">Son Hareketler</h2>
             @if($recentMovements->isEmpty())
                 <p class="text-muted mb-0">Bu ürün için hareket kaydı bulunmuyor.</p>
@@ -288,11 +288,11 @@
                     </table>
                 </div>
             @endif
-        </x-ui.card>
+        </x-ui-card>
     </div>
 </div>
 
-<x-ui.modal id="galleryPickerModal" size="xl">
+<x-ui-modal id="galleryPickerModal" size="xl">
     <x-slot name="title">Drive'dan Galeri Görseli Seç</x-slot>
     <div class="ratio ratio-16x9" data-gallery-picker-container>
         <iframe
@@ -302,5 +302,5 @@
             data-gallery-picker-frame
         ></iframe>
     </div>
-</x-ui.modal>
+</x-ui-modal>
 @endsection

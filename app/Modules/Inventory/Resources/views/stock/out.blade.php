@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
 @section('content')
-    <x-ui.page-header title="Stok Çıkışı" description="Satış veya sevkiyat için stok düşüşü yapın." />
+    <x-ui-page-header title="Stok Çıkışı" description="Satış veya sevkiyat için stok düşüşü yapın." />
 
-    <x-ui.card>
+    <x-ui-card>
         <form method="post" action="{{ route('admin.inventory.stock.out.store') }}" class="row g-4">
             @csrf
             <div class="col-md-6">
@@ -37,7 +37,7 @@
                 @error('variant_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-3">
-                <x-ui.input type="number" step="0.001" min="0" name="qty" label="Miktar" value="{{ old('qty') }}" required />
+                <x-ui-input type="number" step="0.001" min="0" name="qty" label="Miktar" value="{{ old('qty') }}" required />
             </div>
             <div class="col-md-3">
                 <label class="form-label">İşlem Nedeni</label>
@@ -49,21 +49,21 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <x-ui.input type="date" name="moved_at" label="İşlem Tarihi" value="{{ old('moved_at') }}" />
+                <x-ui-input type="date" name="moved_at" label="İşlem Tarihi" value="{{ old('moved_at') }}" />
             </div>
             <div class="col-md-3">
-                <x-ui.input name="ref_type" label="Referans Türü" value="{{ old('ref_type') }}" />
+                <x-ui-input name="ref_type" label="Referans Türü" value="{{ old('ref_type') }}" />
             </div>
             <div class="col-md-3">
-                <x-ui.input name="ref_id" label="Referans ID" value="{{ old('ref_id') }}" />
+                <x-ui-input name="ref_id" label="Referans ID" value="{{ old('ref_id') }}" />
             </div>
             <div class="col-12">
-                <x-ui.textarea name="note" label="Not" rows="3">{{ old('note') }}</x-ui.textarea>
+                <x-ui-textarea name="note" label="Not" rows="3">{{ old('note') }}</x-ui-textarea>
             </div>
             <div class="col-12 d-flex justify-content-between">
                 <a href="{{ route('admin.inventory.stock.index') }}" class="btn btn-light">Vazgeç</a>
                 <button type="submit" class="btn btn-danger">Stok Çıkışını Kaydet</button>
             </div>
         </form>
-    </x-ui.card>
+    </x-ui-card>
 @endsection
