@@ -17,7 +17,8 @@
 }
 
 @mixin scroll-shadow-x {
-  background: linear-gradient(to right, var(--ui-color-surface) 0%, rgba(246, 247, 251, 0) 60%);
+  background: var(--ui-color-surface);
+  box-shadow: inset -12px 0 18px -12px var(--ui-color-shadow);
 }
 
 @mixin truncate {

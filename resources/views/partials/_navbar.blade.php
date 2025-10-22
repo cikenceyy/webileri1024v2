@@ -6,11 +6,6 @@
         ['label' => 'Inventory', 'icon' => 'bi bi-boxes', 'href' => url('admin/inventory/console'), 'pattern' => 'admin/inventory*'],
         ['label' => 'Drive', 'icon' => 'bi bi-cloud-arrow-down', 'href' => url('admin/drive'), 'pattern' => 'admin/drive*'],
     ];
-
-    $quickActions = [
-        ['label' => 'Yeni Kayıt', 'icon' => 'bi bi-plus-circle', 'href' => url('admin/console/create')],
-        ['label' => 'Bildirimler', 'icon' => 'bi bi-bell', 'href' => url('admin/console/notifications')],
-    ];
 @endphp
 
 <header class="ui-header" data-ui="header">
@@ -51,20 +46,12 @@
         </nav>
 
         <div class="ui-header__actions" role="toolbar" aria-label="Header actions">
-            <div class="ui-header__action-group" role="group" aria-label="Hızlı işlemler">
-                @hasSection('navbar-actions')
-                    @yield('navbar-actions')
-                @else
-                    @foreach($quickActions as $action)
-                        <a href="{{ $action['href'] }}" class="ui-header__action {{ $loop->first ? 'is-primary' : 'is-ghost' }}">
-                            <span class="ui-header__action-icon" aria-hidden="true"><i class="{{ $action['icon'] }}"></i></span>
-                            <span class="ui-header__action-label">{{ $action['label'] }}</span>
-                        </a>
-                    @endforeach
-                @endif
-            </div>
-
             <div class="ui-header__action-group" role="group" aria-label="Kullanıcı işlemleri">
+                <a href="{{ url('admin/console/notifications') }}" class="ui-header__action is-ghost" aria-label="Bildirimler">
+                    <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
+                    <span class="ui-header__action-label">Bildirimler</span>
+                </a>
+
                 <a href="{{ url('admin/profile') }}" class="ui-header__action is-ghost" aria-label="Profil">
                     <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-person-circle"></i></span>
                     <span class="ui-header__action-label">Profil</span>

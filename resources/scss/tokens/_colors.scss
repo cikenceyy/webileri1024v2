@@ -1,12 +1,59 @@
-// Color design tokens (Sass variables only)
-$ui-indigo:  #4f46e5;
-$ui-blue:    #2563eb;
-$ui-orange:  #fb923c;
-$ui-gray-900:#111827;
-$ui-gray-700:#374151;
-$ui-gray-100:#f3f4f6;
+// Blue-forward color system tokens
+$ui-blue-50:  #f5f8ff;
+$ui-blue-100: #e6efff;
+$ui-blue-200: #cddfff;
+$ui-blue-300: #9fc3ff;
+$ui-blue-400: #74a6f7;
+$ui-blue-500: #4689ef;
+$ui-blue-600: #1d6fe1;
+$ui-blue-700: #1556b5;
+$ui-blue-800: #0f4087;
+$ui-blue-900: #0a2c5d;
 
-// Bootstrap theme overrides can import these tokens.
-$primary:   $ui-indigo;
-$secondary: $ui-blue;
-$warning:   $ui-orange;
+$ui-slate-50:  #f8fafc;
+$ui-slate-100: #f1f5f9;
+$ui-slate-200: #e2e8f0;
+$ui-slate-300: #cbd5f5;
+$ui-slate-400: #94a3b8;
+$ui-slate-500: #64748b;
+$ui-slate-600: #475569;
+$ui-slate-700: #334155;
+$ui-slate-800: #1e293b;
+$ui-slate-900: #0f172a;
+
+$ui-green-500: #2b9c5f;
+$ui-amber-500: #f59e0b;
+$ui-red-500:   #e54848;
+
+:root {
+  --ui-color-surface: #f4f7fc;
+  --ui-color-surface-alt: #ffffff;
+  --ui-color-surface-stronger: #e6edf8;
+  --ui-color-border: #ced7e7;
+  --ui-color-border-subtle: rgba(206, 215, 231, 0.6);
+  --ui-color-border-strong: #a9b7d0;
+  --ui-color-text: #1c2436;
+  --ui-color-text-strong: #0f172a;
+  --ui-color-text-subtle: #475066;
+  --ui-color-text-muted: #606a80;
+  --ui-color-primary: #{$ui-blue-600};
+  --ui-color-primary-strong: #{$ui-blue-700};
+  --ui-color-info: #{$ui-blue-600};
+  --ui-color-accent: #{$ui-blue-500};
+  --ui-color-success: #{$ui-green-500};
+  --ui-color-warning: #{$ui-amber-500};
+  --ui-color-danger: #{$ui-red-500};
+  --ui-color-focus-ring: rgba(29, 111, 225, 0.32);
+  --ui-color-focus: #{$ui-blue-700};
+  --ui-color-shadow: rgba(15, 23, 42, 0.12);
+  --ui-color-backdrop: rgba(15, 23, 42, 0.5);
+  --ui-header-height: 72px;
+}
+
+// Bootstrap theme overrides
+$primary:   $ui-blue-600;
+$secondary: $ui-blue-500;
+$warning:   $ui-amber-500;
+$success:   $ui-green-500;
+$danger:    $ui-red-500;
+$info:      $ui-blue-600;

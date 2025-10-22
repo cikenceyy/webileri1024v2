@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-ui="theme" data-theme="soft-indigo" data-motion="soft">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-ui="theme" data-theme="bluewave" data-motion="soft">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

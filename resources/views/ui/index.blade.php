@@ -20,10 +20,9 @@
                 <p class="ui-gallery__description">Sabit krom, tematik varyantlar ve hareket dili tek sayfada doğrulanır.</p>
             </div>
             <div class="ui-gallery__controls">
-                <div class="ui-gallery__toggles" role="group" aria-label="Tema toggles">
+                <div class="ui-gallery__theme-chipset" aria-label="Aktif tema">
                     <span class="ui-gallery__toggle-label">Tema</span>
-                    <button type="button" class="ui-gallery__toggle" data-action="theme" data-theme="soft-indigo" aria-pressed="false">Soft Indigo</button>
-                    <button type="button" class="ui-gallery__toggle" data-action="theme" data-theme="industrial-gray" aria-pressed="false">Industrial Gray</button>
+                    <span class="ui-gallery__theme-pill">Bluewave</span>
                 </div>
                 <div class="ui-gallery__toggles" role="group" aria-label="Hareket modu">
                     <span class="ui-gallery__toggle-label">Motion</span>
@@ -47,50 +46,29 @@
             >
                 <p class="ui-gallery__description">Soft Indigo ile Industrial Gray arasında ton/parlaklık dengesi tek panelde kıyaslanır.</p>
                 <div class="ui-gallery__theme-panel" role="list">
-                    <div class="ui-gallery__theme-option" data-theme="soft-indigo" data-grade="best" data-note="Soft Indigo tonunda parlak yüzey + kadife gölge en dengeli AA kontrastı sağlar." role="listitem">
+                    <div class="ui-gallery__theme-option" data-theme="bluewave" data-grade="best" data-note="Bluewave temasında parlak yüzey ile 600/700 tonlu vurgular AA kontrastını korur." role="listitem">
                         <span class="ui-gallery__theme-chip" aria-hidden="true">
                             <span class="ui-gallery__swatch ui-gallery__swatch--surface"></span>
                             <span class="ui-gallery__swatch ui-gallery__swatch--shadow"></span>
                         </span>
                         <div class="ui-gallery__theme-meta">
-                            <strong>Glow + Velvet</strong>
-                            <span>Yüksek parlaklık, yumuşak gölge</span>
+                            <strong>Bluewave Base</strong>
+                            <span>Yüksek parlaklık, derin mavi gölge</span>
                         </div>
                         <span class="ui-gallery__theme-badge">Önerilen</span>
                     </div>
-                    <div class="ui-gallery__theme-option" data-theme="soft-indigo" data-grade="alt" data-note="Soft Indigo için mat yüzeyi koruyup gölge yoğunluğunu azaltmak, bilgi kartlarında düşük stres yaratır." role="listitem">
+                    <div class="ui-gallery__theme-option" data-theme="bluewave" data-grade="alt" data-note="Mat yüzey ve hafif gölgeler, ikincil panellerde düşük stres sağlar." role="listitem">
                         <span class="ui-gallery__theme-chip" aria-hidden="true">
                             <span class="ui-gallery__swatch ui-gallery__swatch--surface ui-gallery__swatch--muted"></span>
                             <span class="ui-gallery__swatch ui-gallery__swatch--shadow ui-gallery__swatch--muted"></span>
                         </span>
                         <div class="ui-gallery__theme-meta">
-                            <strong>Matte Relief</strong>
-                            <span>Düşük parlaklık, gri gölge</span>
-                        </div>
-                    </div>
-                    <div class="ui-gallery__theme-option" data-theme="industrial-gray" data-grade="best" data-note="Industrial Gray tonunda mat yüzey + grafit gölge, endüstriyel kadranlarda okunabilirliği artırır." role="listitem" hidden>
-                        <span class="ui-gallery__theme-chip" aria-hidden="true">
-                            <span class="ui-gallery__swatch ui-gallery__swatch--surface ui-gallery__swatch--industrial"></span>
-                            <span class="ui-gallery__swatch ui-gallery__swatch--shadow ui-gallery__swatch--industrial"></span>
-                        </span>
-                        <div class="ui-gallery__theme-meta">
-                            <strong>Graphite Balance</strong>
-                            <span>Mat yüzey, derin gölge</span>
-                        </div>
-                        <span class="ui-gallery__theme-badge">Önerilen</span>
-                    </div>
-                    <div class="ui-gallery__theme-option" data-theme="industrial-gray" data-grade="alt" data-note="Industrial Gray için parlaklık artırılırsa, tooltip ve sekmelerde kontrast çabuk düşer; bu kombinasyon yalnız kısa süreli highlight için önerilir." role="listitem" hidden>
-                        <span class="ui-gallery__theme-chip" aria-hidden="true">
-                            <span class="ui-gallery__swatch ui-gallery__swatch--surface ui-gallery__swatch--bright"></span>
-                            <span class="ui-gallery__swatch ui-gallery__swatch--shadow ui-gallery__swatch--bright"></span>
-                        </span>
-                        <div class="ui-gallery__theme-meta">
-                            <strong>Highlight Flash</strong>
-                            <span>Yüksek parlaklık, hafif gölge</span>
+                            <strong>Bluewave Soft Focus</strong>
+                            <span>Mat yüzey, pastel gölge</span>
                         </div>
                     </div>
                 </div>
-                <p class="ui-gallery__theme-note" data-ui="theme-compare-note">Soft Indigo tonunda parlak yüzey + kadife gölge en dengeli AA kontrastı sağlar.</p>
+                <p class="ui-gallery__theme-note" data-ui="theme-compare-note">Bluewave temasında parlak yüzey + yoğun gölgeler AA kontrastını en konforlu seviyede tutar.</p>
             </x-ui-card>
             <x-ui-card title="Sidebar" subtitle="Dar mod A/B" class="ui-gallery__card">
                 <p>Sidebar genişliği 280px; dar modda ikon + tooltip veya mikro-chip etiketleri.</p>

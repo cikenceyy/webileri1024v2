@@ -145,8 +145,8 @@
 
 .ui-inline-edit__display:hover,
 .ui-inline-edit__display:focus-visible {
-  background: rgba(79, 70, 229, 0.08);
-  border-color: rgba(79, 70, 229, 0.32);
+  background: color-mix(in srgb, var(--ui-color-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ui-color-primary) 32%, transparent);
   color: var(--ui-color-text-strong);
 }
 
@@ -195,18 +195,18 @@
 }
 
 .ui-inline-edit.has-change .ui-inline-edit__display {
-  background: rgba(79, 70, 229, 0.08);
-  border-color: rgba(79, 70, 229, 0.24);
+  background: color-mix(in srgb, var(--ui-color-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ui-color-primary) 24%, transparent);
   color: var(--ui-color-text-strong);
   animation: inline-edit-pulse var(--t-fast) var(--ease-soft);
 }
 
 @keyframes inline-edit-pulse {
   from {
-    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.28);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ui-color-primary) 28%, transparent);
   }
 
   to {
-    box-shadow: 0 0 0 8px rgba(79, 70, 229, 0);
+    box-shadow: 0 0 0 8px transparent;
   }
 }

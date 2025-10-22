@@ -197,6 +197,7 @@ html[data-sidebar='compact'] .ui-sidebar {
 .ui-sidebar__panel {
   padding-inline-start: calc(var(--ui-sidebar-item-padding-inline));
   padding-block-end: var(--ui-space-2);
+  margin-top: 8px;
 }
 
 .ui-sidebar__subitem {
@@ -245,8 +246,8 @@ html[data-sidebar='compact'] .ui-sidebar {
 .ui-sidebar__footer {
   margin-top: auto;
   padding: var(--ui-space-4) var(--ui-space-3);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--ui-color-primary) 10%, transparent) 0%, transparent 70%);
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  background: color-mix(in srgb, var(--ui-color-primary) 6%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--ui-color-border) 80%, transparent);
 }
 
 .ui-sidebar__footer-card {

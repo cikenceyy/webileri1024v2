@@ -17,8 +17,8 @@
 }
 
 .ui-toolbar.has-filter {
-  border-color: rgba(79, 70, 229, 0.24);
-  background: rgba(79, 70, 229, 0.08);
+  border-color: color-mix(in srgb, var(--ui-color-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--ui-color-primary) 10%, transparent);
 }
 
 .ui-toolbar__button {
@@ -37,7 +37,7 @@
 .ui-toolbar__button:hover,
 .ui-toolbar__button:focus-visible,
 .ui-toolbar__button[aria-pressed='true'] {
-  background: rgba(76, 99, 217, 0.12);
+  background: color-mix(in srgb, var(--ui-color-primary) 14%, transparent);
   color: var(--ui-color-text);
 }
 
@@ -52,7 +52,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(79, 70, 229, 0.12);
+  background: color-mix(in srgb, var(--ui-color-primary) 14%, transparent);
   color: var(--ui-color-primary);
   font-size: 0.75rem;
   opacity: 0;
