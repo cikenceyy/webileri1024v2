@@ -20,5 +20,9 @@ Route::prefix('admin')
         Route::middleware('auth')->group(function (): void {
             Route::get('/', DashboardController::class)->name('dashboard');
             Route::post('logout', [LoginController::class, 'logout'])->name('auth.logout');
+
+            Route::fallback(function () {
+                abort(404);
+            });
         });
     });
