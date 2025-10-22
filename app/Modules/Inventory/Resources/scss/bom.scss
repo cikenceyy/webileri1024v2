@@ -1,0 +1,61 @@
+@use '@/scss/tokens/colors' as *;
+@use '@/scss/tokens/spacing' as *;
+@use '@/scss/tokens/radius' as *;
+@use '@/scss/tokens/typography' as *;
+
+.inv-bom {
+  display: grid;
+  gap: var(--ui-space-4);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ui-space-3);
+  }
+
+  &__items {
+    background: var(--ui-color-surface);
+    border-radius: var(--ui-radius-lg);
+    padding: var(--ui-space-4);
+    box-shadow: var(--ui-shadow-xs);
+
+    .inv-bom__row {
+      display: grid;
+      grid-template-columns: 2fr repeat(3, minmax(120px, 1fr)) auto;
+      gap: var(--ui-space-3);
+      align-items: center;
+      padding-block: var(--ui-space-3);
+      border-bottom: 1px solid var(--ui-color-border-subtle);
+
+      &:last-child {
+        border-bottom: 0;
+      }
+
+      &--insufficient {
+        background: var(--ui-color-warning-subtle);
+        border-radius: var(--ui-radius-md);
+      }
+    }
+
+    .inv-bom__material {
+      display: flex;
+      gap: var(--ui-space-2);
+      align-items: center;
+    }
+  }
+
+  &__summary {
+    background: var(--ui-color-surface);
+    border-radius: var(--ui-radius-lg);
+    padding: var(--ui-space-4);
+    box-shadow: var(--ui-shadow-xs);
+
+    .inv-bom__summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding-block: var(--ui-space-2);
+    }
+  }
+}

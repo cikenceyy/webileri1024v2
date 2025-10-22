@@ -1,52 +1,39 @@
 <?php
 
-use App\Modules\Inventory\Http\Controllers\CategoryController;
-use App\Modules\Inventory\Http\Controllers\ImportController;
-use App\Modules\Inventory\Http\Controllers\PriceListController;
+use App\Modules\Inventory\Http\Controllers\BomController;
+use App\Modules\Inventory\Http\Controllers\HomeController;
+use App\Modules\Inventory\Http\Controllers\PricelistController;
 use App\Modules\Inventory\Http\Controllers\ProductController;
-use App\Modules\Inventory\Http\Controllers\VariantController;
+use App\Modules\Inventory\Http\Controllers\SettingsController;
+use App\Modules\Inventory\Http\Controllers\StockConsoleController;
 use App\Modules\Inventory\Http\Controllers\WarehouseController;
-use App\Modules\Inventory\Http\Controllers\UnitController;
-use App\Modules\Inventory\Http\Controllers\StockController;
-use App\Modules\Inventory\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'tenant', 'auth', 'verified'])
     ->prefix('/admin/inventory')
     ->name('admin.inventory.')
     ->group(function () {
-        Route::resource('categories', CategoryController::class)->names('categories');
-        Route::resource('units', UnitController::class)->only(['index', 'create', 'store'])->names('units');
-        Route::resource('pricelists', PriceListController::class)->names('pricelists');
-        Route::post('pricelists/{pricelist}/items', [PriceListController::class, 'storeItem'])->name('pricelists.items.store');
-        Route::delete('pricelists/{pricelist}/items/{item}', [PriceListController::class, 'destroyItem'])->name('pricelists.items.destroy');
-        Route::resource('warehouses', WarehouseController::class)->names('warehouses');
+        Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('home/metrics', [HomeController::class, 'metrics'])->name('home.metrics');
+        Route::get('home/timeline', [HomeController::class, 'timeline'])->name('home.timeline');
+        Route::get('home/lowstock', [HomeController::class, 'lowstock'])->name('home.lowstock');
 
-        Route::resource('products', ProductController::class)->names('products');
-        Route::post('products/{product}/gallery', [ProductController::class, 'addGallery'])->name('products.gallery.add');
-        Route::delete('products/{product}/gallery/{gallery}', [ProductController::class, 'removeGallery'])->name('products.gallery.remove');
+        Route::get('stock/console', [StockConsoleController::class, 'index'])->name('stock.console');
+        Route::post('stock/console', [StockConsoleController::class, 'store'])->name('stock.console.store');
+        Route::get('stock/lookup', [StockConsoleController::class, 'lookup'])->name('stock.console.lookup');
 
-        Route::prefix('products/{product}')
-            ->name('products.')
-            ->group(function () {
-                Route::resource('variants', VariantController::class)->names('variants');
-            });
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::get('products/{product}/components', [ProductController::class, 'components'])->name('products.components');
 
-        Route::get('import/products/sample', [ImportController::class, 'sample'])->name('import.products.sample');
-        Route::get('import/products', [ImportController::class, 'form'])->name('import.products.form');
-        Route::post('import/products', [ImportController::class, 'store'])->name('import.products.store');
+        Route::get('warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
+        Route::get('warehouses/{warehouse}', [WarehouseController::class, 'show'])->name('warehouses.show');
 
-        Route::get('stock', [StockController::class, 'index'])->name('stock.index');
-        Route::get('stock/in', [StockController::class, 'inForm'])->name('stock.in.form');
-        Route::post('stock/in', [StockController::class, 'storeIn'])->name('stock.in.store');
-        Route::get('stock/out', [StockController::class, 'outForm'])->name('stock.out.form');
-        Route::post('stock/out', [StockController::class, 'storeOut'])->name('stock.out.store');
-        Route::get('stock/transfer', [StockController::class, 'transferForm'])->name('stock.transfer.form');
-        Route::post('stock/transfer', [StockController::class, 'storeTransfer'])->name('stock.transfer.store');
-        Route::get('stock/adjust', [StockController::class, 'adjustForm'])->name('stock.adjust.form');
-        Route::post('stock/adjust', [StockController::class, 'storeAdjust'])->name('stock.adjust.store');
+        Route::get('pricelists', [PricelistController::class, 'index'])->name('pricelists.index');
+        Route::get('pricelists/{pricelist}', [PricelistController::class, 'show'])->name('pricelists.show');
 
-        Route::get('reports/onhand', [ReportController::class, 'onHand'])->name('reports.onhand');
-        Route::get('reports/ledger', [ReportController::class, 'ledger'])->name('reports.ledger');
-        Route::get('reports/valuation', [ReportController::class, 'valuation'])->name('reports.valuation');
+        Route::get('bom', [BomController::class, 'index'])->name('bom.index');
+        Route::get('bom/{product}', [BomController::class, 'show'])->name('bom.show');
+
+        Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
     });

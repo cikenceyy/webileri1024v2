@@ -1,0 +1,67 @@
+@use '@/scss/tokens/colors' as *;
+@use '@/scss/tokens/spacing' as *;
+@use '@/scss/tokens/radius' as *;
+@use '@/scss/tokens/effects' as *;
+
+.inv-warehouse {
+  display: grid;
+  gap: var(--ui-space-4);
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--ui-space-2);
+    padding: var(--ui-space-4);
+    background: var(--ui-color-surface);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow-xs);
+
+    .inv-heat__cell {
+      position: relative;
+      border-radius: var(--ui-radius-md);
+      padding: var(--ui-space-3);
+      background: var(--ui-color-surface-stronger);
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 140ms ease;
+
+      &[data-selected='true'] {
+        outline: 2px solid var(--ui-color-primary);
+        transform: translateY(-2px);
+        box-shadow: var(--ui-shadow-sm);
+      }
+
+      &[data-level='4'],
+      &[data-level='5'] {
+        color: var(--ui-color-surface);
+        background: var(--ui-color-primary);
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--ui-space-2);
+    flex-wrap: wrap;
+  }
+
+  &__panel {
+    background: var(--ui-color-surface);
+    border-radius: var(--ui-radius-lg);
+    padding: var(--ui-space-4);
+    box-shadow: var(--ui-shadow-xs);
+    display: grid;
+    gap: var(--ui-space-3);
+
+    .inv-warehouse__item-list {
+      display: grid;
+      gap: var(--ui-space-2);
+
+      .inv-card {
+        border: 1px solid var(--ui-color-border-subtle);
+        border-radius: var(--ui-radius-md);
+        background: var(--ui-color-surface-stronger);
+        padding: var(--ui-space-3);
+      }
+    }
+  }
+}
