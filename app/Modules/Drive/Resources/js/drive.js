@@ -4,6 +4,19 @@ import { initLiveSearch, normalizeTerm } from '@/js/components/live-search.js';
 import { bus } from '@/js/admin-runtime.js';
 
 const numberFormatter = new Intl.NumberFormat();
+const DRIVE_MESSAGE_ORIGIN = window.location.origin;
+
+const postToParent = (type, payload = {}) => {
+    if (!type || window === window.parent) {
+        return;
+    }
+
+    try {
+        window.parent.postMessage({ type: `drive:${type}`, payload }, DRIVE_MESSAGE_ORIGIN);
+    } catch (error) {
+        console.warn('Drive picker iletişimi sırasında hata oluştu.', error);
+    }
+};
 
 const getCsrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
@@ -216,6 +229,7 @@ const createActionButton = ({ tag = 'button', href = '#', icon, label, variant =
 };
 
 const renderMediaCard = (root, media) => {
+    const isPicker = root.dataset.pickerMode === '1';
     const card = document.createElement('section');
     card.className = 'ui-card drive-card';
     card.dataset.ui = 'card';
@@ -223,8 +237,11 @@ const renderMediaCard = (root, media) => {
     card.dataset.id = String(media.id);
     card.dataset.search = normalizeTerm(`${media.original_name || ''} ${media.mime || ''} ${media.ext || ''}`);
     card.dataset.name = normalizeTerm(media.original_name);
+    card.dataset.originalName = media.original_name || '';
     card.dataset.ext = normalizeExt(media.ext);
     card.dataset.mime = normalizeTerm(media.mime);
+    card.dataset.size = String(media.size ?? 0);
+    card.dataset.category = media.category || '';
     card.dataset.important = media.is_important ? '1' : '0';
 
     const downloadTemplate = root.dataset.downloadUrlTemplate || '';
@@ -238,6 +255,7 @@ const renderMediaCard = (root, media) => {
     card.dataset.downloadUrl = downloadUrl;
     card.dataset.deleteUrl = deleteUrl;
     card.dataset.toggleImportantUrl = toggleUrl;
+    card.dataset.path = media.path || '';
 
     const bodyWrapper = document.createElement('div');
     bodyWrapper.className = 'ui-card__body';
@@ -296,65 +314,87 @@ const renderMediaCard = (root, media) => {
     actions.setAttribute('aria-label', `${media.original_name || 'Dosya'} aksiyonları`);
     bodyWrapper.appendChild(actions);
 
-    const downloadButton = createActionButton({
-        tag: 'a',
-        href: downloadUrl,
-        icon: 'bi bi-download',
-        label: 'İndir',
-        attributes: {
-            'data-bs-toggle': 'tooltip',
-            title: 'İndir',
-            'aria-label': 'İndir',
-        },
-    });
-    actions.appendChild(downloadButton);
+    if (isPicker) {
+        const selectButton = document.createElement('button');
+        selectButton.type = 'button';
+        selectButton.className = 'ui-button ui-button--primary ui-button--sm drive-card__action';
+        selectButton.dataset.ui = 'button';
+        selectButton.dataset.action = 'drive-picker-select';
+        selectButton.dataset.id = String(media.id);
+        selectButton.dataset.name = media.original_name || 'Seçilen dosya';
+        selectButton.dataset.ext = media.ext || '';
+        selectButton.dataset.mime = media.mime || '';
+        selectButton.dataset.size = String(media.size ?? 0);
+        selectButton.dataset.path = media.path || '';
+        selectButton.dataset.url = downloadUrl;
 
-    const replaceButton = createActionButton({
-        icon: 'bi bi-arrow-repeat',
-        label: 'Değiştir',
-        attributes: {
-            'data-action': 'drive-open-replace',
-            'data-id': media.id,
-            'data-name': media.original_name || 'Seçilen dosya',
-            'data-bs-toggle': 'tooltip',
-            title: 'Dosyayı değiştir',
-            'aria-label': 'Dosyayı değiştir',
-        },
-    });
-    actions.appendChild(replaceButton);
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'ui-button__label';
+        labelSpan.textContent = 'Seç';
+        selectButton.appendChild(labelSpan);
 
-    const importantButton = createActionButton({
-        icon: media.is_important ? 'bi bi-star-fill' : 'bi bi-star',
-        label: 'Önemli olarak işaretle',
-        extraClass: `drive-card__action--important${media.is_important ? ' is-active' : ''}`,
-        attributes: {
-            'data-action': 'drive-toggle-important',
-            'data-url': toggleUrl,
-            'aria-pressed': media.is_important ? 'true' : 'false',
-            'data-title-on': 'Önemli işaretini kaldır',
-            'data-title-off': 'Önemli olarak işaretle',
-            'data-bs-toggle': 'tooltip',
-            title: media.is_important ? 'Önemli işaretini kaldır' : 'Önemli olarak işaretle',
-            'aria-label': media.is_important ? 'Önemli işaretini kaldır' : 'Önemli olarak işaretle',
-        },
-    });
-    actions.appendChild(importantButton);
+        actions.appendChild(selectButton);
+    } else {
+        const downloadButton = createActionButton({
+            tag: 'a',
+            href: downloadUrl,
+            icon: 'bi bi-download',
+            label: 'İndir',
+            attributes: {
+                'data-bs-toggle': 'tooltip',
+                title: 'İndir',
+                'aria-label': 'İndir',
+            },
+        });
+        actions.appendChild(downloadButton);
 
-    const deleteButton = createActionButton({
-        icon: 'bi bi-trash',
-        label: 'Sil',
-        extraClass: 'drive-card__action--danger',
-        attributes: {
-            'data-action': 'drive-delete',
-            'data-id': media.id,
-            'data-name': media.original_name || 'Seçilen dosya',
-            'data-url': deleteUrl,
-            'data-bs-toggle': 'tooltip',
-            title: 'Sil',
-            'aria-label': 'Sil',
-        },
-    });
-    actions.appendChild(deleteButton);
+        const replaceButton = createActionButton({
+            icon: 'bi bi-arrow-repeat',
+            label: 'Değiştir',
+            attributes: {
+                'data-action': 'drive-open-replace',
+                'data-id': media.id,
+                'data-name': media.original_name || 'Seçilen dosya',
+                'data-bs-toggle': 'tooltip',
+                title: 'Dosyayı değiştir',
+                'aria-label': 'Dosyayı değiştir',
+            },
+        });
+        actions.appendChild(replaceButton);
+
+        const importantButton = createActionButton({
+            icon: media.is_important ? 'bi bi-star-fill' : 'bi bi-star',
+            label: 'Önemli olarak işaretle',
+            extraClass: `drive-card__action--important${media.is_important ? ' is-active' : ''}`,
+            attributes: {
+                'data-action': 'drive-toggle-important',
+                'data-url': toggleUrl,
+                'aria-pressed': media.is_important ? 'true' : 'false',
+                'data-title-on': 'Önemli işaretini kaldır',
+                'data-title-off': 'Önemli olarak işaretle',
+                'data-bs-toggle': 'tooltip',
+                title: media.is_important ? 'Önemli işaretini kaldır' : 'Önemli olarak işaretle',
+                'aria-label': media.is_important ? 'Önemli işaretini kaldır' : 'Önemli olarak işaretle',
+            },
+        });
+        actions.appendChild(importantButton);
+
+        const deleteButton = createActionButton({
+            icon: 'bi bi-trash',
+            label: 'Sil',
+            extraClass: 'drive-card__action--danger',
+            attributes: {
+                'data-action': 'drive-delete',
+                'data-id': media.id,
+                'data-name': media.original_name || 'Seçilen dosya',
+                'data-url': deleteUrl,
+                'data-bs-toggle': 'tooltip',
+                title: 'Sil',
+                'aria-label': 'Sil',
+            },
+        });
+        actions.appendChild(deleteButton);
+    }
 
     return card;
 };
@@ -425,6 +465,34 @@ const insertMedia = (root, media, currentTerm) => {
     toggleHidden(emptyState, true);
 };
 
+const replaceMedia = (root, media, currentTerm) => {
+    const grid = root.querySelector('[data-drive-grid]');
+    if (!grid) {
+        return;
+    }
+
+    const existing = grid.querySelector(`[data-drive-row][data-id="${media.id}"]`);
+    const card = renderMediaCard(root, media);
+
+    if (existing) {
+        existing.replaceWith(card);
+    } else {
+        grid.prepend(card);
+        updateSummaryTotal(root, 1);
+    }
+
+    refreshTooltips(card);
+
+    const emptyState = root.querySelector('[data-drive-empty]');
+    toggleHidden(emptyState, true);
+
+    if (currentTerm !== undefined) {
+        const normalized = normalizeTerm(currentTerm);
+        const matches = normalized.length === 0 || (card.dataset.search || '').includes(normalized);
+        card.toggleAttribute('hidden', !matches);
+    }
+};
+
 const removeMedia = (root, id) => {
     const grid = root.querySelector('[data-drive-grid]');
     if (!grid) {
@@ -448,6 +516,7 @@ const bootDrive = () => {
         return;
     }
 
+    const isPickerMode = root.dataset.pickerMode === '1';
     const csrfToken = getCsrfToken();
     if (csrfToken) {
         axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
@@ -468,6 +537,13 @@ const bootDrive = () => {
 
     refreshRefs();
     refreshTooltips(root);
+
+    if (isPickerMode) {
+        postToParent('picker:ready', {
+            total: Number(root.dataset.driveTotal || 0),
+            pageSize: Number(root.dataset.drivePageSize || 0),
+        });
+    }
 
     const computeShouldUseRemote = () => {
         const total = Number(root.dataset.driveTotal || '0');
@@ -784,9 +860,19 @@ const bootDrive = () => {
         formData.append('file', file);
 
         try {
-            await axios.post(root.dataset.replaceUrlTemplate.replace('__ID__', replacingId), formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            const { data } = await axios.post(
+                root.dataset.replaceUrlTemplate.replace('__ID__', replacingId),
+                formData,
+                {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                },
+            );
+
+            if (data?.media) {
+                replaceMedia(root, data.media, currentSearchTerm);
+                filterLocal(currentSearchTerm);
+            }
+
             bus.emit('ui:modal:close', { id: 'driveReplaceModal' });
         } catch (error) {
             const response = error?.response?.data;
@@ -852,7 +938,7 @@ const bootDrive = () => {
 
         if (action === 'drive-open-replace') {
             event.preventDefault();
-            if (root.dataset.pickerMode === '1') return;
+            if (isPickerMode) return;
             const id = button.dataset.id;
             const name = button.dataset.name || 'Seçilen dosya';
             if (!id) return;
@@ -862,6 +948,34 @@ const bootDrive = () => {
         if (action === 'drive-submit-replace') {
             event.preventDefault();
             await submitReplace();
+        }
+
+        if (action === 'drive-picker-select') {
+            if (!isPickerMode) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const row = button.closest('[data-drive-row]');
+            if (!row) {
+                return;
+            }
+
+            const payload = {
+                id: Number(button.dataset.id || row.dataset.id || 0),
+                name: button.dataset.name || row.dataset.originalName || '',
+                original_name: button.dataset.name || row.dataset.originalName || '',
+                ext: normalizeExt(button.dataset.ext || row.dataset.ext || ''),
+                mime: button.dataset.mime || row.dataset.mime || '',
+                size: Number(button.dataset.size || row.dataset.size || 0),
+                path: button.dataset.path || row.dataset.path || '',
+                url: button.dataset.url || row.dataset.downloadUrl || '',
+                download_url: button.dataset.url || row.dataset.downloadUrl || '',
+                category: row.dataset.category || '',
+            };
+
+            postToParent('picker:selected', { file: payload });
         }
 
         if (action === 'drive-delete') {

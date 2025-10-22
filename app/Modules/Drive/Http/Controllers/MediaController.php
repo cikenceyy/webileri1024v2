@@ -74,6 +74,7 @@ class MediaController extends Controller
             return response()->json([
                 'ok' => true,
                 'media' => $this->serializeMedia($media),
+                'message' => 'Dosya başarıyla yüklendi.',
             ], 201);
         }
 
@@ -140,7 +141,7 @@ class MediaController extends Controller
 
     public function download(Media $media)
     {
-        $this->authorize('view', $media);
+        $this->authorize('download', $media);
 
         $disk = Storage::disk($media->disk);
         $ttl = (int) config('drive.presign_ttl_seconds', 300);
@@ -352,14 +353,16 @@ class MediaController extends Controller
 
     protected function uploadFile(UploadedFile $file, string $category, int $companyId, ?string $disk = null): array
     {
-        $disk = $disk ?: config('filesystems.default', 's3');
+        $disk = $disk ?: config('drive.disk', config('filesystems.default', 'public'));
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin');
-        $folder = sprintf('company/%s/%s/%s', $companyId, $category, now()->format('Y/m'));
+        $prefix = (string) config('drive.path_prefix', 'companies/{company_id}/drive');
+        $basePath = trim(str_replace('{company_id}', (string) $companyId, $prefix), '/');
+        $folder = trim($basePath . '/' . trim($category, '/') . '/' . now()->format('Y/m'), '/');
         $filename = Str::uuid() . '.' . $extension;
 
         $storedPath = $file->storeAs($folder, $filename, [
             'disk' => $disk,
-            'visibility' => 'private',
+            'visibility' => 'public',
         ]);
 
         $sha = null;
@@ -407,6 +410,10 @@ class MediaController extends Controller
             'uploaded_at' => optional($media->created_at)->toDateTimeString(),
             'uploader' => $media->relationLoaded('uploader') ? optional($media->uploader)->only(['id', 'name', 'email']) : null,
             'is_important' => (bool) $media->is_important,
+            'path' => $media->path,
+            'thumb_path' => $media->thumb_path,
+            'disk' => $media->disk,
+            'download_url' => route('admin.drive.media.download', $media),
         ];
     }
 

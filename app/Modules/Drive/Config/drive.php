@@ -3,6 +3,8 @@
 return [
     'presign_ttl_seconds' => env('DRIVE_PRESIGN_TTL', 300),
     'max_upload_bytes' => (int) env('DRIVE_MAX_UPLOAD_BYTES', 50 * 1024 * 1024),
+    'disk' => env('DRIVE_DISK', config('filesystems.default', 'public')),
+    'path_prefix' => env('DRIVE_PATH_PREFIX', 'companies/{company_id}/drive'),
     'categories' => [
         'documents' => [
             'mimes' => [

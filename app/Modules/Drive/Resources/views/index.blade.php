@@ -214,8 +214,13 @@
                         @endphp
                         <x-ui-card class="drive-card {{ $media->is_important ? 'drive-card--important' : '' }}"
                             data-drive-row data-id="{{ $media->id }}" data-search="{{ $searchIndex }}"
-                            data-name="{{ Str::lower($media->original_name) }}" data-ext="{{ Str::lower($media->ext) }}"
+                            data-name="{{ Str::lower($media->original_name) }}"
+                            data-original-name="{{ $media->original_name }}"
+                            data-ext="{{ Str::lower($media->ext) }}"
                             data-mime="{{ Str::lower($media->mime) }}"
+                            data-size="{{ (int) $media->size }}"
+                            data-category="{{ $media->category }}"
+                            data-path="{{ $media->path }}"
                             data-important="{{ $media->is_important ? '1' : '0' }}"
                             data-download-url="{{ route('admin.drive.media.download', $media) }}"
                             data-delete-url="{{ route('admin.drive.media.destroy', $media) }}"
@@ -248,7 +253,9 @@
                                         <x-ui-button variant="primary" size="sm" data-action="drive-picker-select"
                                             data-id="{{ $media->id }}" data-name="{{ $media->original_name }}"
                                             data-ext="{{ $media->ext }}" data-mime="{{ $media->mime }}"
-                                            data-size="{{ $media->size }}">Seç</x-ui-button>
+                                            data-size="{{ $media->size }}"
+                                            data-path="{{ $media->path }}"
+                                            data-url="{{ route('admin.drive.media.download', $media) }}">Seç</x-ui-button>
                                     @else
 
                                         @can('markImportant', $media)

@@ -1,9 +1,10 @@
 <?php
 
 return [
-    'drive.view',
-    'drive.upload',
-    'drive.delete',
-    'drive.mark_important',
-    'drive.replace',
+    'drive.file.view',
+    'drive.file.download',
+    'drive.file.upload',
+    'drive.file.update',
+    'drive.file.delete',
+    'drive.file.mark',
 ];

@@ -8,7 +8,10 @@
 <x-ui-card>
     <form method="POST" action="{{ route('admin.inventory.products.store') }}" data-inventory-product-form data-drive-modal-id="drivePickerModal">
         @csrf
-        @include('inventory::products._form')
+        @include('inventory::products._form', [
+            'drivePickerModalId' => 'drivePickerModal',
+            'drivePickerFolder' => \App\Modules\Drive\Domain\Models\Media::CATEGORY_MEDIA_PRODUCTS,
+        ])
 
         <div class="mt-4 d-flex justify-content-end gap-2">
             <a href="{{ route('admin.inventory.products.index') }}" class="btn btn-outline-secondary">Vazgeç</a>
@@ -25,6 +28,7 @@
             title="Drive Görsel Seçici"
             allow="autoplay"
             data-drive-picker-frame
+            data-drive-picker-src="{{ route('admin.drive.media.index', ['picker' => 1]) }}"
         ></iframe>
     </div>
 </x-ui-modal>

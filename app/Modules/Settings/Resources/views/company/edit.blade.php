@@ -47,11 +47,37 @@
                 <div class="mt-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label fw-semibold mb-0" for="companyLogoId">Şirket Logosu</label>
+                        @php
+                            $logoPickerKey = 'company-logo';
+                            $logoPickerData = $logoMedia ? [
+                                'id' => $logoMedia->id,
+                                'name' => $logoMedia->original_name,
+                                'original_name' => $logoMedia->original_name,
+                                'mime' => $logoMedia->mime,
+                                'ext' => $logoMedia->ext,
+                                'size' => $logoMedia->size,
+                                'path' => $logoMedia->path,
+                                'url' => route('admin.drive.media.download', $logoMedia),
+                                'category' => $logoMedia->category,
+                            ] : null;
+                        @endphp
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-action="open-logo-picker">
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-drive-picker-open
+                                data-drive-picker-key="{{ $logoPickerKey }}"
+                                data-drive-picker-modal="companyLogoPickerModal"
+                                data-drive-picker-folder="{{ \App\Modules\Drive\Domain\Models\Media::CATEGORY_MEDIA_PRODUCTS }}"
+                            >
                                 Sürücüden Seç
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="clear-logo">
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-drive-picker-clear
+                                data-drive-picker-key="{{ $logoPickerKey }}"
+                            >
                                 Temizle
                             </button>
                         </div>
@@ -62,21 +88,32 @@
                         name="logo_id"
                         id="companyLogoId"
                         value="{{ old('logo_id', $logoMedia?->id) }}"
-                        data-company-logo-input
+                        data-drive-picker-input
+                        data-drive-picker-key="{{ $logoPickerKey }}"
                     >
 
-                    <div class="border rounded p-3 d-flex align-items-center gap-3 bg-light" data-company-logo-preview>
-                        @if($logoMedia)
-                            <x-ui-file-icon :ext="$logoMedia->ext" size="36" />
-                            <div class="flex-grow-1">
-                                <div class="fw-semibold text-ellipsis">{{ $logoMedia->original_name }}</div>
-                                <div class="text-muted small">
-                                    {{ $logoMedia->mime }} · {{ number_format(($logoMedia->size ?? 0) / 1024, 1, ',', '.') }} KB
+                    <div class="border rounded p-3 d-flex align-items-center gap-3 bg-light">
+                        <div
+                            class="w-100"
+                            data-drive-picker-preview
+                            data-drive-picker-key="{{ $logoPickerKey }}"
+                            data-drive-picker-template="inventory-media"
+                            data-empty-message="Drive üzerinden bir logo seçin. Görsel formatlar önerilir."
+                            data-drive-picker-state="{{ $logoPickerData ? 'filled' : 'empty' }}"
+                            data-drive-picker-value='@json($logoPickerData)'
+                        >
+                            @if($logoMedia)
+                                <div class="inventory-media-preview">
+                                    <x-ui-file-icon :ext="$logoMedia->ext" size="36" />
+                                    <div class="inventory-media-preview__meta">
+                                        <div class="inventory-media-preview__name">{{ $logoMedia->original_name }}</div>
+                                        <div class="inventory-media-preview__desc">{{ $logoMedia->mime }} · {{ number_format(($logoMedia->size ?? 0) / 1024, 1, ',', '.') }} KB</div>
+                                    </div>
                                 </div>
-                            </div>
-                        @else
-                            <div class="text-muted">Drive üzerinden bir logo seçin. Görsel formatlar önerilir.</div>
-                        @endif
+                            @else
+                                <div class="inventory-media-empty">Drive üzerinden bir logo seçin. Görsel formatlar önerilir.</div>
+                            @endif
+                        </div>
                     </div>
 
                     @error('logo_id')
@@ -195,6 +232,7 @@
             title="Drive Logo Seçici"
             allow="autoplay"
             data-drive-picker-frame
+            data-drive-picker-src="{{ route('admin.drive.media.index', ['picker' => 1]) }}"
         ></iframe>
     </div>
 </x-ui-modal>

@@ -11,6 +11,7 @@ import { initScrollShadow } from './components/scroll-shadow.js';
 import { bootstrapRuntime, initRuntimeControls, toggleSidebarMode } from './components/runtime.js';
 import { initSidebarNavigation } from './components/sidebar.js';
 import { initTableCore } from './components/table-core.js';
+import { initDrivePickerHost } from './components/drive-picker-host.js';
 
 
 const initActions = () => {
@@ -91,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTableCore();
     initHeaderEffects();
     initSidebarNavigation();
+    initDrivePickerHost();
 });
 
 export { bus };

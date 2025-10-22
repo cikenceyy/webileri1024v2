@@ -3,6 +3,20 @@
     $selectedMedia = $selectedMedia ?? null;
     $categories = $categories ?? collect();
     $units = $units ?? collect();
+    $drivePickerModalId = $drivePickerModalId ?? 'drivePickerModal';
+    $drivePickerFolder = $drivePickerFolder ?? \App\Modules\Drive\Domain\Models\Media::CATEGORY_MEDIA_PRODUCTS;
+    $drivePickerKey = $drivePickerKey ?? 'product-cover';
+    $initialMediaData = $selectedMedia ? [
+        'id' => $selectedMedia->id,
+        'name' => $selectedMedia->original_name,
+        'original_name' => $selectedMedia->original_name,
+        'mime' => $selectedMedia->mime,
+        'ext' => $selectedMedia->ext,
+        'size' => $selectedMedia->size,
+        'path' => $selectedMedia->path,
+        'url' => route('admin.drive.media.download', $selectedMedia),
+        'category' => $selectedMedia->category,
+    ] : null;
 @endphp
 
 <div class="row g-4">
@@ -101,10 +115,22 @@
         <div class="d-flex justify-content-between align-items-center mb-2">
             <label class="form-label fw-semibold mb-0" for="productMediaId">Kapak Görseli</label>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-action="open-drive-picker">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    data-drive-picker-open
+                    data-drive-picker-key="{{ $drivePickerKey }}"
+                    data-drive-picker-modal="{{ $drivePickerModalId }}"
+                    data-drive-picker-folder="{{ $drivePickerFolder }}"
+                >
                     Sürücüden Seç
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-danger" data-action="clear-media">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    data-drive-picker-clear
+                    data-drive-picker-key="{{ $drivePickerKey }}"
+                >
                     Temizle
                 </button>
             </div>
@@ -114,13 +140,17 @@
             name="media_id"
             id="productMediaId"
             value="{{ old('media_id', $selectedMedia?->id) }}"
-            data-product-media-input
+            data-drive-picker-input
+            data-drive-picker-key="{{ $drivePickerKey }}"
         >
         <div
             class="border rounded p-3 d-flex align-items-center gap-3 bg-light"
-            data-product-media-preview
+            data-drive-picker-preview
+            data-drive-picker-key="{{ $drivePickerKey }}"
+            data-drive-picker-template="inventory-media"
             data-empty-message="Drive içinden bir kapak görseli seçin. “Ürün Görselleri” kategorisindeki öğeler kullanılabilir."
-            data-state="{{ $selectedMedia ? 'filled' : 'empty' }}"
+            data-drive-picker-state="{{ $initialMediaData ? 'filled' : 'empty' }}"
+            data-drive-picker-value='@json($initialMediaData)'
         >
             @if($selectedMedia)
                 <div class="inventory-media-preview">
