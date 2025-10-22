@@ -25,25 +25,39 @@ const writeStoredState = (value) => {
     }
 };
 
-const applySectionState = (item, expanded) => {
-    const trigger = item.querySelector('[data-role="sidebar-trigger"]');
-    const panel = item.querySelector('[data-role="sidebar-panel"]');
-
-    if (!trigger || !panel) {
-        return;
+const ensurePanelAccessibility = (item, trigger, panel) => {
+    if (!panel.id) {
+        const baseId = item.dataset.sidebarId || `sidebar-node-${Math.random().toString(16).slice(2)}`;
+        panel.id = `${baseId}-panel`;
     }
 
-    if (panel.id && trigger.getAttribute('aria-controls') !== panel.id) {
+    if (!trigger.id) {
+        const baseId = panel.id.replace(/-panel$/, '');
+        trigger.id = `${baseId}-trigger`;
+    }
+
+    if (trigger.getAttribute('aria-controls') !== panel.id) {
         trigger.setAttribute('aria-controls', panel.id);
     }
 
-    if (trigger.id && panel.getAttribute('aria-labelledby') !== trigger.id) {
+    if (panel.getAttribute('aria-labelledby') !== trigger.id) {
         panel.setAttribute('aria-labelledby', trigger.id);
     }
 
     if (!panel.hasAttribute('role')) {
         panel.setAttribute('role', 'region');
     }
+};
+
+const applySectionState = (item, expanded) => {
+    const trigger = item.querySelector('.ui-sidebar__trigger');
+    const panel = item.querySelector('.ui-sidebar__panel');
+
+    if (!trigger || !panel) {
+        return;
+    }
+
+    ensurePanelAccessibility(item, trigger, panel);
 
     item.classList.toggle('is-open', expanded);
     trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
@@ -57,51 +71,93 @@ export const initSidebarNavigation = () => {
         return;
     }
 
-    const collapsibleItems = sidebar.querySelectorAll('[data-sidebar-collapsible]');
     const storedState = readStoredState();
+    const collapsibleItems = Array.from(sidebar.querySelectorAll('.ui-sidebar__item.has-children'));
 
-    collapsibleItems.forEach((item) => {
-        const trigger = item.querySelector('[data-role="sidebar-trigger"]');
-        const panel = item.querySelector('[data-role="sidebar-panel"]');
+    const persistState = (id, value) => {
+        if (!id) return;
+        storedState[id] = value;
+        writeStoredState(storedState);
+    };
 
-        if (!trigger || !panel) {
+    const findPanelState = (item) => {
+        const id = item.dataset.sidebarId;
+        const hasActiveChild = Boolean(item.querySelector('.ui-sidebar__subitem.is-active, .ui-sidebar__link[aria-current="page"]'));
+        if (hasActiveChild) {
+            if (id) {
+                persistState(id, true);
+            }
+            return true;
+        }
+
+        if (id && Object.prototype.hasOwnProperty.call(storedState, id)) {
+            return Boolean(storedState[id]);
+        }
+
+        return item.classList.contains('is-open');
+    };
+
+    const setExpanded = (item, expanded) => {
+        applySectionState(item, expanded);
+        persistState(item.dataset.sidebarId, expanded);
+    };
+
+    collapsibleItems.forEach((item, index) => {
+        if (!item.dataset.sidebarId) {
+            item.dataset.sidebarId = item.dataset.sidebarId || item.id || `sidebar-node-${index}`;
+        }
+
+        const expanded = findPanelState(item);
+        applySectionState(item, expanded);
+    });
+
+    const collapseSiblings = (current) => {
+        collapsibleItems.forEach((item) => {
+            if (item !== current) {
+                setExpanded(item, false);
+            }
+        });
+    };
+
+    const toggleItem = (item) => {
+        const expanded = item.classList.contains('is-open');
+        const next = !expanded;
+        if (next) {
+            collapseSiblings(item);
+        }
+        setExpanded(item, next);
+    };
+
+    const handleTrigger = (trigger) => {
+        const item = trigger.closest('.ui-sidebar__item.has-children');
+        if (!item) {
             return;
         }
 
-        const id = item.dataset.sidebarId;
+        toggleItem(item);
+    };
 
-        if (!trigger.id && id) {
-            trigger.id = `${id}-trigger`;
+    sidebar.addEventListener('click', (event) => {
+        const trigger = event.target.closest('.ui-sidebar__trigger');
+        if (!trigger || !sidebar.contains(trigger)) {
+            return;
         }
 
-        if (!panel.id && id) {
-            panel.id = `${id}-panel`;
+        event.preventDefault();
+        handleTrigger(trigger);
+    });
+
+    sidebar.addEventListener('keydown', (event) => {
+        if (event.key !== ' ' && event.key !== 'Enter') {
+            return;
         }
 
-        const hasStoredValue = id ? Object.prototype.hasOwnProperty.call(storedState, id) : false;
-        const expanded = hasStoredValue ? Boolean(storedState[id]) : item.classList.contains('is-open');
-        applySectionState(item, expanded);
+        const trigger = event.target.closest('.ui-sidebar__trigger');
+        if (!trigger || !sidebar.contains(trigger)) {
+            return;
+        }
 
-        const persist = (next) => {
-            if (!id) {
-                return;
-            }
-            storedState[id] = next;
-            writeStoredState(storedState);
-        };
-
-        const toggle = () => {
-            const next = !item.classList.contains('is-open');
-            applySectionState(item, next);
-            persist(next);
-        };
-
-        trigger.addEventListener('click', toggle);
-        trigger.addEventListener('keydown', (event) => {
-            if (event.key === ' ' || event.key === 'Enter') {
-                event.preventDefault();
-                toggle();
-            }
-        });
+        event.preventDefault();
+        handleTrigger(trigger);
     });
 };
