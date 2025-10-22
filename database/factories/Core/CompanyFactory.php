@@ -20,6 +20,7 @@ class CompanyFactory extends Factory
             'name' => $this->faker->company(),
             'domain' => $domain,
             'theme_color' => $this->faker->safeHexColor(),
+            'drive_storage_limit_bytes' => 1_073_741_824,
         ];
     }
 }

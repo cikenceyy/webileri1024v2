@@ -11,6 +11,18 @@ Key capabilities include:
 * A reusable picker modal that can be triggered from any module via HTML data attributes or the global `window.Drive` API.
 * Consistent company scoping enforced through policies, middleware, and feature tests.
 
+## Storage quotas
+
+Every company starts with **1 GB** of Drive storage. The current usage and remaining quota are displayed beneath the folder tree
+inside the Drive UI, complete with a live progress bar that updates after uploads, replacements, or deletions.
+
+* Customize the default limit through the `drive_storage_limit_bytes` column on the `companies` table. Higher tiers can be
+  provisioned by updating this field per tenant.
+* Override the platform-wide default (still 1 GB) with the `DRIVE_DEFAULT_STORAGE_LIMIT_BYTES` environment variable if you need a
+  different baseline.
+
+All calculations stay tenant-scoped; soft-deleted media are excluded from the usage total.
+
 ## Permissions
 
 The Drive module expects the following Spatie permission keys:

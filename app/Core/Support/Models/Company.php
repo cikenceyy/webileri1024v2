@@ -17,6 +17,15 @@ class Company extends Model
         'domain',
         'theme_color',
         'logo_id',
+        'drive_storage_limit_bytes',
+    ];
+
+    protected $casts = [
+        'drive_storage_limit_bytes' => 'int',
+    ];
+
+    protected $attributes = [
+        'drive_storage_limit_bytes' => 1_073_741_824,
     ];
 
     protected static function newFactory()
@@ -32,5 +41,12 @@ class Company extends Model
     public function logo(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'logo_id');
+    }
+
+    public function getDriveStorageLimitBytesAttribute($value): int
+    {
+        $default = (int) config('drive.default_storage_limit_bytes', 1_073_741_824);
+
+        return (int) ($value ?? $default);
     }
 }

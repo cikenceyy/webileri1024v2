@@ -187,6 +187,15 @@ const formatRelativeTime = (value) => {
 
 const formatNumber = (value) => numberFormatter.format(Math.max(0, Number(value) || 0));
 
+const formatPercentage = (value) => {
+    const numeric = Math.max(0, Math.min(100, Number(value) || 0));
+    if (numeric === 0 || numeric >= 10) {
+        return `${numeric.toFixed(0)}%`;
+    }
+
+    return `${numeric.toFixed(1)}%`;
+};
+
 const createActionButton = ({ tag = 'button', href = '#', icon, label, variant = 'ghost', size = 'sm', extraClass = '', attributes = {} }) => {
     const element = document.createElement(tag === 'a' ? 'a' : 'button');
     const classes = ['ui-button', `ui-button--${variant}`, `ui-button--${size}`, 'drive-card__action'];
@@ -408,6 +417,72 @@ const updateSummaryTotal = (root, delta = 0) => {
     }
 };
 
+const updateStorageMetrics = (root, override = {}) => {
+    if (!root) {
+        return;
+    }
+
+    const limitValue = override.limit !== undefined
+        ? Math.max(0, Number(override.limit) || 0)
+        : Math.max(0, Number(root.dataset.driveStorageLimit || 0));
+    const usedValue = override.used !== undefined
+        ? Math.max(0, Number(override.used) || 0)
+        : Math.max(0, Number(root.dataset.driveStorageUsed || 0));
+
+    root.dataset.driveStorageLimit = String(limitValue);
+    root.dataset.driveStorageUsed = String(usedValue);
+
+    const remainingValue = Math.max(limitValue - usedValue, 0);
+    const percentValue = limitValue > 0 ? Math.min(100, (usedValue / limitValue) * 100) : 0;
+
+    const storageScope = root.querySelector('[data-drive-storage]');
+    if (!storageScope) {
+        return;
+    }
+
+    const usedLabel = storageScope.querySelector('[data-drive-storage-used-label]');
+    if (usedLabel) {
+        usedLabel.textContent = formatBytes(usedValue);
+    }
+
+    const limitLabel = storageScope.querySelector('[data-drive-storage-limit-label]');
+    if (limitLabel) {
+        limitLabel.textContent = formatBytes(limitValue);
+    }
+
+    const remainingLabel = storageScope.querySelector('[data-drive-storage-remaining-label]');
+    if (remainingLabel) {
+        remainingLabel.textContent = formatBytes(remainingValue);
+    }
+
+    const percentLabel = storageScope.querySelector('[data-drive-storage-percent-label]');
+    if (percentLabel) {
+        percentLabel.textContent = formatPercentage(percentValue);
+    }
+
+    const fill = storageScope.querySelector('[data-drive-storage-fill]');
+    if (fill) {
+        fill.style.width = `${percentValue}%`;
+    }
+
+    const bar = storageScope.querySelector('[data-drive-storage-bar]');
+    if (bar) {
+        bar.setAttribute('aria-valuemin', '0');
+        bar.setAttribute('aria-valuemax', '100');
+        bar.setAttribute('aria-valuenow', Math.round(percentValue).toString());
+    }
+};
+
+const adjustStorageUsage = (root, delta = 0) => {
+    if (!root) {
+        return;
+    }
+
+    const current = Math.max(0, Number(root.dataset.driveStorageUsed || 0));
+    const next = Math.max(0, current + Number(delta || 0));
+    updateStorageMetrics(root, { used: next });
+};
+
 const updateImportantState = (root, id, isImportant) => {
     const rows = root.querySelectorAll(`[data-drive-row][data-id="${id}"]`);
     rows.forEach((row) => {
@@ -456,6 +531,7 @@ const insertMedia = (root, media, currentTerm) => {
     grid.prepend(card);
     refreshTooltips(card);
     updateSummaryTotal(root, 1);
+    adjustStorageUsage(root, Number(media.size) || 0);
     if (currentTerm !== undefined) {
         const normalized = normalizeTerm(currentTerm);
         const matches = normalized.length === 0 || (card.dataset.search || '').includes(normalized);
@@ -472,6 +548,7 @@ const replaceMedia = (root, media, currentTerm) => {
     }
 
     const existing = grid.querySelector(`[data-drive-row][data-id="${media.id}"]`);
+    const previousSize = existing ? Number(existing.dataset.size || 0) : 0;
     const card = renderMediaCard(root, media);
 
     if (existing) {
@@ -480,6 +557,8 @@ const replaceMedia = (root, media, currentTerm) => {
         grid.prepend(card);
         updateSummaryTotal(root, 1);
     }
+
+    adjustStorageUsage(root, (Number(media.size) || 0) - previousSize);
 
     refreshTooltips(card);
 
@@ -499,11 +578,13 @@ const removeMedia = (root, id) => {
         return;
     }
     const row = grid.querySelector(`[data-drive-row][data-id="${id}"]`);
+    const size = row ? Number(row.dataset.size || 0) : 0;
     if (row) {
         row.remove();
     }
 
     updateSummaryTotal(root, -1);
+    adjustStorageUsage(root, -size);
 
     const hasRows = grid.querySelectorAll('[data-drive-row]').length > 0;
     const emptyState = root.querySelector('[data-drive-empty]');
@@ -537,6 +618,7 @@ const bootDrive = () => {
 
     refreshRefs();
     refreshTooltips(root);
+    updateStorageMetrics(root);
 
     if (isPickerMode) {
         postToParent('picker:ready', {
@@ -613,8 +695,27 @@ const bootDrive = () => {
             root.insertBefore(newSummary, root.querySelector('[data-drive-grid]'));
         }
 
+        const newStorage = docRoot.querySelector('[data-drive-storage]');
+        const currentStorage = root.querySelector('[data-drive-storage]');
+        if (newStorage) {
+            if (currentStorage) {
+                currentStorage.replaceWith(newStorage);
+            } else {
+                root.querySelector('[data-drive-tree]')?.appendChild(newStorage);
+            }
+        }
+
+        if (docRoot.dataset.driveStorageLimit) {
+            root.dataset.driveStorageLimit = docRoot.dataset.driveStorageLimit;
+        }
+
+        if (docRoot.dataset.driveStorageUsed) {
+            root.dataset.driveStorageUsed = docRoot.dataset.driveStorageUsed;
+        }
+
         refreshRefs();
         refreshTooltips(root);
+        updateStorageMetrics(root);
     };
 
     const performRemoteSearch = async (term) => {

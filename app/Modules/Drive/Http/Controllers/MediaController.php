@@ -2,6 +2,7 @@
 
 namespace App\Modules\Drive\Http\Controllers;
 
+use App\Core\Support\Models\Company;
 use App\Http\Controllers\Controller;
 use App\Modules\Drive\Domain\Models\Media;
 use App\Modules\Drive\Http\Requests\ReplaceMediaRequest;
@@ -16,6 +17,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use function currentCompanyId;
+use function tenant;
 
 class MediaController extends Controller
 {
@@ -49,6 +52,7 @@ class MediaController extends Controller
         $media = $query->paginate(15)->withQueryString();
         $stats = $pickerMode ? $this->buildPickerStats() : $this->buildStats();
         $tabs = $pickerMode ? [Media::CATEGORY_MEDIA_PRODUCTS => 'Ürün Görselleri'] : $this->tabDefinitions();
+        $storage = $this->resolveStorageStats();
 
         return view('drive::index', [
             'tab' => $tab,
@@ -59,6 +63,7 @@ class MediaController extends Controller
             'filters' => $request->only(['q', 'uploader', 'ext', 'mime', 'date_from', 'date_to', 'size_min', 'size_max', 'category']),
             'categoryConfig' => config('drive.categories', []),
             'globalMaxBytes' => (int) config('drive.max_upload_bytes', 50 * 1024 * 1024),
+            'storage' => $storage,
         ]);
     }
 
@@ -200,6 +205,28 @@ class MediaController extends Controller
             'ok' => true,
             'is_important' => $media->is_important,
         ]);
+    }
+
+    private function resolveStorageStats(): array
+    {
+        $defaultLimit = (int) config('drive.default_storage_limit_bytes', 1_073_741_824);
+        $company = tenant();
+
+        if (! $company && ($companyId = currentCompanyId())) {
+            $company = Company::query()->find($companyId);
+        }
+
+        $limit = (int) ($company->drive_storage_limit_bytes ?? $defaultLimit);
+        $used = (int) Media::query()->sum('size');
+        $remaining = max($limit - $used, 0);
+        $percentage = $limit > 0 ? round(min(100, ($used / $limit) * 100), 2) : 0.0;
+
+        return [
+            'limit' => $limit,
+            'used' => $used,
+            'remaining' => $remaining,
+            'percentage' => $percentage,
+        ];
     }
 
     protected function applyTabFilter($query, string $tab)
