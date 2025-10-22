@@ -5,7 +5,8 @@
   align-items: flex-start;
   gap: var(--ui-space-2);
   padding: var(--ui-space-3);
-  border-radius: var(--ui-radius-lg);
+  border-radius: 0;
+  margin-bottom: 1.5rem;
   background: var(--ui-color-surface-alt);
   border: 1px solid var(--ui-color-border);
   box-shadow: var(--ui-shadow-xs);

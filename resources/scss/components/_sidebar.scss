@@ -90,7 +90,7 @@ html[data-sidebar='compact'] .ui-sidebar {
 }
 
 .ui-sidebar.is-compact .ui-sidebar__section {
-  padding: var(--ui-space-2) var(--ui-space-1);
+  padding: 0;
   background: transparent;
   box-shadow: none;
 }
@@ -125,6 +125,9 @@ html[data-sidebar='compact'] .ui-sidebar {
   gap: var(--ui-space-1);
 }
 
+.ui-sidebar.is-compact .ui-sidebar__list {
+  padding-inline: var(--ui-space-1);
+}
 .ui-sidebar__list {
   padding-inline: var(--ui-space-2);
 }

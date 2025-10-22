@@ -237,11 +237,6 @@
 
 <aside id="sidebar" class="ui-sidebar" data-ui="sidebar" data-variant="tooltip">
     <div class="ui-sidebar__inner">
-        <div class="ui-sidebar__brand">
-            <span class="ui-sidebar__logo" aria-hidden="true">#</span>
-            <span class="ui-sidebar__product">{{ config('app.name', 'KOBİ Admin') }}</span>
-        </div>
-
         <nav class="ui-sidebar__nav" aria-label="Birincil gezinme">
             @foreach($navigation as $section)
                 <section class="ui-sidebar__section">
