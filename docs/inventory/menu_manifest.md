@@ -25,12 +25,11 @@ Tüm route isimleri `admin.inventory.*` ön eki ile tanımlanır. Aşağıdaki l
   - Route: `admin.inventory.settings.index`
   - Sekmeler: `categories | variants | units`
 
-Yan menü önerisi:
+Yan menü hiyerarşisi:
 1. Kontrol Kulesi
 2. Stok Konsolu
 3. Ürünler
 4. Depolar
 5. Fiyat Listeleri
 6. Ürün Reçeteleri
-7. Kullanılan Malzemeler
-8. Ayarlar
+7. Ayarlar

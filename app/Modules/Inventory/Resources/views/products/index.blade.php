@@ -1,150 +1,107 @@
 @extends('layouts.admin')
 
 @section('title', 'Ürünler')
+@section('module', 'Inventory')
+
+@push('page-styles')
+    @vite('app/Modules/Inventory/Resources/scss/products_index.scss')
+@endpush
+
+@push('page-scripts')
+    @vite('app/Modules/Inventory/Resources/js/products_index.js')
+@endpush
 
 @section('content')
-<x-ui-page-header title="Ürünler" description="Stok kartlarınızı yönetin">
-    <x-slot name="actions">
-        @can('create', \App\Modules\Inventory\Domain\Models\Product::class)
-            <x-ui-button variant="primary" href="{{ route('admin.inventory.products.create') }}">
-                Yeni Ürün
-            </x-ui-button>
-        @endcan
-    </x-slot>
-</x-ui-page-header>
+    @php
+        use Illuminate\Support\Str;
+    @endphp
+    <div class="inv-products-list" data-view="{{ $filters['view'] }}">
+        <header class="inv-products-list__filters">
+            <form method="get" class="inv-products-list__filter-form">
+                <div class="inv-chip-group" role="group" aria-label="Depo filtresi">
+                    <span class="inv-chip inv-chip--label">Depo</span>
+                    @foreach ($warehouses as $warehouse)
+                        <button type="submit"
+                                name="warehouse"
+                                value="{{ $warehouse->id }}"
+                                class="inv-chip {{ $filters['warehouse'] === $warehouse->id ? 'is-active' : '' }}"
+                                data-chip-action="toggle-filter">
+                            {{ $warehouse->name }}
+                        </button>
+                    @endforeach
+                </div>
 
-@if(session('status'))
-    <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
-@endif
+                <div class="inv-chip-group" role="group" aria-label="Kategori filtresi">
+                    <span class="inv-chip inv-chip--label">Kategori</span>
+                    @foreach ($categories as $category)
+                        <button type="submit"
+                                name="category"
+                                value="{{ $category->id }}"
+                                class="inv-chip {{ $filters['category'] === $category->id ? 'is-active' : '' }}"
+                                data-chip-action="toggle-filter">
+                            {{ $category->name }}
+                        </button>
+                    @endforeach
+                </div>
 
-@php
-    $filters = $filters ?? [];
-    $currentSort = $sort ?? 'created_at';
-    $currentDir = $direction ?? 'desc';
-    $queryBase = array_filter([
-        'q' => $filters['q'] ?? null,
-        'status' => $filters['status'] ?? null,
-        'category_id' => $filters['category_id'] ?? null,
-    ]);
-    $sortUrl = function (string $column) use ($queryBase, $currentSort, $currentDir) {
-        $direction = ($currentSort === $column && $currentDir === 'asc') ? 'desc' : 'asc';
+                <div class="inv-products-list__search">
+                    <input type="search" class="form-control" name="q" placeholder="Ürün ara" value="{{ $filters['q'] }}">
+                    <button class="btn btn-outline-secondary" type="submit">Filtrele</button>
+                </div>
+            </form>
 
-        return route('admin.inventory.products.index', array_merge($queryBase, [
-            'sort' => $column,
-            'dir' => $direction,
-        ]));
-    };
-@endphp
+            <div class="inv-products-list__view-toggle">
+                <button type="button" class="btn btn-sm {{ $filters['view'] === 'grid' ? 'btn-primary' : 'btn-outline-secondary' }}" data-action="toggle-view" data-view="grid">Kart</button>
+                <button type="button" class="btn btn-sm {{ $filters['view'] === 'table' ? 'btn-primary' : 'btn-outline-secondary' }}" data-action="toggle-view" data-view="table">Tablo</button>
+            </div>
+        </header>
 
-<x-ui-card class="mb-4" data-inventory-filters>
-    <form method="GET" action="{{ route('admin.inventory.products.index') }}" class="row g-3 align-items-end">
-        <div class="col-lg-4 col-md-6">
-            <x-ui-input
-                name="q"
-                label="Ara"
-                :value="$filters['q'] ?? ''"
-                placeholder="SKU veya ürün adı"
-            />
+        <div class="inv-products-list__grid" data-view-panel="grid">
+            @foreach ($products as $product)
+                <article class="inv-card inv-card--product" data-product-card>
+                    <header class="inv-card__header">
+                        <h3 class="inv-card__title">{{ $product->name }}</h3>
+                        <p class="inv-card__subtitle">{{ $product->sku }}</p>
+                    </header>
+                    <p class="inv-card__body">{{ Str::limit($product->description, 80) }}</p>
+                    <footer class="inv-card__footer">
+                        <a href="{{ route('admin.inventory.products.show', $product) }}" class="btn btn-sm btn-outline-primary">Detay</a>
+                        <a href="{{ route('admin.inventory.stock.console', ['mode' => 'transfer', 'product' => $product->id]) }}" class="btn btn-sm btn-outline-secondary">Transfer</a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-action="print-label">Etiket</button>
+                    </footer>
+                </article>
+            @endforeach
         </div>
-        <div class="col-lg-3 col-md-6">
-            <x-ui-select name="category_id" label="Kategori">
-                <option value="">Tümü</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category->id }}" @selected(($filters['category_id'] ?? '') == $category->id)>
-                        {{ $category->name }}
-                    </option>
-                @endforeach
-            </x-ui-select>
-        </div>
-        <div class="col-lg-2 col-md-6">
-            <x-ui-select name="status" label="Durum">
-                <option value="">Tümü</option>
-                <option value="active" @selected(($filters['status'] ?? '') === 'active')>Aktif</option>
-                <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>Pasif</option>
-            </x-ui-select>
-        </div>
-        <div class="col-lg-3 col-md-6 d-flex gap-2">
-            <x-ui-button type="submit" class="flex-grow-1">Filtrele</x-ui-button>
-            <a class="btn btn-outline-secondary" href="{{ route('admin.inventory.products.index') }}">Sıfırla</a>
-        </div>
-    </form>
-</x-ui-card>
 
-@if($products->count())
-    <x-ui-card>
-        <x-ui-table dense>
-            <thead>
-                <tr>
-                    <th scope="col">Görsel</th>
-                    <th scope="col"><a href="{{ $sortUrl('sku') }}" class="table-sort {{ $currentSort === 'sku' ? 'active' : '' }}">SKU @if($currentSort === 'sku')<span aria-hidden="true">{{ $currentDir === 'asc' ? '↑' : '↓' }}</span>@endif</a></th>
-                    <th scope="col"><a href="{{ $sortUrl('name') }}" class="table-sort {{ $currentSort === 'name' ? 'active' : '' }}">Ad @if($currentSort === 'name')<span aria-hidden="true">{{ $currentDir === 'asc' ? '↑' : '↓' }}</span>@endif</a></th>
-                    <th scope="col">Kategori</th>
-                    <th scope="col"><a href="{{ $sortUrl('created_at') }}" class="table-sort {{ $currentSort === 'created_at' ? 'active' : '' }}">Oluşturma @if($currentSort === 'created_at')<span aria-hidden="true">{{ $currentDir === 'asc' ? '↑' : '↓' }}</span>@endif</a></th>
-                    <th scope="col">Fiyat</th>
-                    <th scope="col">Birim</th>
-                    <th scope="col">Durum</th>
-                    <th scope="col" class="text-end">İşlemler</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($products as $product)
+        <div class="inv-products-list__table" data-view-panel="table">
+            <table class="table align-middle mb-0">
+                <thead>
                     <tr>
-                        <td class="align-middle">
-                            @if($product->media)
-                                <x-ui-file-icon :ext="$product->media->ext" size="28" class="me-2" />
-                            @else
-                                <span class="text-muted">—</span>
-                            @endif
-                        </td>
-                        <td class="align-middle">
-                            <span class="fw-semibold">{{ $product->sku }}</span>
-                        </td>
-                        <td class="align-middle">
-                            <div class="fw-semibold text-ellipsis" title="{{ $product->name }}">{{ $product->name }}</div>
-                            @if($product->media)
-                                <div class="text-muted small text-ellipsis" title="{{ $product->media->original_name }}">{{ $product->media->original_name }}</div>
-                            @endif
-                        </td>
-                        <td class="align-middle text-muted">{{ $product->category?->name ?? '—' }}</td>
-                        <td class="align-middle">{{ $product->created_at?->format('d.m.Y') }}</td>
-                        <td class="align-middle">{{ number_format((float) $product->price, 2, ',', '.') }}</td>
-                        <td class="align-middle">{{ $product->unit }}</td>
-                        <td class="align-middle">
-                            <x-ui-badge :type="$product->status === 'active' ? 'success' : 'secondary'" soft>
-                                {{ $product->status === 'active' ? 'Aktif' : 'Pasif' }}
-                            </x-ui-badge>
-                        </td>
-                        <td class="align-middle text-end">
-                            <div class="d-flex justify-content-end gap-2">
-                                <a class="btn btn-sm btn-outline-secondary" href="{{ route('admin.inventory.products.show', $product) }}">Görüntüle</a>
-                                @can('update', $product)
-                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.inventory.products.edit', $product) }}">Düzenle</a>
-                                @endcan
-                                @can('delete', $product)
-                                    <form method="POST" action="{{ route('admin.inventory.products.destroy', $product) }}" onsubmit="return confirm('Ürünü silmek istediğinize emin misiniz?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <x-ui-button type="submit" variant="danger" size="sm">Sil</x-ui-button>
-                                    </form>
-                                @endcan
-                            </div>
-                        </td>
+                        <th>Ürün</th>
+                        <th>SKU</th>
+                        <th>Stok</th>
+                        <th>Fiyat</th>
+                        <th class="text-end">İşlemler</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </x-ui-table>
-    </x-ui-card>
+                </thead>
+                <tbody>
+                    @foreach ($products as $product)
+                        <tr>
+                            <td>{{ $product->name }}</td>
+                            <td>{{ $product->sku }}</td>
+                            <td>{{ number_format($product->stockItems->sum('qty') ?? 0, 2) }}</td>
+                            <td>{{ number_format($product->price ?? 0, 2) }}</td>
+                            <td class="text-end">
+                                <a href="{{ route('admin.inventory.products.show', $product) }}" class="btn btn-sm btn-outline-primary">Detay</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
-    <div class="mt-4">
-        {{ $products->links() }}
+        <div class="inv-products-list__pagination">
+            {{ $products->links() }}
+        </div>
     </div>
-@else
-    <x-ui-empty title="Ürün bulunamadı" description="Yeni ürün ekleyerek envanterinizi oluşturun.">
-        @can('create', \App\Modules\Inventory\Domain\Models\Product::class)
-            <x-slot name="actions">
-                <x-ui-button variant="primary" href="{{ route('admin.inventory.products.create') }}">İlk Ürünü Oluştur</x-ui-button>
-            </x-slot>
-        @endcan
-    </x-ui-empty>
-@endif
 @endsection

@@ -1,30 +1,55 @@
 @extends('layouts.admin')
 
 @section('title', $warehouse->name)
+@section('module', 'Inventory')
+
+@push('page-styles')
+    @vite('app/Modules/Inventory/Resources/scss/warehouses.scss')
+@endpush
+
+@push('page-scripts')
+    @vite('app/Modules/Inventory/Resources/js/warehouses.js')
+@endpush
 
 @section('content')
-<x-ui-page-header :title="$warehouse->name" description="Ambar detayları">
-    <x-slot name="actions">
-        <a href="{{ route('admin.inventory.warehouses.index') }}" class="btn btn-outline-secondary">Listeye Dön</a>
-        @can('update', $warehouse)
-            <x-ui-button variant="primary" href="{{ route('admin.inventory.warehouses.edit', $warehouse) }}">Düzenle</x-ui-button>
-        @endcan
-    </x-slot>
-</x-ui-page-header>
+    <section class="inv-warehouse" data-warehouse="{{ $warehouse->id }}">
+        <header class="inv-warehouse__header">
+            <h1 class="inv-warehouse__title">{{ $warehouse->name }}</h1>
+            <p class="inv-warehouse__subtitle">Kod: {{ $warehouse->code ?? '—' }}</p>
+        </header>
 
-<x-ui-card>
-    <dl class="row mb-0">
-        <dt class="col-sm-4 text-muted">Kod</dt>
-        <dd class="col-sm-8 fw-semibold">{{ $warehouse->code }}</dd>
-        <dt class="col-sm-4 text-muted">Durum</dt>
-        <dd class="col-sm-8">
-            <x-ui-badge :type="$warehouse->status === 'active' ? 'success' : 'secondary'" soft>{{ $warehouse->status === 'active' ? 'Aktif' : 'Pasif' }}</x-ui-badge>
-        </dd>
-        <dt class="col-sm-4 text-muted">Varsayılan</dt>
-        <dd class="col-sm-8">{{ $warehouse->is_default ? 'Evet' : 'Hayır' }}</dd>
-        <dt class="col-sm-4 text-muted">Oluşturulma</dt>
-        <dd class="col-sm-8">{{ $warehouse->created_at?->format('d.m.Y H:i') }}</dd>
-    </dl>
-    <p class="text-muted mb-0 mt-3">Stok detayı bu sürümde placeholder olarak sunulmaktadır.</p>
-</x-ui-card>
+        <div class="inv-warehouse__layout">
+            <div class="inv-warehouse__grid" data-heatmap>
+                @foreach ($stockItems as $index => $item)
+                    @php
+                        $level = min(5, max(0, (int) ceil($item->qty)));
+                    @endphp
+                    <button type="button"
+                            class="inv-warehouse__cell"
+                            data-action="select-cell"
+                            data-level="{{ $level }}"
+                            data-product-id="{{ $item->product?->id }}">
+                        <span class="inv-warehouse__cell-label">{{ $item->product?->sku ?? 'SKU' }}</span>
+                        <span class="inv-warehouse__cell-qty">{{ number_format($item->qty, 2) }}</span>
+                    </button>
+                @endforeach
+            </div>
+
+            <aside class="inv-warehouse__panel" data-panel>
+                <h2 class="inv-warehouse__panel-title">Seçili Raf</h2>
+                <div class="inv-warehouse__panel-body" data-panel-body>
+                    <p class="text-muted">Bir hücre seçerek ürün detaylarını görüntüleyin.</p>
+                </div>
+                <div class="inv-warehouse__actions">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-action="transfer">Transfer</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-action="adjust">Düzeltme</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-action="label">Etiket Yazdır</button>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="inv-warehouse__pagination">
+            {{ $stockItems->links() }}
+        </footer>
+    </section>
 @endsection

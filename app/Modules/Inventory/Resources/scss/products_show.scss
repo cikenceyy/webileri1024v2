@@ -1,0 +1,105 @@
+@use '@/scss/tokens/colors' as *;
+@use '@/scss/tokens/spacing' as *;
+@use '@/scss/tokens/radius' as *;
+@use '@/scss/tokens/typography' as *;
+
+.inv-product {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--ui-space-5);
+
+  &__gallery {
+    display: grid;
+    gap: var(--ui-space-3);
+
+    .inv-card--product {
+      border-radius: var(--ui-radius-lg);
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      background: var(--ui-color-surface-stronger);
+    }
+
+    .inv-product__variants {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ui-space-2);
+    }
+  }
+
+  &__matrix {
+    background: var(--ui-color-surface);
+    border-radius: var(--ui-radius-lg);
+    padding: var(--ui-space-4);
+    box-shadow: var(--ui-shadow-xs);
+
+    .inv-matrix__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--ui-space-2);
+    }
+
+    .inv-matrix__cell {
+      border: 1px solid var(--ui-color-border-subtle);
+      border-radius: var(--ui-radius-md);
+      padding: var(--ui-space-3);
+      background: var(--ui-color-surface);
+      position: relative;
+
+      &:hover {
+        border-color: var(--ui-color-primary);
+        box-shadow: var(--ui-shadow-sm);
+      }
+    }
+  }
+
+  &__prices {
+    display: grid;
+    gap: var(--ui-space-2);
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ui-space-1);
+      font-size: var(--ui-font-size-sm);
+    }
+  }
+
+  &__timeline {
+    margin-top: var(--ui-space-4);
+    background: var(--ui-color-surface);
+    border-radius: var(--ui-radius-lg);
+    padding: var(--ui-space-4);
+    box-shadow: var(--ui-shadow-xs);
+  }
+
+  &__docs {
+    margin-top: var(--ui-space-4);
+    display: grid;
+    gap: var(--ui-space-2);
+
+    .inv-product__doc {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: var(--ui-radius-md);
+      padding: var(--ui-space-3);
+      background: var(--ui-color-surface);
+      border: 1px dashed var(--ui-color-border-subtle);
+    }
+  }
+}
+
+@media (max-width: 1280px) {
+  .inv-product {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'gallery matrix'
+      'gallery prices';
+  }
+}
+
+@media (max-width: 992px) {
+  .inv-product {
+    grid-template-columns: 1fr;
+  }
+}

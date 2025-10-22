@@ -1,0 +1,55 @@
+@use '@/scss/tokens/colors' as *;
+@use '@/scss/tokens/spacing' as *;
+@use '@/scss/tokens/radius' as *;
+@use '@/scss/tokens/typography' as *;
+
+.inv-components {
+  display: grid;
+  gap: var(--ui-space-4);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ui-space-3);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--ui-space-4);
+  }
+
+  &__card {
+    background: var(--ui-color-surface);
+    border-radius: var(--ui-radius-lg);
+    padding: var(--ui-space-4);
+    box-shadow: var(--ui-shadow-xs);
+    display: grid;
+    gap: var(--ui-space-3);
+
+    &-media {
+      border-radius: var(--ui-radius-md);
+      overflow: hidden;
+      background: var(--ui-color-surface-stronger);
+      aspect-ratio: 4 / 3;
+    }
+
+    &-meta {
+      display: grid;
+      gap: var(--ui-space-1);
+    }
+
+    &-actions {
+      display: flex;
+      gap: var(--ui-space-2);
+      flex-wrap: wrap;
+    }
+
+    &--insufficient {
+      border: 1px solid var(--ui-color-danger);
+      background: var(--ui-color-danger-subtle);
+    }
+  }
+}
