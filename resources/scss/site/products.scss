@@ -1,0 +1,9 @@
+@import "../../sass/app";
+
+.product-card {
+    transition: transform 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-6px);
+}
