@@ -5,22 +5,16 @@
 
 @use 'vendors/bootstrap';
 
-:root {
-  --ui-color-text: #1f2430;
-  --ui-color-primary: #4f46e5;
-  --ui-color-accent: #fb923c;
-  --ui-radius-md: #{$radius-md};
-  --ui-font-family: #{$font-family-base};
-}
-
 body {
   font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-base);
+  line-height: var(--ui-line-height-base);
   color: var(--ui-color-text);
-  background-color: #fff;
+  background-color: var(--ui-color-surface-alt);
 }
 
 main {
-  padding-block: #{$space-5};
+  padding-block: var(--ui-space-5);
 }
 
 @import 'bootstrap-icons/font/bootstrap-icons.css';

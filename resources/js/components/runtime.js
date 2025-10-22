@@ -13,6 +13,9 @@ const STORAGE_KEYS = {
     sidebarMode: 'ui:sidebar',
 };
 
+const THEME_DEFAULT = 'bluewave';
+const LEGACY_THEME_VALUES = new Set(['soft-indigo', 'industrial-gray']);
+
 const LEGACY_ALIASES = {
     [STORAGE_KEYS.theme]: ['ui:theme:v1'],
     [STORAGE_KEYS.motion]: ['ui:motion:v1'],
@@ -75,6 +78,22 @@ const setStored = (key, value) => {
     (LEGACY_ALIASES[key] ?? []).forEach((legacyKey) => safeRemove(legacyKey));
 };
 
+const normalizeTheme = (value) => {
+    if (!value) {
+        return THEME_DEFAULT;
+    }
+
+    if (value === THEME_DEFAULT) {
+        return value;
+    }
+
+    if (LEGACY_THEME_VALUES.has(value)) {
+        setStored(STORAGE_KEYS.theme, THEME_DEFAULT);
+    }
+
+    return THEME_DEFAULT;
+};
+
 const runWhenReady = (callback) => {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => callback(), { once: true });
@@ -111,32 +130,37 @@ const updateThemeComparison = (theme) => {
         const panel = $("[data-ui='theme-compare']");
         if (!panel) return;
 
+        const activeTheme = normalizeTheme(theme);
         const items = panel.querySelectorAll('[data-theme]');
         let bestNote = '';
+        let matched = false;
 
         items.forEach((item) => {
-            const matches = item.dataset.theme === theme;
+            const matches = item.dataset.theme === activeTheme;
             item.toggleAttribute('hidden', !matches);
             const isBest = matches && item.dataset.grade === 'best';
             item.classList.toggle('is-best', isBest);
             if (isBest) {
                 bestNote = item.dataset.note ?? '';
             }
+            if (matches) {
+                matched = true;
+            }
         });
 
         const note = panel.querySelector("[data-ui='theme-compare-note']");
         if (note) {
-            note.textContent = bestNote;
-            note.toggleAttribute('hidden', bestNote.length === 0);
+            note.textContent = matched ? bestNote : '';
+            note.toggleAttribute('hidden', !matched || bestNote.length === 0);
         }
     });
 };
 
 const applyTheme = (theme) => {
-    if (!theme) return;
-    html.setAttribute('data-theme', theme);
-    markPressed("[data-action='theme']", 'theme', theme);
-    updateThemeComparison(theme);
+    const normalized = normalizeTheme(theme);
+    html.setAttribute('data-theme', normalized);
+    markPressed("[data-action='theme']", 'theme', normalized);
+    updateThemeComparison(normalized);
 };
 
 const updateSidebarToggles = (mode) => {
@@ -178,12 +202,16 @@ const setSidebarVariant = (variant) => {
 const initThemeControls = () => {
     runWhenReady(() => {
         const buttons = $$("[data-action='theme']");
+        const stored = getStored(STORAGE_KEYS.theme);
+        const initial = normalizeTheme(stored || html.getAttribute('data-theme'));
+        applyTheme(initial);
+
         if (!buttons.length) return;
-        const theme = html.getAttribute('data-theme') || 'soft-indigo';
-        setPressedState(buttons, 'theme', theme);
+
+        setPressedState(buttons, 'theme', initial);
         buttons.forEach((button) => {
             button.addEventListener('click', () => {
-                const nextTheme = button.dataset.theme;
+                const nextTheme = normalizeTheme(button.dataset.theme);
                 setStored(STORAGE_KEYS.theme, nextTheme);
                 applyTheme(nextTheme);
             });
@@ -360,7 +388,7 @@ export const bootstrapRuntime = () => {
     cleanLegacyStorage();
 
     const storedTheme = getStored(STORAGE_KEYS.theme);
-    const initialTheme = storedTheme || html.getAttribute('data-theme') || 'soft-indigo';
+    const initialTheme = normalizeTheme(storedTheme || html.getAttribute('data-theme'));
     applyTheme(initialTheme);
 
     setSidebarVariant('tooltip');
@@ -387,7 +415,7 @@ export const initRuntimeControls = () => {
 export const initGalleryShowcase = () => {
     initMotionShowroom();
     initTabs();
-    updateThemeComparison(html.getAttribute('data-theme') || 'soft-indigo');
+    updateThemeComparison(html.getAttribute('data-theme'));
 };
 
 export { setSidebarMode, toggleSidebarMode, getSidebarMode };

@@ -11,65 +11,16 @@
 @import 'utilities/index';
 @import 'components/index';
 
-
-:root {
-  --ui-color-surface: #f6f7fb;
-  --ui-color-surface-alt: #ffffff;
-  --ui-color-border: #d5d9e2;
-  --ui-color-border-subtle: rgba(213, 217, 226, 0.7);
-  --ui-color-border-strong: #b7bfce;
-  --ui-color-text: #1f2430;
-  --ui-color-text-subtle: #4e5668;
-  --ui-color-text-muted: #6f7684;
-  --ui-color-primary: #4f46e5;
-  --ui-color-primary-strong: #4338ca;
-  --ui-color-accent: #fb923c;
-  --ui-color-success: #3fa16c;
-  --ui-color-warning: #fb923c;
-  --ui-color-danger: #d83a52;
-  --ui-color-info: #2563eb;
-  --ui-color-focus-ring: rgba(79, 70, 229, 0.35);
-  --ui-color-shadow: rgba(15, 23, 42, 0.12);
-  --ui-color-backdrop: rgba(27, 33, 47, 0.45);
-  --ui-color-surface-stronger: #eef1f9;
-  --ui-header-height: 72px;
-
-  --ui-space-0: #{$space-0};
-  --ui-space-1: #{$space-2};
-  --ui-space-2: #{$space-3};
-  --ui-space-3: #{$space-4};
-  --ui-space-4: #{$space-5};
-  --ui-space-5: #{$space-6};
-  --ui-space-6: #{$space-7};
-  --ui-space-7: #{$space-8};
-
-  --ui-radius-sm: #{$radius-sm};
-  --ui-radius-md: #{$radius-md};
-  --ui-radius-lg: #{$radius-lg};
-
-  --ui-font-family: #{$font-family-base};
-  --ui-font-size-base: #{$font-size-base};
-  --ui-line-height-base: #{$line-height-base};
-}
-
-[data-theme='soft-indigo'] {
-  --ui-color-primary: #5c6df2;
-  --ui-color-primary-strong: #3c47d2;
-  --ui-color-surface: #f1f3ff;
-  --ui-color-text: #1b2137;
-  --ui-color-border-subtle: rgba(183, 191, 206, 0.6);
-  --ui-color-surface-stronger: #e6e9ff;
-}
-
 body {
   background-color: var(--ui-color-surface);
   color: var(--ui-color-text);
   font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-base);
   line-height: var(--ui-line-height-base);
 }
 
 .layout-main {
-  padding: 16px;
+  padding: var(--ui-space-4);
 }
 
 .card {

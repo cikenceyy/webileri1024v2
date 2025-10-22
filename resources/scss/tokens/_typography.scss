@@ -1,3 +1,9 @@
 $font-family-base: 'Inter', 'Roboto', system-ui, -apple-system, sans-serif;
 $font-size-base: 0.95rem;
 $line-height-base: 1.5;
+
+:root {
+  --ui-font-family: #{$font-family-base};
+  --ui-font-size-base: #{$font-size-base};
+  --ui-line-height-base: #{$line-height-base};
+}

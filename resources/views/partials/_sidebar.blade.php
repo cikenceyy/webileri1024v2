@@ -1,5 +1,6 @@
 @php
     use Illuminate\Support\Arr;
+    use Illuminate\Support\Str;
 
     $routeName = request()->route()?->getName();
 
@@ -238,7 +239,7 @@
 <aside id="sidebar" class="ui-sidebar" data-ui="sidebar" data-variant="tooltip">
     <div class="ui-sidebar__inner">
         <nav class="ui-sidebar__nav" aria-label="Birincil gezinme">
-            @foreach($navigation as $section)
+            @foreach($navigation as $sectionIndex => $section)
                 <section class="ui-sidebar__section">
                     <header class="ui-sidebar__section-header">
                         <span class="ui-sidebar__section-title">{{ $section['title'] }}</span>
@@ -248,19 +249,33 @@
                     </header>
 
                     <ul class="ui-sidebar__list">
-                        @foreach($section['items'] as $item)
+                        @foreach($section['items'] as $itemIndex => $item)
                             @php
                                 $isOpen = $isSectionOpen($item);
                                 $hasChildren = !empty($item['children']);
                                 $itemUrl = $makeUrl($item);
+                                $collapseId = sprintf(
+                                    'sidebar-node-%d-%d-%s',
+                                    $sectionIndex,
+                                    $itemIndex,
+                                    Str::slug($item['label']) ?: 'item'
+                                );
                             @endphp
 
-                            <li class="ui-sidebar__item {{ $isOpen ? 'is-open' : '' }} {{ $hasChildren ? 'has-children' : '' }}" @if($hasChildren) data-sidebar-collapsible @endif>
+                            <li
+                                class="ui-sidebar__item {{ $isOpen ? 'is-open' : '' }} {{ $hasChildren ? 'has-children' : '' }}"
+                                @if($hasChildren)
+                                    data-sidebar-collapsible
+                                    data-sidebar-id="{{ $collapseId }}"
+                                @endif
+                            >
                                 @if($hasChildren)
                                     <button
                                         class="ui-sidebar__trigger"
                                         type="button"
                                         data-role="sidebar-trigger"
+                                        id="{{ $collapseId }}-trigger"
+                                        aria-controls="{{ $collapseId }}-panel"
                                         aria-expanded="{{ $isOpen ? 'true' : 'false' }}"
                                         aria-label="{{ $item['label'] }}"
                                     >
@@ -269,7 +284,15 @@
                                         <span class="ui-sidebar__caret" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
                                     </button>
 
-                                    <div class="ui-sidebar__panel" data-role="sidebar-panel" @unless($isOpen) hidden @endunless>
+                                    <div
+                                        class="ui-sidebar__panel"
+                                        id="{{ $collapseId }}-panel"
+                                        data-role="sidebar-panel"
+                                        role="region"
+                                        aria-labelledby="{{ $collapseId }}-trigger"
+                                        aria-hidden="{{ $isOpen ? 'false' : 'true' }}"
+                                        @unless($isOpen) hidden @endunless
+                                    >
                                         <ul class="ui-sidebar__sublist">
                                             @foreach($item['children'] as $child)
                                                 @php

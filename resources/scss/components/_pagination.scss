@@ -72,5 +72,5 @@
 .ui-pagination__page.is-active {
   background: var(--ui-color-primary);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.28);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--ui-color-primary) 28%, transparent);
 }
