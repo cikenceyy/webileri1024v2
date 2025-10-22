@@ -50,6 +50,29 @@
         box-shadow: var(--ui-shadow-sm);
       }
     }
+
+    .inv-product__matrix-stats {
+      margin-top: var(--ui-space-3);
+      display: grid;
+      gap: var(--ui-space-2);
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+
+      div {
+        display: flex;
+        justify-content: space-between;
+        padding: var(--ui-space-2) var(--ui-space-3);
+        background: var(--ui-color-surface-stronger);
+        border-radius: var(--ui-radius-md);
+
+        dt {
+          font-weight: var(--ui-font-weight-medium);
+        }
+
+        dd {
+          margin: 0;
+        }
+      }
+    }
   }
 
   &__prices {

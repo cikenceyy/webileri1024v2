@@ -21,11 +21,11 @@
                 <div class="inv-chip-group" role="group" aria-label="Depo filtresi">
                     <span class="inv-chip inv-chip--label">Depo</span>
                     @foreach ($warehouses as $warehouse)
-                        <button type="submit"
-                                name="warehouse"
-                                value="{{ $warehouse->id }}"
+                        <button type="button"
                                 class="inv-chip {{ $filters['warehouse'] === $warehouse->id ? 'is-active' : '' }}"
-                                data-chip-action="toggle-filter">
+                                data-chip-action="toggle-filter"
+                                data-filter="warehouse"
+                                data-value="{{ $warehouse->id }}">
                             {{ $warehouse->name }}
                         </button>
                     @endforeach
@@ -34,12 +34,28 @@
                 <div class="inv-chip-group" role="group" aria-label="Kategori filtresi">
                     <span class="inv-chip inv-chip--label">Kategori</span>
                     @foreach ($categories as $category)
-                        <button type="submit"
-                                name="category"
-                                value="{{ $category->id }}"
+                        <button type="button"
                                 class="inv-chip {{ $filters['category'] === $category->id ? 'is-active' : '' }}"
-                                data-chip-action="toggle-filter">
+                                data-chip-action="toggle-filter"
+                                data-filter="category"
+                                data-value="{{ $category->id }}">
                             {{ $category->name }}
+                        </button>
+                    @endforeach
+                </div>
+
+                <div class="inv-chip-group" role="group" aria-label="Varyant filtresi">
+                    <span class="inv-chip inv-chip--label">Varyant</span>
+                    @foreach ($variants as $variant)
+                        @php
+                            $label = $variant->sku ?: collect($variant->options ?? [])->map(fn ($value, $key) => ucfirst($key) . ':' . $value)->implode(', ');
+                        @endphp
+                        <button type="button"
+                                class="inv-chip {{ $filters['variant'] === $variant->id ? 'is-active' : '' }}"
+                                data-chip-action="toggle-filter"
+                                data-filter="variant"
+                                data-value="{{ $variant->id }}">
+                            {{ $label ?: ('Varyant #' . $variant->id) }}
                         </button>
                     @endforeach
                 </div>
@@ -67,7 +83,7 @@
                     <footer class="inv-card__footer">
                         <a href="{{ route('admin.inventory.products.show', $product) }}" class="btn btn-sm btn-outline-primary">Detay</a>
                         <a href="{{ route('admin.inventory.stock.console', ['mode' => 'transfer', 'product' => $product->id]) }}" class="btn btn-sm btn-outline-secondary">Transfer</a>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-action="print-label">Etiket</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-action="print-label" data-label-url="{{ route('admin.inventory.products.show', $product) }}?print=label">Etiket</button>
                     </footer>
                 </article>
             @endforeach
@@ -100,7 +116,7 @@
             </table>
         </div>
 
-        <div class="inv-products-list__pagination">
+        <div class="inv-products-list__pagination" data-pagination>
             {{ $products->links() }}
         </div>
     </div>

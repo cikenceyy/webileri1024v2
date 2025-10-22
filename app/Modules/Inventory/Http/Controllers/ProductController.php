@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\PriceList;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\ProductCategory;
+use App\Modules\Inventory\Domain\Models\ProductVariant;
 use App\Modules\Inventory\Domain\Models\StockItem;
 use App\Modules\Inventory\Domain\Models\StockMovement;
 use App\Modules\Inventory\Domain\Models\Warehouse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -22,6 +24,7 @@ class ProductController extends Controller
             'q' => $request->query('q'),
             'category' => $request->integer('category'),
             'warehouse' => $request->integer('warehouse'),
+            'variant' => $request->integer('variant'),
             'view' => $request->query('view', 'grid'),
         ];
 
@@ -31,6 +34,18 @@ class ProductController extends Controller
 
         if ($filters['category']) {
             $query->where('category_id', $filters['category']);
+        }
+
+        if ($filters['warehouse']) {
+            $query->whereHas('stockItems', function ($builder) use ($filters) {
+                $builder->where('warehouse_id', $filters['warehouse']);
+            });
+        }
+
+        if ($filters['variant']) {
+            $query->whereHas('variants', function ($builder) use ($filters) {
+                $builder->where('id', $filters['variant']);
+            });
         }
 
         $products = $query
@@ -46,11 +61,17 @@ class ProductController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $variants = ProductVariant::query()
+            ->orderBy('id')
+            ->limit(12)
+            ->get(['id', 'sku', 'options']);
+
         return view('inventory::products.index', [
             'products' => $products,
             'filters' => $filters,
             'categories' => $categories,
             'warehouses' => $warehouses,
+            'variants' => $variants,
         ]);
     }
 
@@ -65,6 +86,19 @@ class ProductController extends Controller
             ->where('product_id', $product->id)
             ->orderByDesc('qty')
             ->get();
+
+        $onHandTotal = (float) $stockByWarehouse->sum('qty');
+        $reorderPoint = (float) ($product->reorder_point ?? 0);
+
+        $consumptionWindow = Carbon::now()->subDays(30);
+        $consumption = StockMovement::query()
+            ->where('product_id', $product->id)
+            ->where('direction', StockMovement::DIRECTION_OUT)
+            ->where('moved_at', '>=', $consumptionWindow)
+            ->sum('qty');
+
+        $avgDailyConsumption = $consumption > 0 ? $consumption / 30 : 0;
+        $depletionDays = $avgDailyConsumption > 0 ? (int) ceil($onHandTotal / $avgDailyConsumption) : null;
 
         $recentMovements = StockMovement::query()
             ->with('warehouse')
@@ -83,6 +117,9 @@ class ProductController extends Controller
             'stockByWarehouse' => $stockByWarehouse,
             'recentMovements' => $recentMovements,
             'priceLists' => $priceLists,
+            'onHandTotal' => $onHandTotal,
+            'reorderPoint' => $reorderPoint,
+            'depletionDays' => $depletionDays,
         ]);
     }
 

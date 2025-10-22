@@ -12,8 +12,13 @@
 @endpush
 
 @section('content')
-    <div class="inv-home" data-module="inventory-home">
-        <section class="inv-home__kpis" data-kpi-region>
+    <div class="inv-home"
+         data-module="inventory-home"
+         data-console-url="{{ route('admin.inventory.stock.console') }}"
+         data-kpi-endpoint="{{ route('admin.inventory.home.metrics') }}"
+         data-timeline-endpoint="{{ route('admin.inventory.home.timeline') }}"
+         data-lowstock-endpoint="{{ route('admin.inventory.home.lowstock') }}">
+        <section class="inv-home__kpis" data-kpi-region data-endpoint="{{ route('admin.inventory.home.metrics') }}">
             @foreach ($kpis as $kpi)
                 <article class="inv-card inv-card--kpi" role="status">
                     <div class="inv-card__meta">
@@ -28,7 +33,7 @@
         <section class="inv-home__quickbar" aria-label="Hızlı aksiyonlar">
             @foreach ($quickActions as $action)
                 <a href="{{ $action['route'] }}"
-                   class="inv-home__quick-action"
+                   class="inv-card inv-card--action"
                    data-action="inventory-quick"
                    data-mode="{{ $action['mode'] }}">
                     <span class="inv-home__quick-icon"><i class="bi {{ $action['icon'] ?? 'bi-lightning' }}"></i></span>
@@ -37,14 +42,14 @@
             @endforeach
         </section>
 
-        <section class="inv-home__timeline" data-timeline-region aria-label="Bugün hareketleri">
+        <section class="inv-home__timeline" data-timeline-region data-endpoint="{{ route('admin.inventory.home.timeline') }}" aria-label="Bugün hareketleri">
             <header class="inv-home__section-header">
                 <h2 class="inv-home__section-title">Bugün Hareketler</h2>
             </header>
-            <ol class="inv-timeline">
+            <ol class="inv-timeline" data-timeline-list>
                 @forelse ($timeline as $event)
                     <li class="inv-timeline__item">
-                        <div class="inv-timeline__time">{{ $event['timestamp'] }}</div>
+                        <div class="inv-timeline__time">{{ $event['timeLabel'] ?? $event['timestamp'] }}</div>
                         <div class="inv-timeline__body">
                             <h3 class="inv-timeline__title">{{ $event['title'] }}</h3>
                             <p class="inv-timeline__subtitle">{{ $event['subtitle'] }}</p>
@@ -65,14 +70,16 @@
             <header class="inv-home__section-header">
                 <h2 class="inv-home__section-title">Düşük Stoklar</h2>
             </header>
-            <div class="inv-home__lowstock-grid">
+            <div class="inv-home__lowstock-grid" data-lowstock-list data-endpoint="{{ route('admin.inventory.home.lowstock') }}">
                 @forelse ($lowStock as $item)
-                    <article class="inv-card inv-card--lowstock"
+                    <article class="inv-card inv-card--lowstock {{ $item['isCritical'] ? 'inv-card--lowstock--critical' : '' }}"
                              data-action="inventory-lowstock"
-                             data-product-id="{{ $item['id'] }}">
+                             data-product-id="{{ $item['productId'] }}"
+                             data-warehouse-id="{{ $item['warehouseId'] }}"
+                             data-recommendation="{{ $item['recommendation'] }}">
                         <header class="inv-card__header">
-                            <span class="inv-card__title">{{ $item['product']->name ?? 'Ürün' }}</span>
-                            <span class="inv-card__subtitle">{{ $item['warehouse']->name ?? 'Depo' }}</span>
+                            <span class="inv-card__title">{{ $item['name'] }}</span>
+                            <span class="inv-card__subtitle">{{ $item['warehouse'] }}</span>
                         </header>
                         <dl class="inv-card__stats">
                             <div class="inv-card__stat">
@@ -81,11 +88,15 @@
                             </div>
                             <div class="inv-card__stat">
                                 <dt>Stok</dt>
-                                <dd>{{ number_format($item['qty'], 2) }}</dd>
+                                <dd>{{ number_format($item['available'], 2) }}</dd>
                             </div>
                             <div class="inv-card__stat">
                                 <dt>Hedef</dt>
                                 <dd>{{ number_format($item['threshold'], 2) }}</dd>
+                            </div>
+                            <div class="inv-card__stat">
+                                <dt>Öneri</dt>
+                                <dd>{{ number_format($item['recommendation'], 2) }}</dd>
                             </div>
                         </dl>
                         <footer class="inv-card__footer">
@@ -98,20 +109,20 @@
                 @endforelse
             </div>
 
-            <div class="inv-sheet" data-sheet="lowstock" role="dialog" aria-modal="true">
+            <div class="inv-sheet" data-sheet="lowstock" role="dialog" aria-modal="true" aria-hidden="true">
                 <div class="inv-sheet__header">
                     <h3 class="inv-sheet__title">Stok Tamamlama Önerisi</h3>
                     <button type="button" class="btn-close" data-action="sheet-dismiss" aria-label="Kapat"></button>
                 </div>
                 <div class="inv-sheet__body" data-sheet-body>
                     <p class="inv-sheet__hint">Seçili ürün için hedef depo ve önerilen miktarı belirleyin.</p>
-                    <form class="inv-sheet__form">
+                    <form class="inv-sheet__form" data-action="lowstock-form">
                         <div class="mb-3">
                             <label for="lowstock-target" class="form-label">Hedef depo</label>
                             <select id="lowstock-target" class="form-select">
                                 <option value="">Depo seçin</option>
-                                @foreach ($quickActions as $action)
-                                    <option value="{{ $action['mode'] }}">{{ $action['label'] }}</option>
+                                @foreach ($warehouses as $warehouse)
+                                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
                                 @endforeach
                             </select>
                         </div>

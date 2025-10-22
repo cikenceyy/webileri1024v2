@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\StockItem;
 use App\Modules\Inventory\Domain\Models\StockMovement;
+use App\Modules\Inventory\Domain\Models\Warehouse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -17,20 +19,52 @@ class HomeController extends Controller
     {
         $this->authorize('viewAny', Product::class);
 
+        $data = $this->composeDashboardData();
+
+        return view('inventory::home', $data);
+    }
+
+    public function metrics(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Product::class);
+
+        return response()->json($this->buildKpis());
+    }
+
+    public function timeline(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Product::class);
+
+        return response()->json($this->buildTimeline());
+    }
+
+    public function lowstock(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Product::class);
+
+        return response()->json($this->buildLowStock());
+    }
+
+    protected function composeDashboardData(): array
+    {
+        return [
+            'kpis' => Collection::make($this->buildKpis()),
+            'quickActions' => $this->quickActions(),
+            'timeline' => Collection::make($this->buildTimeline()),
+            'lowStock' => Collection::make($this->buildLowStock()),
+            'warehouses' => Warehouse::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ];
+    }
+
+    protected function buildKpis(): array
+    {
         $movementsToday = StockMovement::query()
             ->whereDate('moved_at', Carbon::today())
-            ->orderByDesc('moved_at')
-            ->get();
+            ->count();
 
-        $recentMovements = StockMovement::query()
-            ->with(['warehouse', 'product'])
-            ->orderByDesc('moved_at')
-            ->limit(6)
-            ->get();
-
-        $stockItems = StockItem::query()
-            ->with(['product', 'warehouse'])
-            ->get();
+        $stockItems = $this->stockItems();
 
         $totalStockValue = $stockItems->sum(function (StockItem $item): float {
             $product = $item->product;
@@ -44,18 +78,17 @@ class HomeController extends Controller
             return $unitPrice * (float) $item->qty;
         });
 
-        $lowStockItems = $stockItems
-            ->filter(function (StockItem $item): bool {
-                $threshold = (float) ($item->reorder_point ?? $item->product->reorder_point ?? 0);
+        $lowStockCount = $stockItems
+            ->filter(fn (StockItem $item) => $this->isLowStock($item))
+            ->count();
 
-                return $threshold > 0 && (float) $item->qty < $threshold;
-            })
-            ->sortBy(fn (StockItem $item) => (float) $item->qty)
-            ->take(6);
+        $pendingTransfers = $stockItems
+            ->filter(fn (StockItem $item) => (float) $item->reserved_qty > 0)
+            ->count();
 
         $currencyCode = config('inventory.default_currency', 'TRY');
 
-        $kpis = Collection::make([
+        return [
             [
                 'label' => 'Toplam Stok Değeri',
                 'value' => number_format($totalStockValue, 2, ',', '.') . ' ' . $currencyCode,
@@ -63,22 +96,25 @@ class HomeController extends Controller
             ],
             [
                 'label' => 'Bugün Hareket',
-                'value' => number_format($movementsToday->count()),
+                'value' => number_format($movementsToday),
                 'icon' => 'bi-arrow-repeat',
             ],
             [
                 'label' => 'Düşük Stoklu Ürün',
-                'value' => number_format($lowStockItems->count()),
+                'value' => number_format($lowStockCount),
                 'icon' => 'bi-exclamation-triangle',
             ],
             [
                 'label' => 'Bekleyen Transfer',
-                'value' => number_format($stockItems->filter(fn (StockItem $item) => (float) $item->reserved_qty > 0)->count()),
+                'value' => number_format($pendingTransfers),
                 'icon' => 'bi-arrows-move',
             ],
-        ]);
+        ];
+    }
 
-        $quickActions = [
+    protected function quickActions(): array
+    {
+        return [
             [
                 'label' => 'Giriş (IN)',
                 'icon' => 'bi-box-arrow-in-down',
@@ -107,44 +143,76 @@ class HomeController extends Controller
                 'label' => 'Ürün Ekle',
                 'icon' => 'bi-plus-circle',
                 'mode' => 'create-product',
-                'route' => route('admin.inventory.products.index'),
+                'route' => route('admin.inventory.products.index', ['open' => 'create']),
             ],
         ];
+    }
 
-        $timeline = $recentMovements->map(function (StockMovement $movement) {
-            $product = $movement->product;
-            $warehouse = $movement->warehouse;
+    protected function buildTimeline(): array
+    {
+        return StockMovement::query()
+            ->with(['warehouse', 'product'])
+            ->orderByDesc('moved_at')
+            ->limit(6)
+            ->get()
+            ->map(function (StockMovement $movement) {
+                $product = $movement->product;
+                $warehouse = $movement->warehouse;
+                $timestamp = optional($movement->moved_at);
 
-            return [
-                'id' => $movement->id,
-                'timestamp' => optional($movement->moved_at)->format('H:i'),
-                'title' => $product?->name ?? 'Stok hareketi',
-                'subtitle' => sprintf('%s • %s', strtoupper($movement->direction ?? ''), $warehouse?->name ?? 'Depo'),
-                'link' => $product ? route('admin.inventory.products.show', $product) : null,
-            ];
-        });
+                return [
+                    'id' => $movement->id,
+                    'title' => $product?->name ?? 'Stok hareketi',
+                    'subtitle' => sprintf('%s • %s', strtoupper($movement->direction ?? ''), $warehouse?->name ?? 'Depo'),
+                    'timestamp' => $timestamp?->toIso8601String(),
+                    'timeLabel' => $timestamp?->format('H:i') ?? '--:--',
+                    'link' => $product ? route('admin.inventory.products.show', $product) : null,
+                ];
+            })
+            ->values()
+            ->all();
+    }
 
-        $lowStock = $lowStockItems->map(function (StockItem $item) {
-            $product = $item->product;
-            $warehouse = $item->warehouse;
-            $identifier = $product?->sku ?: ($product?->barcode ?: '#');
+    protected function buildLowStock(): array
+    {
+        return $this->stockItems()
+            ->filter(fn (StockItem $item) => $this->isLowStock($item))
+            ->sortBy(fn (StockItem $item) => (float) $item->qty)
+            ->take(6)
+            ->map(function (StockItem $item) {
+                $product = $item->product;
+                $warehouse = $item->warehouse;
+                $threshold = (float) ($item->reorder_point ?? $product?->reorder_point ?? 0);
+                $available = (float) $item->qty;
 
-            return [
-                'id' => $item->id,
-                'product' => $product,
-                'warehouse' => $warehouse,
-                'sku' => $identifier,
-                'qty' => (float) $item->qty,
-                'threshold' => (float) ($item->reorder_point ?? $product?->reorder_point ?? 0),
-                'recommendation' => max(0, ((float) ($item->reorder_point ?? $product?->reorder_point ?? 0)) - (float) $item->qty),
-            ];
-        });
+                return [
+                    'id' => $item->id,
+                    'productId' => $product?->id,
+                    'name' => $product?->name ?? 'Ürün',
+                    'warehouse' => $warehouse?->name ?? 'Depo',
+                    'warehouseId' => $warehouse?->id,
+                    'sku' => $product?->sku ?: ($product?->barcode ?? '#'),
+                    'available' => $available,
+                    'threshold' => $threshold,
+                    'recommendation' => max(0, $threshold - $available),
+                    'isCritical' => $available <= 0,
+                ];
+            })
+            ->values()
+            ->all();
+    }
 
-        return view('inventory::home', [
-            'kpis' => $kpis,
-            'quickActions' => $quickActions,
-            'timeline' => $timeline,
-            'lowStock' => $lowStock,
-        ]);
+    protected function stockItems(): Collection
+    {
+        return StockItem::query()
+            ->with(['product', 'warehouse'])
+            ->get();
+    }
+
+    protected function isLowStock(StockItem $item): bool
+    {
+        $threshold = (float) ($item->reorder_point ?? $item->product?->reorder_point ?? 0);
+
+        return $threshold > 0 && (float) $item->qty < $threshold;
     }
 }

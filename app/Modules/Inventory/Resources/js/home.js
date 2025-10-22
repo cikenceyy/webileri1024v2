@@ -3,12 +3,31 @@
 
     window.Inventory = window.Inventory || {};
 
+    const requestJson = (endpoint, onSuccess) => {
+        if (!endpoint) {
+            return;
+        }
+
+        fetch(endpoint)
+            .then((response) => (response.ok ? response.json() : null))
+            .then((payload) => {
+                if (!payload) {
+                    return;
+                }
+
+                onSuccess(payload);
+            })
+            .catch(() => {});
+    };
+
     const Home = {
         selectors: {
             host: '.inv-home',
             kpiRegion: '[data-kpi-region]',
             timelineRegion: '[data-timeline-region]',
+            timelineList: '[data-timeline-list]',
             lowStockRegion: '[data-lowstock-region]',
+            lowStockList: '[data-lowstock-list]',
             quickAction: '[data-action="inventory-quick"]',
         },
         pollTimer: null,
@@ -33,32 +52,35 @@
             }
 
             this.$kpis = this.$host.querySelector(this.selectors.kpiRegion);
-            this.$timeline = this.$host.querySelector(this.selectors.timelineRegion);
-            this.$lowstock = this.$host.querySelector(this.selectors.lowStockRegion);
+            this.$timelineSection = this.$host.querySelector(this.selectors.timelineRegion);
+            this.$timelineList = this.$host.querySelector(this.selectors.timelineList);
+            this.$lowstockSection = this.$host.querySelector(this.selectors.lowStockRegion);
+            this.$lowstockList = this.$host.querySelector(this.selectors.lowStockList);
+            this.$sheet = this.$host.querySelector('[data-sheet="lowstock"]');
         },
 
         bind() {
             this.$host.addEventListener('click', (event) => {
-                const target = event.target.closest(this.selectors.quickAction);
-                if (target) {
+                const quickAction = event.target.closest(this.selectors.quickAction);
+                if (quickAction) {
                     event.preventDefault();
-                    this.handleQuickAction(target.dataset.mode || 'in');
+                    this.handleQuickAction(quickAction.dataset.mode || 'in', quickAction.getAttribute('href'));
+                    return;
                 }
 
                 const lowStockCard = event.target.closest('[data-action="inventory-lowstock"]');
                 if (lowStockCard) {
                     event.preventDefault();
-                    this.openLowStockSheet(lowStockCard.dataset.productId);
+                    this.openLowStockSheet(lowStockCard);
                 }
             });
 
-            const sheet = this.$host.querySelector('[data-sheet="lowstock"]');
-            if (sheet) {
-                sheet.addEventListener('click', (event) => {
+            if (this.$sheet) {
+                this.$sheet.addEventListener('click', (event) => {
                     const dismiss = event.target.closest('[data-action="sheet-dismiss"]');
                     if (dismiss) {
                         event.preventDefault();
-                        sheet.classList.remove('is-open');
+                        this.closeLowStockSheet();
                     }
                 });
             }
@@ -81,112 +103,92 @@
                 return;
             }
 
-            const endpoint = this.$kpis.dataset.endpoint;
-            if (!endpoint) {
-                return;
-            }
-
-            fetch(endpoint)
-                .then((response) => response.ok ? response.json() : null)
-                .then((payload) => {
-                    if (!payload) {
-                        return;
-                    }
-                    this.renderKpis(payload);
-                })
-                .catch(() => {});
+            const endpoint = this.$kpis.dataset.endpoint || this.$host.dataset.kpiEndpoint;
+            requestJson(endpoint, (payload) => this.renderKpis(payload));
         },
 
         refreshTimeline() {
-            if (!this.$timeline) {
+            if (!this.$timelineList) {
                 return;
             }
 
-            const endpoint = this.$timeline.dataset.endpoint;
-            if (!endpoint) {
-                return;
-            }
-
-            fetch(endpoint)
-                .then((response) => response.ok ? response.json() : null)
-                .then((payload) => {
-                    if (!payload) {
-                        return;
-                    }
-                    this.renderTimeline(payload);
-                })
-                .catch(() => {});
+            const endpoint = (this.$timelineSection?.dataset.endpoint) || this.$host.dataset.timelineEndpoint;
+            requestJson(endpoint, (payload) => this.renderTimeline(payload));
         },
 
         refreshLowStock() {
-            if (!this.$lowstock) {
+            if (!this.$lowstockList) {
                 return;
             }
 
-            const endpoint = this.$lowstock.dataset.endpoint;
-            if (!endpoint) {
-                return;
-            }
-
-            fetch(endpoint)
-                .then((response) => response.ok ? response.json() : null)
-                .then((payload) => {
-                    if (!payload) {
-                        return;
-                    }
-                    this.renderLowStock(payload);
-                })
-                .catch(() => {});
+            const endpoint = (this.$lowstockSection?.dataset.endpoint) || this.$lowstockList.dataset.endpoint || this.$host.dataset.lowstockEndpoint;
+            requestJson(endpoint, (payload) => this.renderLowStock(payload));
         },
 
         renderKpis(payload) {
             this.$kpis.innerHTML = payload
                 .map((item) => `
-                    <article class="inv-card--kpi" aria-live="polite">
-                        <span class="inv-card--kpi__label">${item.label}</span>
-                        <strong class="inv-card--kpi__value">${item.value}</strong>
-                        <span class="inv-card--kpi__trend">${item.trend || ''}</span>
+                    <article class="inv-card inv-card--kpi" aria-live="polite">
+                        <div class="inv-card__meta">
+                            <span class="inv-card__icon"><i class="bi ${item.icon || 'bi-circle'}"></i></span>
+                            <span class="inv-card__label">${item.label}</span>
+                        </div>
+                        <strong class="inv-card__value">${item.value}</strong>
+                        ${item.trend ? `<span class="inv-card__trend">${item.trend}</span>` : ''}
                     </article>
                 `)
                 .join('');
         },
 
         renderTimeline(payload) {
-            this.$timeline.innerHTML = payload
+            this.$timelineList.innerHTML = payload
                 .map((item) => `
-                    <div class="inv-timeline__item">
-                        <div>
-                            <div class="fw-medium">${item.title}</div>
-                            <div class="text-muted small">${item.subtitle || ''}</div>
+                    <li class="inv-timeline__item">
+                        <div class="inv-timeline__time">${item.timeLabel}</div>
+                        <div class="inv-timeline__body">
+                            <div class="inv-timeline__title">${item.title}</div>
+                            <div class="inv-timeline__subtitle">${item.subtitle || ''}</div>
+                            ${item.link ? `<a class="inv-timeline__link" href="${item.link}">Detayı aç</a>` : ''}
                         </div>
-                        <time class="text-muted small" datetime="${item.timestamp}">${item.timeLabel}</time>
-                    </div>
+                    </li>
                 `)
                 .join('');
         },
 
         renderLowStock(payload) {
-            this.$lowstock.innerHTML = payload
+            this.$lowstockList.innerHTML = payload
                 .map((item) => `
-                    <article class="inv-card--lowstock ${item.isCritical ? 'inv-card--lowstock--critical' : ''}" data-action="inventory-lowstock" data-product-id="${item.id}">
-                        <div class="inv-card--lowstock__meta">
-                            <span class="fw-medium">${item.name}</span>
-                            <span class="text-muted small">${item.sku}</span>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge bg-danger-subtle text-danger">${item.available}</span>
-                        </div>
-                        <div class="inv-card--lowstock__actions">
-                            <button class="btn btn-outline-primary btn-sm" type="button" data-action="trigger-transfer" data-product-id="${item.id}">Transfer</button>
-                            <button class="btn btn-primary btn-sm" type="button" data-action="trigger-purchase" data-product-id="${item.id}">Tedarik</button>
-                        </div>
+                    <article class="inv-card inv-card--lowstock ${item.isCritical ? 'inv-card--lowstock--critical' : ''}"
+                             data-action="inventory-lowstock"
+                             data-product-id="${item.productId || ''}"
+                             data-warehouse-id="${item.warehouseId || ''}"
+                             data-recommendation="${item.recommendation}">
+                        <header class="inv-card__header">
+                            <span class="inv-card__title">${item.name}</span>
+                            <span class="inv-card__subtitle">${item.warehouse}</span>
+                        </header>
+                        <dl class="inv-card__stats">
+                            <div class="inv-card__stat"><dt>SKU</dt><dd>${item.sku}</dd></div>
+                            <div class="inv-card__stat"><dt>Stok</dt><dd>${item.available}</dd></div>
+                            <div class="inv-card__stat"><dt>Hedef</dt><dd>${item.threshold}</dd></div>
+                            <div class="inv-card__stat"><dt>Öneri</dt><dd>${item.recommendation}</dd></div>
+                        </dl>
+                        <footer class="inv-card__footer">
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-action="inventory-lowstock-transfer">Transfer öner</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="inventory-lowstock-procure">Tedarik planla</button>
+                        </footer>
                     </article>
                 `)
                 .join('');
         },
 
-        handleQuickAction(mode) {
-            const targetUrl = this.$host.dataset.consoleUrl;
+        handleQuickAction(mode, href) {
+            if (mode === 'create-product' && href) {
+                window.location.href = href;
+                return;
+            }
+
+            const targetUrl = this.$host.dataset.consoleUrl || href;
             if (!targetUrl) {
                 return;
             }
@@ -196,14 +198,35 @@
             window.location.href = url.toString();
         },
 
-        openLowStockSheet(productId) {
-            const sheet = this.$host.querySelector('[data-sheet="lowstock"]');
-            if (!sheet) {
+        openLowStockSheet(card) {
+            if (!this.$sheet) {
                 return;
             }
 
-            sheet.classList.add('is-open');
-            sheet.dispatchEvent(new CustomEvent('inventory:lowstock:open', { detail: { productId } }));
+            const recommendation = Number(card.dataset.recommendation || 0);
+            const qtyInput = this.$sheet.querySelector('#lowstock-qty');
+            const targetSelect = this.$sheet.querySelector('#lowstock-target');
+
+            if (qtyInput) {
+                qtyInput.value = recommendation.toFixed(2);
+            }
+
+            if (targetSelect && card.dataset.warehouseId) {
+                targetSelect.value = card.dataset.warehouseId;
+            }
+
+            this.$sheet.dataset.productId = card.dataset.productId || '';
+            this.$sheet.setAttribute('aria-hidden', 'false');
+            this.$sheet.classList.add('is-open');
+        },
+
+        closeLowStockSheet() {
+            if (!this.$sheet) {
+                return;
+            }
+
+            this.$sheet.classList.remove('is-open');
+            this.$sheet.setAttribute('aria-hidden', 'true');
         },
     };
 

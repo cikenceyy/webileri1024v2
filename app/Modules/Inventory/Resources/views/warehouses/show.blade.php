@@ -22,20 +22,30 @@
             <div class="inv-warehouse__grid" data-heatmap>
                 @foreach ($stockItems as $index => $item)
                     @php
-                        $level = min(5, max(0, (int) ceil($item->qty)));
+                        $threshold = (float) ($item->reorder_point ?? $item->product?->reorder_point ?? 0);
+                        $ratio = $threshold > 0 ? min(1, max(0, $item->qty / $threshold)) : 1;
+                        $level = (int) ceil($ratio * 5);
+                        $payload = [[
+                            'id' => $item->product?->id,
+                            'name' => $item->product?->name,
+                            'sku' => $item->product?->sku,
+                            'qty' => round($item->qty, 2),
+                            'reserved' => round($item->reserved_qty ?? 0, 2),
+                        ]];
                     @endphp
                     <button type="button"
-                            class="inv-warehouse__cell"
+                            class="inv-heat__cell inv-warehouse__cell"
                             data-action="select-cell"
+                            data-rack="R{{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}"
                             data-level="{{ $level }}"
-                            data-product-id="{{ $item->product?->id }}">
+                            data-items='@json($payload)'>
                         <span class="inv-warehouse__cell-label">{{ $item->product?->sku ?? 'SKU' }}</span>
                         <span class="inv-warehouse__cell-qty">{{ number_format($item->qty, 2) }}</span>
                     </button>
                 @endforeach
             </div>
 
-            <aside class="inv-warehouse__panel" data-panel>
+            <aside class="inv-warehouse__panel" data-panel-region>
                 <h2 class="inv-warehouse__panel-title">Seçili Raf</h2>
                 <div class="inv-warehouse__panel-body" data-panel-body>
                     <p class="text-muted">Bir hücre seçerek ürün detaylarını görüntüleyin.</p>

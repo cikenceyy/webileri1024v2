@@ -51,7 +51,7 @@
             <header class="inv-product__section-header">
                 <h2 class="inv-product__section-title">Depo Dağılımı</h2>
             </header>
-            <div class="inv-matrix" data-matrix>
+            <div class="inv-matrix__grid" data-matrix>
                 @foreach ($stockByWarehouse as $item)
                     <div class="inv-matrix__cell" data-warehouse="{{ $item->warehouse?->id }}">
                         <span class="inv-matrix__warehouse">{{ $item->warehouse?->name ?? 'Depo' }}</span>
@@ -59,6 +59,20 @@
                     </div>
                 @endforeach
             </div>
+            <dl class="inv-product__matrix-stats">
+                <div>
+                    <dt>Toplam Stok</dt>
+                    <dd>{{ number_format($onHandTotal, 2) }}</dd>
+                </div>
+                <div>
+                    <dt>Min. Stok</dt>
+                    <dd>{{ number_format($reorderPoint, 2) }}</dd>
+                </div>
+                <div>
+                    <dt>Tahmini Tükenme</dt>
+                    <dd>{{ $depletionDays ? $depletionDays . ' gün' : '—' }}</dd>
+                </div>
+            </dl>
         </section>
 
         <section class="inv-product__prices" aria-label="Fiyat listeleri">

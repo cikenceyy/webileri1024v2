@@ -74,18 +74,19 @@
             }
 
             const items = payload.items.map((item) => `
-                <article class="inv-card--product" data-product-id="${item.id}">
-                    <div class="d-flex justify-content-between align-items-center">
+                <article class="inv-card inv-card--product" data-product-id="${item.id}">
+                    <div class="inv-card__header justify-content-between">
                         <div>
-                            <div class="fw-medium">${item.name}</div>
-                            <div class="small text-muted">${item.sku}</div>
+                            <div class="inv-card__title">${item.name || 'Ürün'}</div>
+                            <div class="inv-card__subtitle">${item.sku || ''}</div>
                         </div>
                         <span class="badge bg-light text-dark">${item.qty}</span>
                     </div>
-                    <div class="inv-warehouse__actions mt-2">
+                    <div class="inv-card__body small text-muted">Rezerve: ${item.reserved}</div>
+                    <div class="inv-warehouse__actions mt-3 d-flex gap-2 flex-wrap">
                         <button class="btn btn-outline-primary btn-sm" data-action="transfer" data-product-id="${item.id}">Transfer</button>
                         <button class="btn btn-outline-secondary btn-sm" data-action="adjust" data-product-id="${item.id}">Düzelt</button>
-                        <button class="btn btn-outline-info btn-sm" data-action="label" data-product-id="${item.id}">Etiket</button>
+                        <button class="btn btn-outline-secondary btn-sm" data-action="label" data-product-id="${item.id}">Etiket</button>
                     </div>
                 </article>
             `).join('');

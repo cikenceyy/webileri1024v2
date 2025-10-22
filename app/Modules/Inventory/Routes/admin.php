@@ -14,6 +14,9 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
     ->name('admin.inventory.')
     ->group(function () {
         Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('home/metrics', [HomeController::class, 'metrics'])->name('home.metrics');
+        Route::get('home/timeline', [HomeController::class, 'timeline'])->name('home.timeline');
+        Route::get('home/lowstock', [HomeController::class, 'lowstock'])->name('home.lowstock');
 
         Route::get('stock/console', [StockConsoleController::class, 'index'])->name('stock.console');
         Route::post('stock/console', [StockConsoleController::class, 'store'])->name('stock.console.store');
