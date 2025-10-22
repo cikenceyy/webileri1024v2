@@ -83,6 +83,9 @@ return [
             'drive.media.upload',
             'drive.media.delete',
         ],
+        'cms' => [
+            'cms.manage',
+        ],
         'settings' => [
             'settings.view',
             'settings.user.manage',

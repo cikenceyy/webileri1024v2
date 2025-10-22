@@ -153,12 +153,14 @@ class RolesAndPermissionsSeeder extends Seeder
             return str_starts_with($permission, 'finance.');
         }));
 
+        $cmsManage = in_array('cms.manage', $permissions, true) ? ['cms.manage'] : [];
+
         $full = $permissions;
 
         return [
             'biz' => $full,
             'patron' => $full,
-            'muhasebeci' => array_values(array_unique(array_merge($finance, $readOnly))),
+            'muhasebeci' => array_values(array_unique(array_merge($finance, $readOnly, $cmsManage))),
             'stajyer' => $readOnly,
         ];
     }

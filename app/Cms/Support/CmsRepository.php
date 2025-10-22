@@ -194,8 +194,18 @@ class CmsRepository
     public function featuredProducts(int $limit = 6, ?string $locale = null): array
     {
         $locale = $locale ?? $this->locale();
+        $query = $this->inventoryQuery();
+        $model = method_exists($query, 'getModel') ? $query->getModel() : null;
+        $table = $model && method_exists($model, 'getTable') ? $model->getTable() : 'products';
+
+        if (Schema::hasColumn($table, 'is_featured')) {
+            $query->where($table . '.is_featured', true);
+        } elseif (Schema::hasColumn($table, 'featured')) {
+            $query->where($table . '.featured', true);
+        }
+
         return array_slice($this->transformProducts(
-            $this->inventoryQuery()->where('is_featured', true)->take($limit)->get()->all(),
+            $query->take($limit)->get()->all(),
             $locale
         ), 0, $limit);
     }
@@ -275,13 +285,32 @@ class CmsRepository
                 'slug' => $slug,
                 'short_desc' => $this->localizedAttribute($product, 'short_desc', $locale) ?? '',
                 'cover_image' => $product->cover_image ?? null,
-                'gallery' => $product->gallery ?? [],
+                'gallery' => $this->normaliseGallery($product->gallery ?? []),
                 'sku' => $product->sku ?? null,
                 'is_featured' => (bool) ($product->is_featured ?? false),
             ];
         }
 
         return $collection;
+    }
+
+    protected function normaliseGallery(mixed $gallery): array
+    {
+        if (is_string($gallery)) {
+            $decoded = json_decode($gallery, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        if ($gallery instanceof \JsonSerializable) {
+            $gallery = $gallery->jsonSerialize();
+        }
+
+        if ($gallery instanceof \Traversable) {
+            $gallery = iterator_to_array($gallery);
+        }
+
+        return is_array($gallery) ? array_values($gallery) : [];
     }
 
     protected function localizedAttribute(object $model, string $attribute, string $locale): ?string
