@@ -86,18 +86,19 @@
         };
 
         $folderIcons = [
-            'recent' => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l2.5 2.5" /></svg>',
-            'important' => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.5a.75.75 0 0 1 1.04 0l2.12 2.05 2.92.42a.75.75 0 0 1 .42 1.28l-2.1 2.05.5 2.9a.75.75 0 0 1-1.1.79L12 12.97l-2.64 1.38a.75.75 0 0 1-1.1-.79l.5-2.9-2.1-2.05a.75.75 0 0 1 .42-1.28l2.92-.42 2.12-2.05Z" /></svg>',
-            Media::CATEGORY_DOCUMENTS => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 3.75h6.25L17 7.5v12.75H7a1.25 1.25 0 0 1-1.25-1.25V5a1.25 1.25 0 0 1 1.25-1.25Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13 3.5v4h4" /></svg>',
-            Media::CATEGORY_MEDIA_PRODUCTS => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2" /><path stroke-linecap="round" stroke-linejoin="round" d="m3 16 4.5-4.5a1.5 1.5 0 0 1 2.12 0L17 19" /><circle cx="16" cy="9" r="1.5" /></svg>',
-            Media::CATEGORY_MEDIA_CATALOGS => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h16M4 12h16M4 17.5h16" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14" /></svg>',
-            Media::CATEGORY_PAGES => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="5" width="16" height="14" rx="2" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 10h16M9 5v14" /></svg>',
-            'default' => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7a2.25 2.25 0 0 1 2.25-2.25h4.3a2.25 2.25 0 0 1 1.59.66l1.12 1.09a2.25 2.25 0 0 0 1.58.65h4.17A2.25 2.25 0 0 1 21.75 9v8.25A2.25 2.25 0 0 1 19.5 19.5H4.5a2.25 2.25 0 0 1-2.25-2.25Z" /></svg>',
+            'recent' => 'bi bi-clock-history',
+            'important' => 'bi bi-star-fill',
+            Media::CATEGORY_DOCUMENTS => 'bi bi-file-earmark-text',
+            Media::CATEGORY_MEDIA_PRODUCTS => 'bi bi-box-seam',
+            Media::CATEGORY_MEDIA_CATALOGS => 'bi bi-book',
+            Media::CATEGORY_PAGES => 'bi bi-file-earmark-code',
+            'default' => 'bi bi-folder',
         ];
 
     @endphp
 
-    <div class="drive" data-drive-root data-drive-total="{{ $totalCount }}"
+    <div class="drive" 
+        data-drive-root data-drive-total="{{ $totalCount }}"
         data-drive-page-size="{{ $mediaItems->perPage() }}" data-drive-search-url="{{ route('admin.drive.media.index') }}"
         data-drive-active-tab="{{ $tab }}" data-category-default="{{ $activeCategory }}"
         data-category-limits='@json($categoryLimits)' data-picker-mode="{{ $pickerMode ? '1' : '0' }}"
@@ -106,17 +107,9 @@
         data-replace-url-template="{{ route('admin.drive.media.replace', ['media' => '__ID__']) }}"
         data-toggle-important-template="{{ route('admin.drive.media.toggle_important', ['media' => '__ID__']) }}"
         data-download-url-template="{{ route('admin.drive.media.download', ['media' => '__ID__']) }}"
-        data-delete-url-template="{{ route('admin.drive.media.destroy', ['media' => '__ID__']) }}">
-        <x-ui-page-header title="Drive" description="Dosyalarınızı modern arayüzle yönetin, arayın ve düzenleyin.">
-            @if (!$pickerMode)
-                <x-slot name="actions">
-                    <x-ui-button variant="primary" data-action="drive-open-upload">
-                        <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
-                        <span>Dosya Yükle</span>
-                    </x-ui-button>
-                </x-slot>
-            @endif
-        </x-ui-page-header>
+        data-delete-url-template="{{ route('admin.drive.media.destroy', ['media' => '__ID__']) }}"
+    >
+
 
         @if (session('status'))
             <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
@@ -125,13 +118,17 @@
         @if ($errors->any())
             <x-ui-alert type="danger" dismissible>{{ $errors->first() }}</x-ui-alert>
         @endif
+
         <div class="drive__layout">
+
             <aside class="drive__sidebar" data-drive-tree>
+
                 <div class="drive-tree">
                     <div class="drive-tree__header">
                         <h2 class="drive-tree__title">Klasör ağacı</h2>
                         <p class="drive-tree__description">Sık kullanılanlar ve kategoriler burada.</p>
                     </div>
+
                     <ul class="drive-tree__groups">
                         @foreach ($folderGroups as $groupTitle => $keys)
                             @if (count($keys))
@@ -139,13 +136,10 @@
                                     $groupId = 'drive-tree-' . Str::slug($groupTitle) . '-' . $loop->index;
                                 @endphp
                                 <li class="drive-tree__group" data-drive-tree-item>
-                                    <button type="button" class="drive-tree__toggle" data-drive-tree-toggle
-                                        aria-expanded="true" aria-controls="{{ $groupId }}">
+                                    <div class="drive-tree__toggle" aria-controls="{{ $groupId }}">
                                         <span class="drive-tree__toggle-label">{{ $groupTitle }}</span>
-                                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                                    </button>
-                                    <ul class="drive-tree__panel" id="{{ $groupId }}" data-drive-tree-panel
-                                        role="group" aria-hidden="false">
+                                    </div>
+                                    <ul class="drive-tree__panel" id="{{ $groupId }}" data-drive-tree-panel role="group" aria-hidden="false">
                                         @foreach ($keys as $key)
                                             @php
                                                 $isActive = $tab === $key;
@@ -155,20 +149,20 @@
                                                 $itemUrl = $buildTabUrl($key);
                                             @endphp
                                             <li class="drive-tree__item">
-                                                <a href="{{ $itemUrl }}"
-                                                    class="drive-tree__link {{ $isActive ? 'is-active' : '' }}"
-                                                    data-drive-folder-link data-drive-folder="{{ $key }}"
-                                                    aria-current="{{ $isActive ? 'page' : 'false' }}">
-                                                    <span class="drive-tree__icon">{!! $icon !!}</span>
+                                                <a href="{{ $itemUrl }}" class="drive-tree__link {{ $isActive ? 'is-active' : '' }}" data-drive-folder-link data-drive-folder="{{ $key }}" aria-current="{{ $isActive ? 'page' : 'false' }}" >
+                                                    <span class="drive-tree__icon">
+                                                        <i class="{!! $icon !!}"> </i>
+                                                    </span>
                                                     <span class="drive-tree__info">
-                                                        <span
-                                                            class="drive-tree__name">{{ $tabs[$key] ?? ucfirst($key) }}</span>
+                                                        <span class="drive-tree__name">
+                                                            {{ $tabs[$key] ?? ucfirst($key) }}
+                                                        </span>
                                                         <span class="drive-tree__stats">
-                                                            <span
-                                                                class="drive-tree__count">{{ number_format((int) ($folderStat['total'] ?? 0)) }}</span>
+                                                            <span class="drive-tree__count">
+                                                                {{ number_format((int) ($folderStat['total'] ?? 0)) }}
+                                                            </span>
                                                             @if (!is_null($importantCount) && $importantCount > 0)
-                                                                <span class="drive-tree__badge"
-                                                                    aria-label="Önemli dosya sayısı">
+                                                                <span class="drive-tree__badge" aria-label="Önemli dosya sayısı">
                                                                     <i class="bi bi-star-fill" aria-hidden="true"></i>
                                                                     {{ number_format($importantCount) }}
                                                                 </span>
@@ -194,27 +188,21 @@
                         @if ($pickerMode)
                             <input type="hidden" name="picker" value="1">
                         @endif
-                        <x-ui-input type="search" name="q" :value="request('q')" label="Dosya ara"
-                            placeholder="Dosya adı, uzantı veya etiket" data-drive-search-input />
+                        <x-ui-input type="search" name="q" :value="request('q')" placeholder="Dosya adı, uzantı veya etiket" data-drive-search-input />
                         <x-ui-button type="submit" variant="secondary" data-drive-search-submit>Ara</x-ui-button>
                     </form>
 
-                    @if (!$pickerMode)
-                        <x-ui-button variant="outline-primary" data-action="drive-open-upload"
-                            class="drive__upload-trigger">
-                            <i class="bi bi-upload" aria-hidden="true"></i>
-                            <span>Dosya Yükle</span>
-                        </x-ui-button>
-                    @endif
+                     <div>
+                        @if (!$pickerMode)
+                            <x-ui-button variant="outline-primary" data-action="drive-open-upload"
+                                class="drive__upload-trigger ui-button ui-button--secondary ui-button--md">
+                                <i class="bi bi-upload" aria-hidden="true"></i>
+                                <span>Dosya Yükle</span>
+                            </x-ui-button>
+                        @endif
+                    </div>
                 </div>
 
-                <div class="drive__summary" data-drive-summary>
-                    <span class="drive__summary-count">
-                        <strong data-drive-total-count>{{ number_format($totalCount) }}</strong>
-                        <span>dosya</span>
-                    </span>
-                    <span class="drive__summary-context" data-drive-context>{{ $activeTabLabel }}</span>
-                </div>
 
                 <div class="drive__grid" data-drive-grid>
                     @forelse($mediaItems as $media)
@@ -231,76 +219,81 @@
                             data-important="{{ $media->is_important ? '1' : '0' }}"
                             data-download-url="{{ route('admin.drive.media.download', $media) }}"
                             data-delete-url="{{ route('admin.drive.media.destroy', $media) }}"
-                            data-toggle-important-url="{{ route('admin.drive.media.toggle_important', $media) }}">
+                            data-toggle-important-url="{{ route('admin.drive.media.toggle_important', $media) }}"
+                            >
+
                             <div class="drive-card__body">
-                                <div class="drive-card__icon">
-                                    <x-ui-file-icon :ext="$media->ext" size="44" />
-                                </div>
-                                <div class="drive-card__info">
+                                <div>
+                                    <div class="drive-card__details">
+                                        <div class="drive-card__icon">
+                                            <x-ui-file-icon :ext="$media->ext" size="44" />
+                                        </div>
+                                        <div class="drive-card__info">
+                                            <p class="drive-card__meta">
+                                                · {{ $uploaderName }}
+                                                <br/>
+                                                · {{ $media->created_at?->diffForHumans() }}
+                                                <br/>
+                                                · {{ $formatSize($media->size) }}
+                                            </p>
+                                        </div>
+                                    </div>
                                     <h3 class="drive-card__title" title="{{ $media->original_name }}">
-                                        {{ $media->original_name }}</h3>
-                                    <p class="drive-card__meta">{{ strtoupper($media->ext) }} · {{ $media->mime }} ·
-                                        {{ $formatSize($media->size) }}</p>
-                                    <p class="drive-card__meta drive-card__meta--muted">
-                                        {{ $uploaderName }} · {{ $media->created_at?->diffForHumans() }}
-                                    </p>
+                                        {{ $media->original_name }}
+                                    </h3>
                                 </div>
-                                <span class="drive-card__badge" data-drive-important-flag
-                                    @unless ($media->is_important) hidden @endunless>
-                                    <i class="bi bi-star-fill" aria-hidden="true"></i>
-                                    <span class="visually-hidden">Önemli dosya</span>
-                                </span>
-                            </div>
-                            <div class="drive-card__actions" role="group"
-                                aria-label="{{ $media->original_name }} dosya aksiyonları">
-                                @if ($pickerMode)
-                                    <x-ui-button variant="primary" size="sm" data-action="drive-picker-select"
-                                        data-id="{{ $media->id }}" data-name="{{ $media->original_name }}"
-                                        data-ext="{{ $media->ext }}" data-mime="{{ $media->mime }}"
-                                        data-size="{{ $media->size }}">Seç</x-ui-button>
-                                @else
-                                    @can('view', $media)
-                                        <x-ui-button tag="a" href="{{ route('admin.drive.media.download', $media) }}"
-                                            variant="ghost" size="sm" class="drive-card__action" icon="bi bi-download"
-                                            data-bs-toggle="tooltip" title="İndir">
-                                            <span class="visually-hidden">İndir</span>
-                                        </x-ui-button>
-                                    @endcan
 
-                                    @can('replace', $media)
-                                        <x-ui-button variant="ghost" size="sm" class="drive-card__action"
-                                            icon="bi bi-arrow-repeat" data-action="drive-open-replace"
+                                <div class="drive-card__actions" role="group" aria-label="{{ $media->original_name }} dosya aksiyonları">
+                                    @if ($pickerMode)
+                                        <x-ui-button variant="primary" size="sm" data-action="drive-picker-select"
                                             data-id="{{ $media->id }}" data-name="{{ $media->original_name }}"
-                                            data-bs-toggle="tooltip" title="Dosyayı değiştir">
-                                            <span class="visually-hidden">Değiştir</span>
-                                        </x-ui-button>
-                                    @endcan
+                                            data-ext="{{ $media->ext }}" data-mime="{{ $media->mime }}"
+                                            data-size="{{ $media->size }}">Seç</x-ui-button>
+                                    @else
 
-                                    @can('markImportant', $media)
-                                        <x-ui-button variant="ghost" size="sm"
-                                            class="drive-card__action drive-card__action--important {{ $media->is_important ? 'is-active' : '' }}"
-                                            icon="{{ $media->is_important ? 'bi bi-star-fill' : 'bi bi-star' }}"
-                                            data-action="drive-toggle-important"
-                                            data-url="{{ route('admin.drive.media.toggle_important', $media) }}"
-                                            aria-pressed="{{ $media->is_important ? 'true' : 'false' }}"
-                                            data-title-on="{{ $importantTitleOn }}"
-                                            data-title-off="{{ $importantTitleOff }}" data-bs-toggle="tooltip"
-                                            title="{{ $media->is_important ? $importantTitleOn : $importantTitleOff }}">
-                                            <span class="visually-hidden">Önemli olarak işaretle</span>
-                                        </x-ui-button>
-                                    @endcan
+                                        @can('markImportant', $media)
+                                            <x-ui-button variant="ghost" size="sm"
+                                                class="drive-card__action drive-card__action--important {{ $media->is_important ? 'is-active' : '' }}"
+                                                icon="{{ $media->is_important ? 'bi bi-star-fill' : 'bi bi-star' }}"
+                                                data-action="drive-toggle-important"
+                                                data-url="{{ route('admin.drive.media.toggle_important', $media) }}"
+                                                aria-pressed="{{ $media->is_important ? 'true' : 'false' }}"
+                                                data-title-on="{{ $importantTitleOn }}"
+                                                data-title-off="{{ $importantTitleOff }}" data-bs-toggle="tooltip"
+                                                title="{{ $media->is_important ? $importantTitleOn : $importantTitleOff }}">
+                                                <span class="visually-hidden">Önemli olarak işaretle</span>
+                                            </x-ui-button>
+                                        @endcan
 
-                                    @can('delete', $media)
-                                        <x-ui-button variant="ghost" size="sm"
-                                            class="drive-card__action drive-card__action--danger" icon="bi bi-trash"
-                                            data-action="drive-delete" data-id="{{ $media->id }}"
-                                            data-name="{{ $media->original_name }}"
-                                            data-url="{{ route('admin.drive.media.destroy', $media) }}"
-                                            data-bs-toggle="tooltip" title="Sil">
-                                            <span class="visually-hidden">Sil</span>
-                                        </x-ui-button>
-                                    @endcan
-                                @endif
+                                        @can('view', $media)
+                                            <x-ui-button tag="a" href="{{ route('admin.drive.media.download', $media) }}"
+                                                variant="ghost" size="sm" class="drive-card__action" icon="bi bi-download"
+                                                data-bs-toggle="tooltip" title="İndir">
+                                                <span class="visually-hidden">İndir</span>
+                                            </x-ui-button>
+                                        @endcan
+
+                                        @can('replace', $media)
+                                            <x-ui-button variant="ghost" size="sm" class="drive-card__action"
+                                                icon="bi bi-arrow-repeat" data-action="drive-open-replace"
+                                                data-id="{{ $media->id }}" data-name="{{ $media->original_name }}"
+                                                data-bs-toggle="tooltip" title="Dosyayı değiştir">
+                                                <span class="visually-hidden">Değiştir</span>
+                                            </x-ui-button>
+                                        @endcan
+
+                                        @can('delete', $media)
+                                            <x-ui-button variant="ghost" size="sm"
+                                                class="drive-card__action drive-card__action--danger" icon="bi bi-trash"
+                                                data-action="drive-delete" data-id="{{ $media->id }}"
+                                                data-name="{{ $media->original_name }}"
+                                                data-url="{{ route('admin.drive.media.destroy', $media) }}"
+                                                data-bs-toggle="tooltip" title="Sil">
+                                                <span class="visually-hidden">Sil</span>
+                                            </x-ui-button>
+                                        @endcan
+                                    @endif
+                                </div>
                             </div>
                         </x-ui-card>
                     @empty

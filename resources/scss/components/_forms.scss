@@ -16,7 +16,7 @@
   gap: var(--ui-space-1);
   background: var(--ui-color-surface-alt);
   border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
+  border-radius: 0;
   padding-inline: var(--ui-space-1);
   transition: border-color var(--ui-time-fast) var(--ui-ease-standard),
     box-shadow var(--ui-time-fast) var(--ui-ease-standard),
