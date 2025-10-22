@@ -2,6 +2,7 @@
 
 namespace App\Core\Orchestrations;
 
+use App\Core\Orchestrations\Concerns\ResolvesTenant;
 use App\Core\Orchestrations\Contracts\Dto\MTOState;
 use App\Core\Orchestrations\Contracts\Dto\StepResult;
 use App\Core\Orchestrations\Contracts\OrchestrationContract;
@@ -23,6 +24,8 @@ use Illuminate\Validation\ValidationException;
 
 class MakeToOrderOrchestration implements OrchestrationContract
 {
+    use ResolvesTenant;
+
     /**
      * @var array<string, string>
      */
@@ -45,7 +48,7 @@ class MakeToOrderOrchestration implements OrchestrationContract
 
     public function preview(array $filters): array
     {
-        $companyId = (int) tenant();
+        $companyId = $this->resolveCompanyId();
 
         $workOrders = WorkOrder::query()
             ->where('company_id', $companyId);
@@ -153,9 +156,10 @@ class MakeToOrderOrchestration implements OrchestrationContract
 
     private function releaseWorkOrders(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $orderId = Arr::get($payload, 'order_id');
         $order = Order::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->with('lines')
             ->find($orderId);
 
@@ -174,7 +178,7 @@ class MakeToOrderOrchestration implements OrchestrationContract
         $workOrderId = Arr::get($payload, 'work_order_id');
         if ($workOrderId) {
             $workOrder = WorkOrder::query()
-                ->where('company_id', tenant())
+                ->where('company_id', $companyId)
                 ->findOrFail($workOrderId);
 
             $workOrder->forceFill([
@@ -193,7 +197,7 @@ class MakeToOrderOrchestration implements OrchestrationContract
     {
         $workOrderId = Arr::get($payload, 'work_order_id');
         $workOrder = WorkOrder::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $this->resolveCompanyId())
             ->findOrFail($workOrderId);
 
         $materials = Arr::get($payload, 'materials', []);
@@ -265,7 +269,7 @@ class MakeToOrderOrchestration implements OrchestrationContract
     {
         $workOrderId = Arr::get($payload, 'work_order_id');
         $workOrder = WorkOrder::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $this->resolveCompanyId())
             ->findOrFail($workOrderId);
 
         if (class_exists(WoService::class)) {
@@ -290,7 +294,7 @@ class MakeToOrderOrchestration implements OrchestrationContract
     {
         $workOrderId = Arr::get($payload, 'work_order_id');
         $workOrder = WorkOrder::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $this->resolveCompanyId())
             ->findOrFail($workOrderId);
 
         $product = Product::query()

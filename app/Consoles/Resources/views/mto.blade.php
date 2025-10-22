@@ -2,65 +2,89 @@
 
 @php($module = 'Consoles')
 @php($page = 'mto')
+@php($hasFilters = ! empty(array_filter($filters ?? [])))
 
 @section('content')
-    <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="container-fluid py-4 console-page">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
             <div>
-                <h1 class="h4 mb-1">Make-to-Order Konsolu</h1>
-                <p class="text-muted mb-0">İş emirlerini, malzeme hareketlerini ve tamamlanan üretimleri yönetin.</p>
+                <h1 class="h3 mb-2">Make-to-Order Konsolu</h1>
+                <p class="text-muted mb-0">İş emirlerini, malzeme akışlarını ve üretim kapanışlarını tek panelden yönetin.</p>
             </div>
-            <form method="get" class="row g-2 align-items-end" action="{{ route('consoles.mto') }}">
-                <div class="col-auto">
-                    <label class="form-label mb-1" for="status">Durum</label>
-                    <select class="form-select form-select-sm" id="status" name="status">
-                        <option value="">Tümü</option>
-                        <option value="draft" @selected(($filters['status'] ?? null) === 'draft')>Taslak</option>
-                        <option value="released" @selected(($filters['status'] ?? null) === 'released')>Serbest</option>
-                        <option value="in_progress" @selected(($filters['status'] ?? null) === 'in_progress')>Üretimde</option>
-                        <option value="done" @selected(($filters['status'] ?? null) === 'done')>Tamamlandı</option>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <label class="form-label mb-1" for="product_id">Ürün</label>
-                    <input class="form-control form-control-sm" type="number" id="product_id" name="product_id" value="{{ $filters['product_id'] ?? '' }}" min="1">
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-primary btn-sm" type="submit">Filtrele</button>
-                </div>
-            </form>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <span class="text-uppercase small text-muted fw-semibold">Filtreler</span>
+                @if($hasFilters)
+                    <a class="btn btn-link btn-sm text-decoration-none" href="{{ route('consoles.mto') }}">Temizle</a>
+                @endif
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end" action="{{ route('consoles.mto') }}">
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label" for="status">Durum</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Tümü</option>
+                            <option value="draft" @selected(($filters['status'] ?? null) === 'draft')>Taslak</option>
+                            <option value="released" @selected(($filters['status'] ?? null) === 'released')>Serbest</option>
+                            <option value="in_progress" @selected(($filters['status'] ?? null) === 'in_progress')>Üretimde</option>
+                            <option value="done" @selected(($filters['status'] ?? null) === 'done')>Tamamlandı</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label class="form-label" for="product_id">Ürün</label>
+                        <input class="form-control" type="number" id="product_id" name="product_id" value="{{ $filters['product_id'] ?? '' }}" min="1" placeholder="Ürün ID">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button class="btn btn-primary w-100" type="submit">Filtrele</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3 mb-4">
+            <div class="col">
+                <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
-                        <p class="text-muted text-uppercase fw-semibold small mb-1">Taslak</p>
-                        <p class="display-6 mb-0">{{ number_format($state['kpis']['draft'] ?? 0) }}</p>
+                        <span class="text-uppercase small text-muted fw-semibold">Taslak</span>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['draft'] ?? 0) }}</span>
+                            <span class="text-muted small">iş emri</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
+            <div class="col">
+                <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
-                        <p class="text-muted text-uppercase fw-semibold small mb-1">Üretimde</p>
-                        <p class="display-6 mb-0">{{ number_format($state['kpis']['in_progress'] ?? 0) }}</p>
+                        <span class="text-uppercase small text-muted fw-semibold">Üretimde</span>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['in_progress'] ?? 0) }}</span>
+                            <span class="text-muted small">aktif</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
+            <div class="col">
+                <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
-                        <p class="text-muted text-uppercase fw-semibold small mb-1">Kontrol Bekleyen</p>
-                        <p class="display-6 mb-0">{{ number_format($state['kpis']['awaiting_qc'] ?? 0) }}</p>
+                        <span class="text-uppercase small text-muted fw-semibold">Kontrol Bekleyen</span>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['awaiting_qc'] ?? 0) }}</span>
+                            <span class="text-muted small">adet</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card h-100 shadow-sm">
+            <div class="col">
+                <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
-                        <p class="text-muted text-uppercase fw-semibold small mb-1">Tamamlandı</p>
-                        <p class="display-6 mb-0">{{ number_format($state['kpis']['completed'] ?? 0) }}</p>
+                        <span class="text-uppercase small text-muted fw-semibold">Tamamlandı</span>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['completed'] ?? 0) }}</span>
+                            <span class="text-muted small">iş emri</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -75,50 +99,53 @@
 
         <div class="row g-4">
             @foreach($state['pipeline'] ?? [] as $stage)
-                <div class="col-lg-6">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="fw-semibold">{{ $stage['label'] ?? 'Aksiyon' }}</span>
-                            <span class="badge text-bg-primary">{{ number_format($stage['count'] ?? 0) }}</span>
+                @php($rows = $stage['rows'] ?? [])
+                <div class="col-12 col-xl-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pb-0">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <h2 class="h6 mb-1">{{ $stage['label'] ?? 'Aksiyon' }}</h2>
+                                    <p class="text-muted small mb-0">Bu adımda bekleyen en güncel iş emirleri listelenir.</p>
+                                </div>
+                                <span class="badge text-bg-primary rounded-pill">{{ number_format($stage['count'] ?? 0) }}</span>
+                            </div>
                         </div>
                         <div class="card-body">
-                            @if(!empty($stage['rows']))
-                                <div class="table-responsive">
-                                    <table class="table table-sm align-middle">
-                                        <thead>
-                                        <tr>
-                                            <th scope="col">İş Emri</th>
-                                            <th scope="col">Durum</th>
-                                            <th scope="col">Miktar</th>
-                                            <th scope="col" class="text-end">Aksiyon</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        @foreach($stage['rows'] as $row)
-                                            @php($field = $actionFields[$stage['action']] ?? null)
-                                            <tr>
-                                                <td>
-                                                    <div class="fw-semibold">{{ $row['work_order_no'] ?? ('WO-' . ($row['id'] ?? '')) }}</div>
-                                                    <small class="text-muted">{{ $row['due_date'] ? 'Termin: ' . $row['due_date'] : '' }}</small>
-                                                </td>
-                                                <td>{{ $row['status'] ?? '—' }}</td>
-                                                <td>{{ isset($row['qty']) ? number_format($row['qty'], 2) : '—' }}</td>
-                                                <td class="text-end">
-                                                    <form method="post" class="d-inline" action="{{ route('consoles.mto.execute', $stage['action']) }}">
+                            @if(!empty($rows))
+                                <div class="list-group list-group-flush">
+                                    @foreach($rows as $row)
+                                        @php($field = $actionFields[$stage['action']] ?? null)
+                                        <div class="list-group-item px-0 border-0 py-3">
+                                            <div class="d-flex flex-column gap-3">
+                                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                                    <div>
+                                                        <div class="fw-semibold">{{ $row['work_order_no'] ?? ('WO-' . ($row['id'] ?? '')) }}</div>
+                                                        @if(!empty($row['due_date']))
+                                                            <div class="text-muted small">Termin: {{ $row['due_date'] }}</div>
+                                                        @endif
+                                                    </div>
+                                                    <span class="badge text-bg-light text-capitalize">{{ str($row['status'] ?? '')->replace('_', ' ')->headline() ?: '—' }}</span>
+                                                </div>
+                                                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-between align-items-sm-center">
+                                                    <div class="text-muted small">Miktar: {{ isset($row['qty']) ? number_format($row['qty'], 2) : '—' }}</div>
+                                                    <form method="post" action="{{ route('consoles.mto.execute', $stage['action']) }}" class="text-sm-end">
                                                         @csrf
                                                         @if($field && isset($row['id']))
                                                             <input type="hidden" name="{{ $field }}" value="{{ $row['id'] }}">
                                                         @endif
-                                                        <button class="btn btn-sm btn-outline-primary" type="submit">Çalıştır</button>
+                                                        <button class="btn btn-sm btn-outline-primary" type="submit">Aksiyonu Çalıştır</button>
                                                     </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                        </tbody>
-                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             @else
-                                <p class="text-muted mb-0">Bu adımda bekleyen kayıt bulunmuyor.</p>
+                                <div class="text-center text-muted py-4">
+                                    <p class="mb-1 fw-semibold">Bekleyen kayıt yok</p>
+                                    <p class="mb-0 small">Bu adım için aksiyon gerektiren iş emri bulunmuyor.</p>
+                                </div>
                             @endif
                         </div>
                     </div>
