@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'http.cache' => HttpCacheHeaders::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
     })
     ->withProviders([
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         OrchestrationServiceProvider::class,
         ModuleLoaderServiceProvider::class,
         CoreServiceProvider::class,
+        App\Cms\Providers\CmsServiceProvider::class,
         ConsoleServiceProvider::class,
         App\Providers\AppServiceProvider::class,
         App\Providers\EventServiceProvider::class,

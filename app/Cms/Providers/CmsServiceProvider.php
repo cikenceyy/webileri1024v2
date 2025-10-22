@@ -33,6 +33,6 @@ class CmsServiceProvider extends ServiceProvider
             $view->with('cmsRepo', $this->app->make('cms.repository'));
         });
 
-        // README NOTE: Register CmsServiceProvider in config/app.php providers array.
+        // README NOTE: Provider registration lives in bootstrap/app.php providers stack.
     }
 }
