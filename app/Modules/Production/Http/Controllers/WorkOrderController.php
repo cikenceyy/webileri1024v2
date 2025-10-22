@@ -23,14 +23,97 @@ class WorkOrderController extends Controller
 
     public function index(Request $request): View
     {
-        $workOrders = WorkOrder::query()
-            ->with(['order', 'product'])
+        $companyId = currentCompanyId();
+
+        $statusFilter = $request->string('status')->lower()->value();
+        $search = $request->string('search')->trim()->value();
+        $focus = $request->string('focus')->lower()->value();
+
+        $baseQuery = WorkOrder::query()
+            ->with(['order.customer', 'product', 'variant'])
+            ->when($companyId, static fn ($query) => $query->where('company_id', $companyId));
+
+        $statusCounts = [
+            'draft' => (clone $baseQuery)->where('status', 'draft')->count(),
+            'planned' => (clone $baseQuery)->where('status', 'planned')->count(),
+            'in_progress' => (clone $baseQuery)->where('status', 'in_progress')->count(),
+            'done' => (clone $baseQuery)->where('status', 'done')->count(),
+            'overdue' => (clone $baseQuery)
+                ->whereNotNull('due_date')
+                ->whereDate('due_date', '<', now()->startOfDay())
+                ->whereIn('status', ['draft', 'planned', 'in_progress'])
+                ->count(),
+            'due_soon' => (clone $baseQuery)
+                ->whereNotNull('due_date')
+                ->whereBetween('due_date', [now()->startOfDay(), now()->addDays(7)->endOfDay()])
+                ->whereIn('status', ['draft', 'planned', 'in_progress'])
+                ->count(),
+        ];
+
+        $statusOptions = [
+            'draft' => 'Taslak',
+            'planned' => 'Planlandı',
+            'in_progress' => 'Üretimde',
+            'done' => 'Tamamlandı',
+            'cancelled' => 'İptal',
+        ];
+
+        $focusOptions = [
+            'overdue' => 'Gecikenler',
+            'due_soon' => '7 Gün İçinde Termin',
+        ];
+
+        $workOrders = (clone $baseQuery)
+            ->when(
+                $statusFilter && array_key_exists($statusFilter, $statusOptions),
+                static fn ($query) => $query->where('status', $statusFilter)
+            )
+            ->when(
+                $focus === 'overdue',
+                static fn ($query) => $query
+                    ->whereNotNull('due_date')
+                    ->whereDate('due_date', '<', now()->startOfDay())
+                    ->whereIn('status', ['draft', 'planned', 'in_progress'])
+            )
+            ->when(
+                $focus === 'due_soon',
+                static fn ($query) => $query
+                    ->whereNotNull('due_date')
+                    ->whereBetween('due_date', [now()->startOfDay(), now()->addDays(7)->endOfDay()])
+                    ->whereIn('status', ['draft', 'planned', 'in_progress'])
+            )
+            ->when($search !== '', static function ($query) use ($search): void {
+                $query->where(function ($innerQuery) use ($search): void {
+                    $innerQuery->where('work_order_no', 'like', "%{$search}%")
+                        ->orWhereHas('order', static function ($orderQuery) use ($search): void {
+                            $orderQuery->where('order_no', 'like', "%{$search}%")
+                                ->orWhereHas('customer', static function ($customerQuery) use ($search): void {
+                                    $customerQuery->where('name', 'like', "%{$search}%");
+                                });
+                        })
+                        ->orWhereHas('product', static function ($productQuery) use ($search): void {
+                            $productQuery->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('variant', static function ($variantQuery) use ($search): void {
+                            $variantQuery->where('option_summary', 'like', "%{$search}%")
+                                ->orWhere('sku', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
         return view('production::work_orders.index', [
             'workOrders' => $workOrders,
+            'statusCounts' => $statusCounts,
+            'statusOptions' => $statusOptions,
+            'focusOptions' => $focusOptions,
+            'filters' => [
+                'status' => $statusFilter,
+                'search' => $search,
+                'focus' => $focus,
+            ],
         ]);
     }
 
