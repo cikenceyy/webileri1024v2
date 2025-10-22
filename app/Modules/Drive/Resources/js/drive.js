@@ -989,4 +989,14 @@ const bootDrive = () => {
     });
 };
 
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            bootDrive();
+        }, { once: true });
+    } else {
+        bootDrive();
+    }
+}
+
 export default bootDrive;
