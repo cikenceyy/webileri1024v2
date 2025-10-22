@@ -51,7 +51,7 @@ Reduced motion is applied when either `prefers-reduced-motion` matches or `<html
 All modules check `motion-runtime` to disable animation and mark `.is-frozen` when overlays are active.
 
 ## Runtime Storage Keys
-- `ui:theme` – current color tone (`soft-indigo` or `industrial-gray`).
+- `ui:theme` – current color tone (`bluewave`).
 - `ui:motion` – motion profile (`soft` or `reduced`).
 - `ui:sidebar` – layout mode (`expanded` or `compact`).
 - `ui:table:density:{route}:{tableId}` – compact/comfortable table preference per route + table id.

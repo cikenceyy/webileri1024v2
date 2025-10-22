@@ -138,12 +138,14 @@
 
 .ui-drawer__body::before {
   top: 0;
-  background: linear-gradient(to bottom, rgba(20, 27, 44, 0.08), transparent);
+  background: transparent;
+  box-shadow: inset 0 12px 12px -12px rgba(20, 27, 44, 0.16);
 }
 
 .ui-drawer__body::after {
   bottom: -1px;
-  background: linear-gradient(to top, rgba(20, 27, 44, 0.08), transparent);
+  background: transparent;
+  box-shadow: inset 0 -12px 12px -12px rgba(20, 27, 44, 0.16);
 }
 
 .ui-drawer:not(.is-open) .ui-drawer__body::before,

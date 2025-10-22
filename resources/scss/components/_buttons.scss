@@ -70,7 +70,7 @@
   background: var(--ui-color-primary-strong);
   border-color: var(--ui-color-primary-strong);
   color: #fff;
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.22);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--ui-color-primary) 22%, transparent);
 }
 
 .ui-button--secondary {
@@ -84,7 +84,7 @@
   background: color-mix(in srgb, var(--ui-color-info) 90%, black 10%);
   border-color: color-mix(in srgb, var(--ui-color-info) 85%, black 15%);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--ui-color-info) 18%, transparent);
 }
 
 .ui-button--outline-secondary {
