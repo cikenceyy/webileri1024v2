@@ -39,6 +39,11 @@ const initActions = () => {
             control?.setAttribute('aria-expanded', next === 'compact' ? 'false' : 'true');
         }
 
+        if (action === 'history-back') {
+            event.preventDefault();
+            window.history.back();
+        }
+
         if (action === 'toast') {
             bus.emit('ui:toast:show', {
                 title: control.dataset.title ?? 'Bildirim',

@@ -176,6 +176,13 @@ class MediaController extends Controller
 
         $tab = $request->input('tab') ?: $request->query('tab');
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'media_id' => $media->id,
+            ]);
+        }
+
         return redirect()
             ->route('admin.drive.media.index', array_filter(['tab' => $tab ?: $media->category]))
             ->with('status', 'Dosya silindi.');

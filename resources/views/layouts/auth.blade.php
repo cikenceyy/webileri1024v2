@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @stack('meta')
     <title>{{ trim($__env->yieldContent('title', config('app.name', 'Webileri Admin'))) }}</title>
 
     @vite(['resources/scss/admin.scss', 'resources/js/admin.js'])

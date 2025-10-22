@@ -1,5 +1,9 @@
 import axios from 'axios';
+import Tooltip from 'bootstrap/js/dist/tooltip';
+import { initLiveSearch, normalizeTerm } from '@/js/components/live-search.js';
 import { bus } from '@/js/admin-runtime.js';
+
+const numberFormatter = new Intl.NumberFormat();
 
 const getCsrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
@@ -52,34 +56,391 @@ const createProgressItem = (file) => {
     };
 };
 
+const refreshTooltips = (context) => {
+    if (!context) return;
+    context.querySelectorAll?.('[data-bs-toggle="tooltip"]').forEach((element) => {
+        const instance = Tooltip.getOrCreateInstance(element);
+        const title = element.getAttribute('title');
+        if (title && instance?.setContent) {
+            instance.setContent({ '.tooltip-inner': title });
+        }
+    });
+};
+
+const EXT_GROUPS = {
+    image: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'tif', 'tiff'],
+    pdf: ['pdf'],
+    doc: ['doc', 'docx', 'rtf', 'txt', 'md'],
+    sheet: ['xls', 'xlsx', 'csv', 'ods'],
+    archive: ['zip', 'rar', '7z', 'tar', 'gz'],
+    audio: ['mp3', 'wav', 'aac', 'ogg', 'flac'],
+    video: ['mp4', 'mov', 'avi', 'mkv', 'webm'],
+    code: ['json', 'xml', 'html', 'css', 'js', 'php'],
+};
+
+const normalizeExt = (value) => (value || '').toString().trim().toLowerCase();
+
+const getFileKind = (ext) => {
+    const normalized = normalizeExt(ext);
+    let kind = 'file';
+
+    Object.entries(EXT_GROUPS).forEach(([label, list]) => {
+        if (list.includes(normalized)) {
+            kind = label;
+        }
+    });
+
+    return kind;
+};
+
+const getFileLabel = (ext, kind) => {
+    const normalized = normalizeExt(ext);
+    const display = normalized ? normalized.slice(0, 4).toUpperCase() : '';
+
+    if (display) {
+        return display;
+    }
+
+    return (
+        {
+            image: 'IMG',
+            pdf: 'PDF',
+            doc: 'DOC',
+            sheet: 'SHT',
+            archive: 'ZIP',
+            audio: 'AUD',
+            video: 'VID',
+            code: 'CODE',
+        }[kind] || 'FILE'
+    );
+};
+
+const createFileIcon = (ext, size = 44) => {
+    const kind = getFileKind(ext);
+    const label = getFileLabel(ext, kind);
+    const icon = document.createElement('span');
+    icon.className = 'ui-file-icon';
+    icon.dataset.ui = 'file-icon';
+    icon.dataset.kind = kind;
+    icon.setAttribute('aria-hidden', 'true');
+    icon.style.setProperty('--ui-file-icon-size', `${Math.max(size, 16)}px`);
+
+    const labelElement = document.createElement('span');
+    labelElement.className = 'ui-file-icon__label';
+    labelElement.textContent = label;
+    icon.appendChild(labelElement);
+
+    return icon;
+};
+
+const formatBytes = (value) => {
+    const bytes = Number(value) || 0;
+    if (bytes >= 1_073_741_824) {
+        return `${(bytes / 1_073_741_824).toFixed(2)} GB`;
+    }
+    if (bytes >= 1_048_576) {
+        return `${(bytes / 1_048_576).toFixed(2)} MB`;
+    }
+    if (bytes >= 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${bytes} B`;
+};
+
+const formatRelativeTime = (value) => {
+    if (!value) {
+        return 'Az önce';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return 'Az önce';
+    }
+
+    const diffSeconds = Math.round((Date.now() - date.getTime()) / 1000);
+    if (diffSeconds < 60) {
+        return 'Az önce';
+    }
+    if (diffSeconds < 3600) {
+        const minutes = Math.max(1, Math.floor(diffSeconds / 60));
+        return `${minutes} dk önce`;
+    }
+    if (diffSeconds < 86400) {
+        const hours = Math.max(1, Math.floor(diffSeconds / 3600));
+        return `${hours} sa önce`;
+    }
+    const days = Math.max(1, Math.floor(diffSeconds / 86400));
+    return `${days} gün önce`;
+};
+
+const formatNumber = (value) => numberFormatter.format(Math.max(0, Number(value) || 0));
+
+const createActionButton = ({ tag = 'button', href = '#', icon, label, variant = 'ghost', size = 'sm', extraClass = '', attributes = {} }) => {
+    const element = document.createElement(tag === 'a' ? 'a' : 'button');
+    const classes = ['ui-button', `ui-button--${variant}`, `ui-button--${size}`, 'drive-card__action'];
+    if (extraClass) {
+        classes.push(extraClass);
+    }
+    element.className = classes.join(' ');
+    element.dataset.ui = 'button';
+
+    if (tag === 'a') {
+        element.href = href;
+        element.setAttribute('role', 'button');
+    } else {
+        element.type = 'button';
+    }
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'ui-button__icon';
+    iconSpan.setAttribute('aria-hidden', 'true');
+    const iconElement = document.createElement('i');
+    iconElement.className = icon;
+    iconElement.setAttribute('aria-hidden', 'true');
+    iconSpan.appendChild(iconElement);
+
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'ui-button__label';
+    const hiddenLabel = document.createElement('span');
+    hiddenLabel.className = 'visually-hidden';
+    hiddenLabel.textContent = label;
+    labelSpan.appendChild(hiddenLabel);
+
+    element.append(iconSpan, labelSpan);
+
+    Object.entries(attributes).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        element.setAttribute(key, String(value));
+    });
+
+    return element;
+};
+
+const renderMediaCard = (root, media) => {
+    const card = document.createElement('section');
+    card.className = 'ui-card drive-card';
+    card.dataset.ui = 'card';
+    card.setAttribute('data-drive-row', '');
+    card.dataset.id = String(media.id);
+    card.dataset.search = normalizeTerm(`${media.original_name || ''} ${media.mime || ''} ${media.ext || ''}`);
+    card.dataset.name = normalizeTerm(media.original_name);
+    card.dataset.ext = normalizeExt(media.ext);
+    card.dataset.mime = normalizeTerm(media.mime);
+    card.dataset.important = media.is_important ? '1' : '0';
+
+    const downloadTemplate = root.dataset.downloadUrlTemplate || '';
+    const deleteTemplate = root.dataset.deleteUrlTemplate || '';
+    const toggleTemplate = root.dataset.toggleImportantTemplate || '';
+
+    const downloadUrl = downloadTemplate.replace('__ID__', media.id);
+    const deleteUrl = deleteTemplate.replace('__ID__', media.id);
+    const toggleUrl = toggleTemplate.replace('__ID__', media.id);
+
+    card.dataset.downloadUrl = downloadUrl;
+    card.dataset.deleteUrl = deleteUrl;
+    card.dataset.toggleImportantUrl = toggleUrl;
+
+    const bodyWrapper = document.createElement('div');
+    bodyWrapper.className = 'ui-card__body';
+    card.appendChild(bodyWrapper);
+
+    const body = document.createElement('div');
+    body.className = 'drive-card__body';
+    bodyWrapper.appendChild(body);
+
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'drive-card__icon';
+    iconContainer.appendChild(createFileIcon(media.ext));
+    body.appendChild(iconContainer);
+
+    const info = document.createElement('div');
+    info.className = 'drive-card__info';
+    body.appendChild(info);
+
+    const title = document.createElement('h3');
+    title.className = 'drive-card__title';
+    title.textContent = media.original_name || 'Yeni dosya';
+    title.title = media.original_name || '';
+    info.appendChild(title);
+
+    const metaLine = [
+        (media.ext || '').toString().toUpperCase(),
+        media.mime,
+        media.size_human || formatBytes(media.size),
+    ]
+        .filter(Boolean)
+        .join(' · ');
+    const meta = document.createElement('p');
+    meta.className = 'drive-card__meta';
+    meta.textContent = metaLine;
+    info.appendChild(meta);
+
+    const uploaderName = media.uploader?.name || 'Siz';
+    const relative = formatRelativeTime(media.uploaded_at);
+    const detail = document.createElement('p');
+    detail.className = 'drive-card__meta drive-card__meta--muted';
+    detail.textContent = `${uploaderName} · ${relative}`;
+    info.appendChild(detail);
+
+    const badge = document.createElement('span');
+    badge.className = 'drive-card__badge';
+    badge.dataset.driveImportantFlag = '';
+    if (!media.is_important) {
+        badge.setAttribute('hidden', '');
+    }
+    badge.innerHTML = '<i class="bi bi-star-fill" aria-hidden="true"></i><span class="visually-hidden">Önemli dosya</span>';
+    bodyWrapper.appendChild(badge);
+
+    const actions = document.createElement('div');
+    actions.className = 'drive-card__actions';
+    actions.setAttribute('role', 'group');
+    actions.setAttribute('aria-label', `${media.original_name || 'Dosya'} aksiyonları`);
+    bodyWrapper.appendChild(actions);
+
+    const downloadButton = createActionButton({
+        tag: 'a',
+        href: downloadUrl,
+        icon: 'bi bi-download',
+        label: 'İndir',
+        attributes: {
+            'data-bs-toggle': 'tooltip',
+            title: 'İndir',
+            'aria-label': 'İndir',
+        },
+    });
+    actions.appendChild(downloadButton);
+
+    const replaceButton = createActionButton({
+        icon: 'bi bi-arrow-repeat',
+        label: 'Değiştir',
+        attributes: {
+            'data-action': 'drive-open-replace',
+            'data-id': media.id,
+            'data-name': media.original_name || 'Seçilen dosya',
+            'data-bs-toggle': 'tooltip',
+            title: 'Dosyayı değiştir',
+            'aria-label': 'Dosyayı değiştir',
+        },
+    });
+    actions.appendChild(replaceButton);
+
+    const importantButton = createActionButton({
+        icon: media.is_important ? 'bi bi-star-fill' : 'bi bi-star',
+        label: 'Önemli olarak işaretle',
+        extraClass: `drive-card__action--important${media.is_important ? ' is-active' : ''}`,
+        attributes: {
+            'data-action': 'drive-toggle-important',
+            'data-url': toggleUrl,
+            'aria-pressed': media.is_important ? 'true' : 'false',
+            'data-title-on': 'Önemli işaretini kaldır',
+            'data-title-off': 'Önemli olarak işaretle',
+            'data-bs-toggle': 'tooltip',
+            title: media.is_important ? 'Önemli işaretini kaldır' : 'Önemli olarak işaretle',
+            'aria-label': media.is_important ? 'Önemli işaretini kaldır' : 'Önemli olarak işaretle',
+        },
+    });
+    actions.appendChild(importantButton);
+
+    const deleteButton = createActionButton({
+        icon: 'bi bi-trash',
+        label: 'Sil',
+        extraClass: 'drive-card__action--danger',
+        attributes: {
+            'data-action': 'drive-delete',
+            'data-id': media.id,
+            'data-name': media.original_name || 'Seçilen dosya',
+            'data-url': deleteUrl,
+            'data-bs-toggle': 'tooltip',
+            title: 'Sil',
+            'aria-label': 'Sil',
+        },
+    });
+    actions.appendChild(deleteButton);
+
+    return card;
+};
+
+const updateSummaryTotal = (root, delta = 0) => {
+    const total = Math.max(0, Number(root.dataset.driveTotal || 0) + delta);
+    root.dataset.driveTotal = String(total);
+    const display = root.querySelector('[data-drive-total-count]');
+    if (display) {
+        display.textContent = formatNumber(total);
+    }
+};
+
 const updateImportantState = (root, id, isImportant) => {
     const rows = root.querySelectorAll(`[data-drive-row][data-id="${id}"]`);
     rows.forEach((row) => {
         row.dataset.important = isImportant ? '1' : '0';
-        row.classList.toggle('drive-file--important', Boolean(isImportant));
-        row.querySelectorAll('[data-drive-important-badge]').forEach((badge) => {
-            if (isImportant) {
-                badge.removeAttribute('hidden');
-            } else {
-                badge.setAttribute('hidden', '');
-            }
-        });
-        row.querySelectorAll('[data-action="drive-toggle-important"]').forEach((button) => {
-            button.classList.toggle('is-on', Boolean(isImportant));
+        row.classList.toggle('drive-card--important', Boolean(isImportant));
+        const badge = row.querySelector('[data-drive-important-flag]');
+        if (badge) {
+            toggleHidden(badge, !isImportant);
+        }
+        const button = row.querySelector('[data-action="drive-toggle-important"]');
+        if (button) {
+            button.classList.toggle('is-active', Boolean(isImportant));
             button.setAttribute('aria-pressed', isImportant ? 'true' : 'false');
-        });
+            const icon = button.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('bi-star-fill', Boolean(isImportant));
+                icon.classList.toggle('bi-star', !isImportant);
+            }
+            const nextTitle = isImportant ? button.dataset.titleOn : button.dataset.titleOff;
+            if (nextTitle) {
+                button.setAttribute('title', nextTitle);
+                button.setAttribute('aria-label', nextTitle);
+                button.dataset.bsOriginalTitle = nextTitle;
+                const tooltip = Tooltip.getInstance(button);
+                tooltip?.setContent?.({ '.tooltip-inner': nextTitle });
+            }
+        }
     });
 };
 
-const debounce = (fn, delay = 150) => {
-    let timer = null;
-    return (...args) => {
-        window.clearTimeout(timer);
-        timer = window.setTimeout(() => fn(...args), delay);
-    };
+const insertMedia = (root, media, currentTerm) => {
+    const grid = root.querySelector('[data-drive-grid]');
+    if (!grid) {
+        return;
+    }
+
+    const card = renderMediaCard(root, media);
+    const body = card.querySelector('.drive-card__body');
+    if (!media.is_important && body) {
+        const badge = card.querySelector('[data-drive-important-flag]');
+        if (badge) {
+            badge.setAttribute('hidden', '');
+        }
+    }
+
+    grid.prepend(card);
+    refreshTooltips(card);
+    updateSummaryTotal(root, 1);
+    if (currentTerm !== undefined) {
+        const normalized = normalizeTerm(currentTerm);
+        const matches = normalized.length === 0 || (card.dataset.search || '').includes(normalized);
+        card.toggleAttribute('hidden', !matches);
+    }
+    const emptyState = root.querySelector('[data-drive-empty]');
+    toggleHidden(emptyState, true);
 };
 
-const normalizeTerm = (value) => (value || '').toString().trim().toLowerCase();
+const removeMedia = (root, id) => {
+    const grid = root.querySelector('[data-drive-grid]');
+    if (!grid) {
+        return;
+    }
+    const row = grid.querySelector(`[data-drive-row][data-id="${id}"]`);
+    if (row) {
+        row.remove();
+    }
+
+    updateSummaryTotal(root, -1);
+
+    const hasRows = grid.querySelectorAll('[data-drive-row]').length > 0;
+    const emptyState = root.querySelector('[data-drive-empty]');
+    toggleHidden(emptyState, hasRows);
+};
 
 const bootDrive = () => {
     const root = document.querySelector('[data-drive-root]');
@@ -92,25 +453,26 @@ const bootDrive = () => {
         axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
     }
 
-    let grid = root.querySelector('[data-drive-grid]');
-    let emptyState = root.querySelector('[data-drive-empty]');
-    let pagination = root.querySelector('[data-drive-pagination]');
-    let tree = root.querySelector('[data-drive-tree]');
-    const searchForm = root.querySelector('[data-drive-search-form]');
-    const searchInput = root.querySelector('[data-drive-search-input]');
-    const searchUrl = root.dataset.driveSearchUrl;
+    let grid = null;
+    let emptyState = null;
+    let pagination = null;
+    let summary = null;
+    let currentSearchTerm = normalizeTerm(root.querySelector('[data-drive-search-input]')?.value || '');
 
     const refreshRefs = () => {
         grid = root.querySelector('[data-drive-grid]');
         emptyState = root.querySelector('[data-drive-empty]');
         pagination = root.querySelector('[data-drive-pagination]');
-        tree = root.querySelector('[data-drive-tree]');
+        summary = root.querySelector('[data-drive-summary]');
     };
+
+    refreshRefs();
+    refreshTooltips(root);
 
     const computeShouldUseRemote = () => {
         const total = Number(root.dataset.driveTotal || '0');
         const pageSize = Number(root.dataset.drivePageSize || '0');
-        return Boolean(searchUrl) && pageSize > 0 && total > pageSize;
+        return Boolean(root.dataset.driveSearchUrl) && pageSize > 0 && total > pageSize;
     };
 
     const updateUrl = (term) => {
@@ -124,40 +486,6 @@ const bootDrive = () => {
         const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}`;
         window.history.replaceState({}, '', nextUrl);
     };
-
-    const initTree = () => {
-        if (!tree) return;
-        tree.querySelectorAll('[data-drive-tree-item]').forEach((item) => {
-            const toggle = item.querySelector('[data-drive-tree-toggle]');
-            const panel = item.querySelector('[data-drive-tree-panel]');
-            if (!toggle || !panel) {
-                return;
-            }
-
-            let expanded = toggle.getAttribute('aria-expanded') !== 'false';
-            const applyState = (next) => {
-                expanded = next;
-                toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-                panel.hidden = !expanded;
-                panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
-                item.classList.toggle('is-collapsed', !expanded);
-            };
-
-            applyState(expanded);
-
-            const toggleState = () => applyState(!expanded);
-
-            toggle.addEventListener('click', () => toggleState());
-            toggle.addEventListener('keydown', (event) => {
-                if (event.key === ' ' || event.key === 'Enter') {
-                    event.preventDefault();
-                    toggleState();
-                }
-            });
-        });
-    };
-
-    initTree();
 
     const filterLocal = (term) => {
         if (!grid) return;
@@ -187,6 +515,8 @@ const bootDrive = () => {
         const newEmpty = docRoot.querySelector('[data-drive-empty]');
         if (emptyState && newEmpty) {
             emptyState.replaceWith(newEmpty);
+        } else if (!emptyState && newEmpty) {
+            grid?.insertAdjacentElement('afterend', newEmpty);
         }
 
         const newPagination = docRoot.querySelector('[data-drive-pagination]');
@@ -194,23 +524,25 @@ const bootDrive = () => {
             if (newPagination) {
                 pagination.replaceWith(newPagination);
             } else {
-                pagination.innerHTML = '';
-                pagination.setAttribute('hidden', 'true');
+                pagination.remove();
             }
         } else if (newPagination) {
-            root.querySelector('.drive__content')?.appendChild(newPagination);
+            root.appendChild(newPagination);
         }
 
-        const newTree = docRoot.querySelector('[data-drive-tree]');
-        if (tree && newTree) {
-            tree.innerHTML = newTree.innerHTML;
+        const newSummary = docRoot.querySelector('[data-drive-summary]');
+        if (summary && newSummary) {
+            summary.replaceWith(newSummary);
+        } else if (!summary && newSummary) {
+            root.insertBefore(newSummary, root.querySelector('[data-drive-grid]'));
         }
 
         refreshRefs();
-        initTree();
+        refreshTooltips(root);
     };
 
     const performRemoteSearch = async (term) => {
+        const searchUrl = root.dataset.driveSearchUrl;
         if (!searchUrl) {
             filterLocal(term);
             return;
@@ -256,29 +588,18 @@ const bootDrive = () => {
         }
     };
 
-    const runSearch = (term) => {
-        const normalized = normalizeTerm(term);
-        updateUrl(normalized);
-        if (computeShouldUseRemote() && normalized.length > 0) {
-            performRemoteSearch(normalized);
-        } else {
-            filterLocal(normalized);
-        }
-    };
+    const searchScope = root.querySelector('[data-drive-search]');
+    initLiveSearch(searchScope, {
+        onTermChange: (term) => {
+            currentSearchTerm = term;
+            updateUrl(term);
+        },
+        shouldUseRemote: (term) => computeShouldUseRemote() && term.length > 0,
+        onLocal: (term) => filterLocal(term),
+        onRemote: (term) => performRemoteSearch(term),
+    });
 
-    if (searchForm) {
-        searchForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            runSearch(searchInput?.value ?? '');
-        });
-    }
-
-    if (searchInput) {
-        const debounced = debounce(() => runSearch(searchInput.value), 150);
-        searchInput.addEventListener('input', () => {
-            debounced();
-        });
-    }
+    filterLocal(currentSearchTerm);
 
     const uploadPanel = root.querySelector('[data-drive-upload-panel]');
     const dropzone = root.querySelector('[data-drive-dropzone]');
@@ -350,7 +671,7 @@ const bootDrive = () => {
             formData.append('category', categoryValue);
             formData.append('files[]', file);
 
-            await axios.post(root.dataset.uploadManyUrl, formData, {
+            const { data } = await axios.post(root.dataset.uploadManyUrl, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (event) => {
                     if (!event.total) return;
@@ -360,6 +681,10 @@ const bootDrive = () => {
             });
 
             item.markDone();
+            if (data?.uploaded?.length) {
+                data.uploaded.forEach((media) => insertMedia(root, media, currentSearchTerm));
+                filterLocal(currentSearchTerm);
+            }
         } catch (error) {
             const message = error?.response?.data?.message || 'Yükleme başarısız oldu.';
             item.markError(message);
@@ -473,6 +798,30 @@ const bootDrive = () => {
         }
     };
 
+    let pendingDelete = null;
+    const confirmModal = document.getElementById('driveDeleteConfirm');
+    confirmModal?.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-intent]');
+        if (!button) return;
+        if (button.dataset.intent === 'confirm' && pendingDelete) {
+            const { id, url } = pendingDelete;
+            try {
+                await axios.delete(url, {
+                    headers: { Accept: 'application/json' },
+                });
+                removeMedia(root, id);
+                filterLocal(currentSearchTerm);
+            } catch (error) {
+                console.error('Dosya silinemedi.', error);
+            } finally {
+                pendingDelete = null;
+            }
+        }
+        if (button.dataset.intent === 'cancel') {
+            pendingDelete = null;
+        }
+    });
+
     root.addEventListener('click', async (event) => {
         const button = event.target.closest('[data-action]');
         if (!button) return;
@@ -488,7 +837,9 @@ const bootDrive = () => {
 
             button.disabled = true;
             try {
-                const { data } = await axios.post(url);
+                const { data } = await axios.post(url, null, {
+                    headers: { Accept: 'application/json' },
+                });
                 if (data?.ok) {
                     updateImportantState(root, id, data.is_important);
                 }
@@ -513,18 +864,13 @@ const bootDrive = () => {
             await submitReplace();
         }
 
-        if (action === 'drive-picker-select') {
-            if (root.dataset.pickerMode !== '1') return;
+        if (action === 'drive-delete') {
             event.preventDefault();
-            const detail = {
-                id: button.dataset.id,
-                name: button.dataset.name,
-                ext: button.dataset.ext,
-                mime: button.dataset.mime,
-                size: Number(button.dataset.size || 0),
-            };
-            root.dispatchEvent(new CustomEvent('drive:picker-select', { detail }));
-            window?.parent?.postMessage({ type: 'drive:picker-select', detail }, '*');
+            const id = button.dataset.id;
+            const url = button.dataset.url;
+            if (!id || !url) return;
+            pendingDelete = { id, url };
+            bus.emit('ui:modal:open', { id: 'driveDeleteConfirm', source: button });
         }
     });
 };
