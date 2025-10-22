@@ -77,24 +77,6 @@
 
     $activeStats = $stats[$tab] ?? ['total' => $mediaItems->total()];
 
-    $metrics = [
-        [
-            'label' => 'Sekmedeki toplam',
-            'value' => number_format((int) ($activeStats['total'] ?? $mediaItems->total())),
-        ],
-        [
-            'label' => 'Bu sayfada listelenen',
-            'value' => number_format($mediaItems->count()),
-        ],
-    ];
-
-    if (isset($activeStats['important'])) {
-        $metrics[] = [
-            'label' => 'Önemli olarak işaretlenen',
-            'value' => number_format((int) ($activeStats['important'] ?? 0)),
-        ];
-    }
-
     $folderIcons = [
         'recent' => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l2.5 2.5" /></svg>',
         'important' => '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.5a.75.75 0 0 1 1.04 0l2.12 2.05 2.92.42a.75.75 0 0 1 .42 1.28l-2.1 2.05.5 2.9a.75.75 0 0 1-1.1.79L12 12.97l-2.64 1.38a.75.75 0 0 1-1.1-.79l.5-2.9-2.1-2.05a.75.75 0 0 1 .42-1.28l2.92-.42 2.12-2.05Z" /></svg>',
@@ -198,14 +180,6 @@
         </aside>
 
         <div class="drive__main">
-            <div class="drive-metrics">
-                @foreach($metrics as $metric)
-                    <div class="drive-metric">
-                        <span class="drive-metric__label">{{ $metric['label'] }}</span>
-                        <span class="drive-metric__value">{{ $metric['value'] }}</span>
-                    </div>
-                @endforeach
-            </div>
 
             <x-ui-card class="drive-panel">
                 <form method="GET" action="{{ route('admin.drive.media.index') }}" class="drive-panel__form" data-drive-filter-form>
@@ -215,48 +189,7 @@
                     @endif
 
                     <div class="drive-panel__toolbar">
-                        <div class="drive-panel__left">
-                            <div class="drive-panel__filters">
-                                <x-ui-select name="sort" label="Sırala" :options="[
-                                    'created_at' => 'Tarih',
-                                    'size' => 'Boyut',
-                                    'original_name' => 'Ad',
-                                ]" :value="request('sort', 'created_at')" />
-                                <x-ui-select name="dir" label="Yön" :options="[
-                                    'asc' => 'Artan',
-                                    'desc' => 'Azalan',
-                                ]" :value="request('dir', 'desc')" />
-                                <div class="drive-panel__buttons">
-                                    <x-ui-button type="submit" variant="secondary">Filtrele</x-ui-button>
-                                    <a class="drive-panel__reset" href="{{ route('admin.drive.media.index', array_filter([
-                                        'tab' => $tab,
-                                        'picker' => $pickerMode ? 1 : null,
-                                    ])) }}">Sıfırla</a>
-                                </div>
-                            </div>
-                            <button type="button" class="drive-panel__advanced-toggle" data-drive-filter-toggle aria-expanded="false">
-                                Gelişmiş Filtreler
-                                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
-                                </svg>
-                            </button>
-                        </div>
                         <div class="drive-panel__right">
-                            <div class="drive-panel__view" role="group" aria-label="Görünümü değiştir">
-                                <button type="button" class="drive-panel__view-btn" data-drive-view-control="grid" aria-label="Kart görünümü">
-                                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                                    </svg>
-                                </button>
-                                <button type="button" class="drive-panel__view-btn" data-drive-view-control="list" aria-label="Liste görünümü">
-                                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                                    </svg>
-                                </button>
-                            </div>
                             <div class="drive-panel__search">
                                 <x-ui-input name="q" :value="request('q')" label="Ara" placeholder="Dosya adı, tür veya etiket" />
                             </div>
