@@ -68,6 +68,11 @@
   padding: var(--ui-space-3) var(--ui-space-4);
 }
 
+.ui-modal__header {
+  display: flex;
+  align-items: center;
+}
+
 .ui-modal__body {
   padding: 0 var(--ui-space-4) var(--ui-space-4);
   color: var(--ui-color-text);
@@ -82,6 +87,7 @@
 }
 
 .ui-modal__close {
+  font-size: 1.5rem;
   border: 0;
   background: none;
   margin-inline-start: auto;

@@ -95,6 +95,14 @@
             'default' => 'bi bi-folder',
         ];
 
+        $storage = $storage ?? ['limit' => 0, 'used' => 0, 'remaining' => 0, 'percentage' => 0];
+        $storageLimit = (int) ($storage['limit'] ?? 0);
+        $storageUsed = (int) ($storage['used'] ?? 0);
+        $storageRemaining = max($storageLimit - $storageUsed, 0);
+        $storagePercent = $storageLimit > 0
+            ? min(100, max(0, (float) ($storage['percentage'] ?? (($storageUsed / max($storageLimit, 1)) * 100))))
+            : 0;
+
     @endphp
 
     <div class="drive" 
@@ -108,6 +116,8 @@
         data-toggle-important-template="{{ route('admin.drive.media.toggle_important', ['media' => '__ID__']) }}"
         data-download-url-template="{{ route('admin.drive.media.download', ['media' => '__ID__']) }}"
         data-delete-url-template="{{ route('admin.drive.media.destroy', ['media' => '__ID__']) }}"
+        data-drive-storage-limit="{{ $storageLimit }}"
+        data-drive-storage-used="{{ $storageUsed }}"
     >
 
 
@@ -177,6 +187,25 @@
                             @endif
                         @endforeach
                     </ul>
+
+                    <div class="drive-tree__usage" data-drive-storage>
+                        <div class="drive-tree__usage-header">
+                            <span class="drive-tree__usage-title">Depolama</span>
+                            <span class="drive-tree__usage-meta">
+                                <span data-drive-storage-used-label>{{ $formatSize($storageUsed) }}</span>
+                                /
+                                <span data-drive-storage-limit-label>{{ $formatSize($storageLimit) }}</span>
+                            </span>
+                        </div>
+                        <div class="drive-tree__usage-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                            aria-valuenow="{{ (int) round($storagePercent) }}" data-drive-storage-bar>
+                            <div class="drive-tree__usage-fill" data-drive-storage-fill style="width: {{ $storagePercent }}%"></div>
+                        </div>
+                        <div class="drive-tree__usage-footer">
+                            <span>Kalan: <span data-drive-storage-remaining-label>{{ $formatSize($storageRemaining) }}</span></span>
+                            <span data-drive-storage-percent-label>{{ number_format($storagePercent, $storagePercent >= 10 ? 0 : 1) }}%</span>
+                        </div>
+                    </div>
                 </div>
             </aside>
 
@@ -214,8 +243,13 @@
                         @endphp
                         <x-ui-card class="drive-card {{ $media->is_important ? 'drive-card--important' : '' }}"
                             data-drive-row data-id="{{ $media->id }}" data-search="{{ $searchIndex }}"
-                            data-name="{{ Str::lower($media->original_name) }}" data-ext="{{ Str::lower($media->ext) }}"
+                            data-name="{{ Str::lower($media->original_name) }}"
+                            data-original-name="{{ $media->original_name }}"
+                            data-ext="{{ Str::lower($media->ext) }}"
                             data-mime="{{ Str::lower($media->mime) }}"
+                            data-size="{{ (int) $media->size }}"
+                            data-category="{{ $media->category }}"
+                            data-path="{{ $media->path }}"
                             data-important="{{ $media->is_important ? '1' : '0' }}"
                             data-download-url="{{ route('admin.drive.media.download', $media) }}"
                             data-delete-url="{{ route('admin.drive.media.destroy', $media) }}"
@@ -248,7 +282,9 @@
                                         <x-ui-button variant="primary" size="sm" data-action="drive-picker-select"
                                             data-id="{{ $media->id }}" data-name="{{ $media->original_name }}"
                                             data-ext="{{ $media->ext }}" data-mime="{{ $media->mime }}"
-                                            data-size="{{ $media->size }}">Seç</x-ui-button>
+                                            data-size="{{ $media->size }}"
+                                            data-path="{{ $media->path }}"
+                                            data-url="{{ route('admin.drive.media.download', $media) }}">Seç</x-ui-button>
                                     @else
 
                                         @can('markImportant', $media)

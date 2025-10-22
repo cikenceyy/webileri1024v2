@@ -2,6 +2,7 @@
 
 namespace App\Core\Orchestrations;
 
+use App\Core\Orchestrations\Concerns\ResolvesTenant;
 use App\Core\Orchestrations\Contracts\Dto\O2CState;
 use App\Core\Orchestrations\Contracts\Dto\StepResult;
 use App\Core\Orchestrations\Contracts\OrchestrationContract;
@@ -22,6 +23,8 @@ use Illuminate\Validation\ValidationException;
 
 class OrderToCashOrchestration implements OrchestrationContract
 {
+    use ResolvesTenant;
+
     /**
      * @var array<string, string>
      */
@@ -46,7 +49,7 @@ class OrderToCashOrchestration implements OrchestrationContract
 
     public function preview(array $filters): array
     {
-        $companyId = (int) tenant();
+        $companyId = $this->resolveCompanyId();
 
         $orders = Order::query()
             ->where('company_id', $companyId)
@@ -257,9 +260,10 @@ class OrderToCashOrchestration implements OrchestrationContract
 
     private function confirmOrder(array $payload, ?string $idempotencyKey = null): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $orderId = Arr::get($payload, 'order_id');
         $order = Order::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->findOrFail($orderId);
 
         $order->forceFill([
@@ -285,9 +289,10 @@ class OrderToCashOrchestration implements OrchestrationContract
             return StepResult::success(__('Stok servisi bulunamadı, işlem atlandı.'));
         }
 
+        $companyId = $this->resolveCompanyId();
         $orderId = Arr::get($payload, 'order_id');
         $order = Order::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->findOrFail($orderId);
 
         /** @var StockService $service */
@@ -303,9 +308,10 @@ class OrderToCashOrchestration implements OrchestrationContract
 
     private function dispatchShipment(array $payload, ?string $idempotencyKey = null): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $shipmentId = Arr::get($payload, 'shipment_id');
         $shipment = Shipment::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->findOrFail($shipmentId);
 
         if (class_exists(ShipmentService::class)) {
@@ -328,9 +334,10 @@ class OrderToCashOrchestration implements OrchestrationContract
 
     private function postInvoice(array $payload, ?string $idempotencyKey = null): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $orderId = Arr::get($payload, 'order_id');
         $order = Order::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->findOrFail($orderId);
 
         $invoice = null;
@@ -369,11 +376,12 @@ class OrderToCashOrchestration implements OrchestrationContract
 
     private function registerReceipt(array $payload, ?string $idempotencyKey = null): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $invoiceId = Arr::get($payload, 'invoice_id');
         $amount = (float) Arr::get($payload, 'amount', 0);
 
         $invoice = Invoice::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->findOrFail($invoiceId);
 
         if ($amount <= 0) {

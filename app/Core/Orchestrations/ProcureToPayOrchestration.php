@@ -2,6 +2,7 @@
 
 namespace App\Core\Orchestrations;
 
+use App\Core\Orchestrations\Concerns\ResolvesTenant;
 use App\Core\Orchestrations\Contracts\Dto\P2PState;
 use App\Core\Orchestrations\Contracts\Dto\StepResult;
 use App\Core\Orchestrations\Contracts\OrchestrationContract;
@@ -21,6 +22,8 @@ use Illuminate\Validation\ValidationException;
 
 class ProcureToPayOrchestration implements OrchestrationContract
 {
+    use ResolvesTenant;
+
     /**
      * @var array<string, string>
      */
@@ -43,7 +46,7 @@ class ProcureToPayOrchestration implements OrchestrationContract
 
     public function preview(array $filters): array
     {
-        $companyId = (int) tenant();
+        $companyId = $this->resolveCompanyId();
 
         $purchaseOrders = PurchaseOrder::query()
             ->where('company_id', $companyId);
@@ -158,9 +161,10 @@ class ProcureToPayOrchestration implements OrchestrationContract
 
     private function approvePurchaseOrder(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $poId = Arr::get($payload, 'purchase_order_id');
         $po = PurchaseOrder::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->findOrFail($poId);
 
         $po->forceFill([
@@ -177,9 +181,10 @@ class ProcureToPayOrchestration implements OrchestrationContract
 
     private function receiveGoods(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $grnId = Arr::get($payload, 'grn_id');
         $receipt = Grn::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->with('lines.product')
             ->findOrFail($grnId);
 
@@ -227,9 +232,10 @@ class ProcureToPayOrchestration implements OrchestrationContract
 
     private function postAccountsPayableInvoice(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $poId = Arr::get($payload, 'purchase_order_id');
         $po = PurchaseOrder::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->with('lines')
             ->findOrFail($poId);
 
@@ -273,9 +279,10 @@ class ProcureToPayOrchestration implements OrchestrationContract
 
     private function registerApPayment(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $invoiceId = Arr::get($payload, 'ap_invoice_id');
         $invoice = ApInvoice::query()
-            ->where('company_id', tenant())
+            ->where('company_id', $companyId)
             ->findOrFail($invoiceId);
 
         $amount = (float) Arr::get($payload, 'amount', 0);
