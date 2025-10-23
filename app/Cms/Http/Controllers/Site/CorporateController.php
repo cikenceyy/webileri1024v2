@@ -27,7 +27,7 @@ class CorporateController extends Controller
         $data = $this->repository->read('corporate', $locale);
         $seo = $this->seo->for('corporate', [], $locale);
 
-        return view('cms::site.corporate', [
+        return view('site.corporate', [
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,

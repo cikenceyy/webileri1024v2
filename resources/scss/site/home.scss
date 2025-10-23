@@ -1,0 +1,17 @@
+@use './core';
+
+.home-hero {
+    padding-block: clamp(4rem, 7vw, 6rem);
+    opacity: 0;
+    transform: translateY(2rem);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.pattern-catalog-grid {
+    padding-block: clamp(var(--space-24), 6vw, var(--space-32));
+}
+
+.home-hero--visible {
+    opacity: 1;
+    transform: none;
+}

@@ -27,7 +27,7 @@ class CatalogController extends Controller
         $data = $this->repository->read('catalogs', $locale);
         $seo = $this->seo->for('catalogs', [], $locale);
 
-        return view('cms::site.catalogs', [
+        return view('site.catalogs', [
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,

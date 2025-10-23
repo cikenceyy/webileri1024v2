@@ -27,7 +27,7 @@ class HomeController extends Controller
         $data = $this->repository->read('home', $locale);
         $seo = $this->seo->for('home', [], $locale);
 
-        return view('cms::site.home', [
+        return view('site.home', [
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,

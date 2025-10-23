@@ -1,0 +1,93 @@
+.stack-xs > * + * { margin-top: var(--space-8); }
+.stack-sm > * + * { margin-top: var(--space-12); }
+.stack-md > * + * { margin-top: var(--space-16); }
+.stack-lg > * + * { margin-top: var(--space-24); }
+
+.cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+    align-items: center;
+}
+
+.grid-auto {
+    display: grid;
+    gap: var(--space-24);
+}
+
+.ratio-16x9,
+.ratio-4x3,
+.ratio-3x2 {
+    position: relative;
+    overflow: hidden;
+}
+
+.ratio-16x9::before { content: ''; display: block; padding-top: 56.25%; }
+.ratio-4x3::before { content: ''; display: block; padding-top: 75%; }
+.ratio-3x2::before { content: ''; display: block; padding-top: 66.66%; }
+
+.ratio-16x9 > img,
+.ratio-4x3 > img,
+.ratio-3x2 > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.placeholder-block {
+    background: linear-gradient(135deg, var(--color-gray-100), var(--color-gray-200));
+    border-radius: var(--radius-md);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-12) var(--space-24);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--color-primary-500);
+    color: #fff;
+    box-shadow: var(--shadow-xs);
+}
+
+.btn-outline {
+    border-color: var(--color-primary-500);
+    color: var(--color-primary-500);
+    background: transparent;
+}
+
+.btn-outline.is-disabled,
+.btn.is-disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.alert {
+    padding: var(--space-12) var(--space-16);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-14);
+}
+
+.alert.success { background: rgba(44, 182, 125, 0.12); color: var(--color-success); }
+.alert.danger { background: rgba(243, 105, 96, 0.12); color: var(--color-danger); }
+
+.grid-two {
+    display: grid;
+    gap: var(--space-16);
+}
+
+@media (min-width: 48rem) {
+    .grid-two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

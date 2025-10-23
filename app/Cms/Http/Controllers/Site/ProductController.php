@@ -24,14 +24,15 @@ class ProductController extends Controller
 
     protected function render(string $locale)
     {
+        $data = $this->repository->read('products', $locale);
         $seo = $this->seo->for('products', [], $locale);
 
-        return view('cms::site.products', [
+        return view('site.products', [
             'locale' => $locale,
             'products' => $this->repository->allProducts($locale),
             'seo' => $seo,
             'scripts' => $this->repository->scripts('products', $locale),
-            'data' => ['blocks' => []],
+            'data' => $data,
         ]);
     }
 }

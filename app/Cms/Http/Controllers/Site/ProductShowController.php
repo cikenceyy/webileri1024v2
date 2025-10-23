@@ -33,7 +33,7 @@ class ProductShowController extends Controller
             'og_image' => $product['cover_image'] ?? null,
         ], $locale);
 
-        return view('cms::site.product_show', [
+        return view('site.product_show', [
             'locale' => $locale,
             'product' => $product,
             'seo' => $seo,

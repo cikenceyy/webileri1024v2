@@ -15,7 +15,7 @@ class PageController extends Controller
 
     public function index()
     {
-        return view('cms::admin.index', [
+        return view('admin.cms.index', [
             'pages' => config('cms.pages'),
         ]);
     }
@@ -25,7 +25,7 @@ class PageController extends Controller
         $pageConfig = config('cms.pages.' . $page);
         abort_unless($pageConfig, 404);
 
-        return view('cms::admin.edit', [
+        return view('admin.cms.edit', [
             'pageKey' => $page,
             'pageConfig' => $pageConfig,
             'content' => [
@@ -49,6 +49,8 @@ class PageController extends Controller
         $pageConfig = config('cms.pages.' . $page);
         abort_unless($pageConfig, 404);
 
+        $this->validateRequest($pageConfig, $request);
+
         $payload = $this->normalizePayload($pageConfig, $request);
 
         foreach (['tr', 'en'] as $locale) {
@@ -62,6 +64,61 @@ class PageController extends Controller
         $this->repository->updateEmails($payload['emails']);
 
         return redirect()->route('cms.admin.pages.edit', $page)->with('status', __('Saved successfully.'));
+    }
+
+    protected function validateRequest(array $pageConfig, Request $request): void
+    {
+        $rules = [];
+        $attributes = [];
+        foreach (['tr', 'en'] as $locale) {
+            foreach ($pageConfig['blocks'] ?? [] as $blockKey => $definition) {
+                if (!empty($definition['repeater'])) {
+                    foreach (($definition['fields'] ?? []) as $fieldKey => $meta) {
+                        $rules["content.$locale.$blockKey.*.$fieldKey"] = $this->rulesForField($meta);
+                        $attributes["content.$locale.$blockKey.*.$fieldKey"] = $this->attributeLabel($definition, $meta, $locale);
+                    }
+                    continue;
+                }
+
+                foreach (($definition['fields'] ?? []) as $fieldKey => $meta) {
+                    $rules["content.$locale.$blockKey.$fieldKey"] = $this->rulesForField($meta);
+                    $attributes["content.$locale.$blockKey.$fieldKey"] = $this->attributeLabel($definition, $meta, $locale);
+                }
+            }
+
+            $rules["seo.$locale.meta_title"] = ['nullable', 'string', 'max:180'];
+            $rules["seo.$locale.meta_description"] = ['nullable', 'string', 'max:260'];
+            $rules["seo.$locale.og_image"] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'];
+            $rules["seo.$locale.og_image_remove"] = ['nullable', 'boolean'];
+            $rules["scripts.$locale.header"] = ['nullable', 'string'];
+            $rules["scripts.$locale.footer"] = ['nullable', 'string'];
+        }
+
+        $rules['emails.info_email'] = ['nullable', 'email'];
+        $rules['emails.notify_email'] = ['nullable', 'email'];
+
+        $request->validate($rules, [], $attributes);
+    }
+
+    protected function rulesForField(array $meta): array
+    {
+        $type = $meta['type'] ?? 'text';
+
+        return match ($type) {
+            'textarea', 'multiline' => ['nullable', 'string', 'max:' . ($meta['max_length'] ?? 2000)],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:' . ($meta['max'] ?? 2048)],
+            'file' => ['nullable', 'mimes:pdf', 'max:' . ($meta['max'] ?? 10240)],
+            'link' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).*/'],
+            default => ['nullable', 'string', 'max:' . ($meta['max_length'] ?? 255)],
+        };
+    }
+
+    protected function attributeLabel(array $blockDefinition, array $fieldMeta, string $locale): string
+    {
+        $blockLabel = $blockDefinition['label'] ?? 'Block';
+        $fieldLabel = $fieldMeta['label'] ?? 'Field';
+
+        return sprintf('%s (%s) — %s', $blockLabel, strtoupper($locale), $fieldLabel);
     }
 
     protected function normalizePayload(array $pageConfig, Request $request): array
@@ -78,7 +135,10 @@ class PageController extends Controller
                             $inputKey = "content.$locale.$blockKey.$index.$fieldKey";
                             $item[$fieldKey] = $this->normalizeValue($inputKey, $meta['type'] ?? 'text', $request, $fields[$fieldKey] ?? null);
                         }
-                        $normalized[] = $item;
+                        $hasValue = array_filter($item, static fn ($value) => !is_null($value) && $value !== '' && $value !== []);
+                        if ($hasValue) {
+                            $normalized[] = $item;
+                        }
                     }
                     $content[$locale][$blockKey] = $normalized;
                 } else {
@@ -119,11 +179,15 @@ class PageController extends Controller
 
     protected function normalizeValue(string $key, string $type, Request $request, $default = null)
     {
+        if ($request->boolean($key . '_remove')) {
+            return null;
+        }
+
         if (in_array($type, ['image', 'file'], true) && $request->hasFile($key)) {
             return $this->storeFile($request->file($key));
         }
 
-        if (in_array($type, ['text', 'textarea', 'link'], true)) {
+        if (in_array($type, ['text', 'textarea', 'link', 'multiline'], true)) {
             return $request->input($key);
         }
 
@@ -137,7 +201,7 @@ class PageController extends Controller
         }
 
         $value = trim($value);
-        if (!preg_match('/^<script\b[^>]*>(.*?)<\/script>$/is', $value)) {
+        if (!preg_match('/^<script\b[^>]*src="[^"]+"[^>]*>\s*<\/script>$/i', $value)) {
             return null;
         }
 
