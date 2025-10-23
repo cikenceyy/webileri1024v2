@@ -1,0 +1,14 @@
+@use './core';
+
+.kvkk-hero {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.06), rgba(45, 92, 255, 0.06));
+    border-radius: var(--radius-lg);
+    padding: clamp(3rem, 5vw, 4rem);
+}
+
+.pattern-article {
+    padding: clamp(var(--space-24), 6vw, var(--space-32));
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-gray-200);
+    background: #fff;
+}

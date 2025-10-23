@@ -102,6 +102,10 @@
                                     $itemIndex,
                                     Str::slug($item['label']) ?: 'item'
                                 );
+                                $itemBadge = 0;
+                                if (!empty($item['badge_key']) && isset(${$item['badge_key']})) {
+                                    $itemBadge = (int) ${$item['badge_key']};
+                                }
                             @endphp
 
                             <li
@@ -123,6 +127,9 @@
                                     >
                                         <span class="ui-sidebar__icon" aria-hidden="true"><i class="{{ $item['icon'] ?? 'bi bi-circle' }}"></i></span>
                                         <span class="ui-sidebar__label">{{ $item['label'] }}</span>
+                                        @if($itemBadge > 0)
+                                            <span class="ui-sidebar__badge" aria-label="{{ $itemBadge }} {{ __('unread') }}">{{ $itemBadge }}</span>
+                                        @endif
                                         <span class="ui-sidebar__caret" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
                                     </button>
 
@@ -140,20 +147,33 @@
                                                 @php
                                                     $childUrl = $makeUrl($child);
                                                     $childActive = $isItemActive($child);
+                                                    $childBadge = 0;
+                                                    if (!empty($child['badge_key']) && isset(${$child['badge_key']})) {
+                                                        $childBadge = (int) ${$child['badge_key']};
+                                                    }
                                                 @endphp
                                                 <li class="ui-sidebar__subitem {{ $childActive ? 'is-active' : '' }}">
                                                     <a href="{{ $childUrl }}" class="ui-sidebar__sublink">
                                                         <span class="ui-sidebar__bullet" aria-hidden="true"></span>
                                                         <span class="ui-sidebar__sublabel">{{ $child['label'] }}</span>
+                                                        @if($childBadge > 0)
+                                                            <span class="ui-sidebar__badge" aria-label="{{ $childBadge }} {{ __('unread') }}">{{ $childBadge }}</span>
+                                                        @endif
                                                     </a>
                                                 </li>
                                             @endforeach
                                         </ul>
                                     </div>
                                 @else
+                                    @php
+                                        $childBadge = $itemBadge;
+                                    @endphp
                                     <a href="{{ $itemUrl }}" class="ui-sidebar__link" aria-label="{{ $item['label'] }}" @if($isOpen) aria-current="page" @endif>
                                         <span class="ui-sidebar__icon" aria-hidden="true"><i class="{{ $item['icon'] ?? 'bi bi-circle' }}"></i></span>
                                         <span class="ui-sidebar__label">{{ $item['label'] }}</span>
+                                        @if($childBadge > 0)
+                                            <span class="ui-sidebar__badge" aria-label="{{ $childBadge }} {{ __('unread') }}">{{ $childBadge }}</span>
+                                        @endif
                                     </a>
                                 @endif
                             </li>

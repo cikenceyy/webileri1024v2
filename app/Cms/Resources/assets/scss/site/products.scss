@@ -1,0 +1,14 @@
+@use './core';
+
+.products-hero {
+    text-align: center;
+    padding-block: clamp(3rem, 6vw, 4rem);
+}
+
+.product-card {
+    position: relative;
+}
+
+.product-card .btn-outline {
+    margin-top: auto;
+}

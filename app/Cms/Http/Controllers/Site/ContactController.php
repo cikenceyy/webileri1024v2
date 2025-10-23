@@ -37,6 +37,7 @@ class ContactController extends Controller
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,
+            'emails' => $this->repository->emails(),
             'scripts' => $this->repository->scripts('contact', $locale),
         ]);
     }
@@ -76,6 +77,7 @@ class ContactController extends Controller
             'ip' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
             'is_read' => false,
+            'status' => 'new',
         ]);
 
         $emails = $this->repository->emails();

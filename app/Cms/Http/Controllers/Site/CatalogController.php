@@ -3,12 +3,17 @@
 namespace App\Cms\Http\Controllers\Site;
 
 use App\Cms\Support\CmsRepository;
+use App\Cms\Support\Front\Providers\CatalogProvider;
 use App\Cms\Support\Seo;
 use Illuminate\Routing\Controller;
 
 class CatalogController extends Controller
 {
-    public function __construct(protected CmsRepository $repository, protected Seo $seo)
+    public function __construct(
+        protected CmsRepository $repository,
+        protected Seo $seo,
+        protected CatalogProvider $catalogs,
+    )
     {
     }
 
@@ -31,7 +36,9 @@ class CatalogController extends Controller
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,
-            'catalogs' => $data['blocks']['list'] ?? [],
+            'catalogs' => $this->catalogs->list([
+                'locale' => $locale,
+            ]),
             'scripts' => $this->repository->scripts('catalogs', $locale),
         ]);
     }

@@ -137,6 +137,17 @@ class AdminSidebar
                             ['label' => 'Şirket Profili', 'route' => 'admin.settings.company.edit', 'pattern' => 'admin/settings/company*'],
                         ],
                     ],
+                    [
+                        'label' => 'CMS Yönetimi',
+                        'icon' => 'bi bi-browser-chrome',
+                        'route' => 'cms.admin.pages.index',
+                        'pattern' => 'admin/cms*',
+                        'children' => [
+                            ['label' => 'Canlı Editör', 'route' => 'cms.admin.editor', 'pattern' => 'admin/cms/editor'],
+                            ['label' => 'Sayfa Yapısı', 'route' => 'cms.admin.pages.index', 'pattern' => 'admin/cms/*'],
+                            ['label' => 'Form Mesajları', 'route' => 'cms.admin.messages.index', 'pattern' => 'admin/cms/messages*', 'badge_key' => 'cmsUnreadMessages'],
+                        ],
+                    ],
                 ],
             ],
         ];

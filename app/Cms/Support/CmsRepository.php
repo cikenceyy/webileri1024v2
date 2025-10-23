@@ -3,10 +3,15 @@
 namespace App\Cms\Support;
 
 use App\Cms\Models\CmsContent;
+use App\Cms\Support\PreviewStore;
 use App\Modules\Inventory\Domain\Models\Product;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use DateTimeInterface;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -27,7 +32,7 @@ class CmsRepository
         $locale = $locale ?? $this->locale();
         $cacheKey = $this->cacheKey($page, $locale);
 
-        return $this->cache->remember($cacheKey, 3600, function () use ($page, $locale) {
+        $data = $this->cache->remember($cacheKey, 3600, function () use ($page, $locale) {
             $model = CmsContent::query()
                 ->forCompany($this->companyId())
                 ->where('page', $page)
@@ -52,6 +57,15 @@ class CmsRepository
 
             return $this->defaults($page);
         });
+
+        if ($token = $this->previewStore()->token()) {
+            $overlay = $this->previewStore()->get($token, $page, $locale);
+            if (!empty($overlay)) {
+                $data = $this->mergePreview($data, $overlay);
+            }
+        }
+
+        return $data;
     }
 
     public function write(string $page, string $locale, array $data): void
@@ -191,6 +205,26 @@ class CmsRepository
         return $data['scripts'] ?? ['header' => null, 'footer' => null];
     }
 
+    public function lastModifiedAt(string $page, string $locale): ?CarbonInterface
+    {
+        $record = CmsContent::query()
+            ->forCompany($this->companyId())
+            ->where('page', $page)
+            ->where('locale', $locale)
+            ->latest('updated_at')
+            ->first();
+
+        if ($record && $record->updated_at) {
+            return $this->carbon($record->updated_at);
+        }
+
+        if ($locale !== 'tr') {
+            return $this->lastModifiedAt($page, 'tr');
+        }
+
+        return null;
+    }
+
     public function featuredProducts(int $limit = 6, ?string $locale = null): array
     {
         $locale = $locale ?? $this->locale();
@@ -259,7 +293,9 @@ class CmsRepository
             };
         }
 
-        $query = Product::query()->where('company_id', $this->companyId());
+        $query = Product::query()
+            ->where('company_id', $this->companyId())
+            ->with(['media', 'gallery.media']);
 
         $table = $query->getModel()->getTable();
         if (Schema::hasColumn($table, 'is_published')) {
@@ -279,15 +315,18 @@ class CmsRepository
         foreach ($items as $product) {
             $name = $this->localizedAttribute($product, 'name', $locale) ?? '';
             $slug = $this->localizedAttribute($product, 'slug', $locale) ?: Str::slug($name);
+            $updatedAt = $this->carbon($product->updated_at ?? null)
+                ?? $this->carbon($product->created_at ?? null);
             $collection[] = [
                 'id' => $product->id ?? null,
                 'name' => $name,
                 'slug' => $slug,
                 'short_desc' => $this->localizedAttribute($product, 'short_desc', $locale) ?? '',
-                'cover_image' => $product->cover_image ?? null,
+                'cover_image' => $this->mediaUrl($product->coverMedia ?? $product->media ?? null),
                 'gallery' => $this->normaliseGallery($product->gallery ?? []),
                 'sku' => $product->sku ?? null,
                 'is_featured' => (bool) ($product->is_featured ?? false),
+                'updated_at' => $updatedAt,
             ];
         }
 
@@ -302,15 +341,35 @@ class CmsRepository
             return is_array($decoded) ? $decoded : [];
         }
 
-        if ($gallery instanceof \JsonSerializable) {
-            $gallery = $gallery->jsonSerialize();
-        }
-
         if ($gallery instanceof \Traversable) {
             $gallery = iterator_to_array($gallery);
         }
 
-        return is_array($gallery) ? array_values($gallery) : [];
+        if ($gallery instanceof \JsonSerializable) {
+            $gallery = $gallery->jsonSerialize();
+        }
+
+        if (is_array($gallery)) {
+            $urls = array_map(function ($item) {
+                if (is_string($item)) {
+                    return $item;
+                }
+
+                if (is_array($item)) {
+                    return $item['url'] ?? $item['path'] ?? null;
+                }
+
+                if (is_object($item) && isset($item->media)) {
+                    return $this->mediaUrl($item->media);
+                }
+
+                return null;
+            }, $gallery);
+
+            return array_values(array_filter($urls));
+        }
+
+        return [];
     }
 
     protected function localizedAttribute(object $model, string $attribute, string $locale): ?string
@@ -327,5 +386,77 @@ class CmsRepository
         }
 
         return $model->{$attribute} ?? null;
+    }
+
+    protected function mediaUrl(mixed $media): ?string
+    {
+        if (is_null($media)) {
+            return null;
+        }
+
+        if (is_string($media)) {
+            return $media;
+        }
+
+        if (is_array($media)) {
+            $disk = $media['disk'] ?? config('filesystems.default');
+            $path = $media['path'] ?? null;
+
+            return $path ? Storage::disk($disk)->url($path) : null;
+        }
+
+        if (is_object($media)) {
+            $disk = $media->disk ?? config('filesystems.default');
+            $path = $media->path ?? null;
+
+            if ($path) {
+                try {
+                    return Storage::disk($disk)->url($path);
+                } catch (\Throwable) {
+                    return null;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected function previewStore(): PreviewStore
+    {
+        return $this->app->make(PreviewStore::class);
+    }
+
+    protected function mergePreview(array $base, array $overlay): array
+    {
+        if (empty($base)) {
+            return $overlay;
+        }
+
+        return array_replace_recursive($base, $overlay);
+    }
+
+    protected function carbon(mixed $value): ?CarbonInterface
+    {
+        if ($value instanceof CarbonInterface) {
+            return $value;
+        }
+
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value);
+        }
+
+        if (is_numeric($value)) {
+            return Carbon::createFromTimestamp((int) $value);
+        }
+
+        if (is_string($value)) {
+            try {
+                return Carbon::parse($value);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return null;
     }
 }

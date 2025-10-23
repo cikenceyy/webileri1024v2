@@ -3,12 +3,19 @@
 namespace App\Cms\Http\Controllers\Site;
 
 use App\Cms\Support\CmsRepository;
+use App\Cms\Support\Front\Providers\CatalogProvider;
+use App\Cms\Support\Front\Providers\ProductProvider;
 use App\Cms\Support\Seo;
 use Illuminate\Routing\Controller;
 
 class HomeController extends Controller
 {
-    public function __construct(protected CmsRepository $repository, protected Seo $seo)
+    public function __construct(
+        protected CmsRepository $repository,
+        protected Seo $seo,
+        protected ProductProvider $products,
+        protected CatalogProvider $catalogs,
+    )
     {
     }
 
@@ -31,8 +38,15 @@ class HomeController extends Controller
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,
-            'featuredProducts' => $this->repository->featuredProducts(6, $locale),
-            'catalogs' => $this->repository->read('catalogs', $locale)['blocks']['list'] ?? [],
+            'featuredProducts' => $this->products->list([
+                'locale' => $locale,
+                'limit' => 6,
+                'featured' => true,
+            ]),
+            'catalogs' => $this->catalogs->list([
+                'locale' => $locale,
+                'limit' => 6,
+            ]),
             'scripts' => $this->repository->scripts('home', $locale),
         ]);
     }

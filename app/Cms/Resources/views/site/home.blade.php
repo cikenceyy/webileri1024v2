@@ -1,100 +1,154 @@
-@php($assetKey = 'home')
-@extends('cms::site.layout')
+@extends('cms::site.layout', ['pageId' => 'home', 'locale' => $locale ?? app()->getLocale()])
 
-@section('critical-css')
+@push('critical-css')
     <style>
-        .home-hero { display:flex; flex-direction:column; justify-content:center; min-height:60vh; background:#f5f7fb; padding:3rem 0; }
-        .home-hero h1 { font-size:2.5rem; font-weight:700; }
-        .home-hero p { max-width:40rem; }
+        .home-hero{display:grid;gap:var(--space-24);align-items:center;padding-block:clamp(4rem,6vw,6rem)}
+        @media (min-width: 48rem){.home-hero{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        .home-hero__media{position:relative;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+        .home-hero__media img{width:100%;height:100%;object-fit:cover;display:block;}
     </style>
-@endsection
+@endpush
+
+@push('site-styles')
+    @vite('app/Cms/Resources/assets/scss/site/home.scss')
+@endpush
+
+@push('site-scripts')
+    @vite('app/Cms/Resources/assets/js/site/home.js')
+@endpush
 
 @section('content')
-    @php($blocks = $data['blocks'] ?? [])
-    <section class="home-hero container" data-analytics-section="hero">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h1>{{ $blocks['hero']['title'] ?? '' }}</h1>
-                <p class="lead">{{ $blocks['hero']['subtitle'] ?? '' }}</p>
-                @if(!empty($blocks['hero']['cta_text']))
-                    <a class="btn btn-primary" href="{{ $blocks['hero']['cta_link'] ?? '#' }}" data-analytics-click="hero-cta">{{ $blocks['hero']['cta_text'] }}</a>
-                @endif
-            </div>
-            <div class="col-md-6 text-center">
-                @if(!empty($blocks['hero']['image']))
-                    <img src="{{ $blocks['hero']['image'] }}" alt="" class="img-fluid" loading="lazy" width="540" height="360">
-                @endif
-            </div>
-        </div>
-    </section>
-
-    <section class="container my-5" data-analytics-section="usp">
-        <div class="row g-4">
-            @foreach($blocks['usp_grid'] ?? [] as $usp)
-                <div class="col-md-4">
-                    <div class="card h-100 text-center p-4">
-                        @if(!empty($usp['icon']))
-                            <img src="{{ $usp['icon'] }}" alt="" class="mb-3" loading="lazy" width="64" height="64">
-                        @endif
-                        <h5>{{ $usp['title'] ?? '' }}</h5>
-                        <p class="text-muted">{{ $usp['description'] ?? '' }}</p>
-                    </div>
+    @php
+        $pageLocale = $locale ?? app()->getLocale();
+        $hero = data_get($data, 'blocks.hero', []);
+        $uspItems = data_get($data, 'blocks.usp_grid', []);
+        $ctaBand = data_get($data, 'blocks.cta_band', []);
+        $placeholder = fn ($label, $width, $height) => 'data:image/svg+xml;utf8,' . rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {$width} {$height}'><rect width='100%' height='100%' fill='%23e4e7ec'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Inter, sans-serif' font-size='24' fill='%23667085'>{$label}</text></svg>");
+        $heroImage = $hero['image'] ?? $placeholder('Hero', 1280, 720);
+        $uspFallbacks = \Illuminate\Support\Facades\Lang::get('cms::site.home.usp.defaults', [], $pageLocale);
+        $productFallbacks = \Illuminate\Support\Facades\Lang::get('cms::site.home.products.placeholders', [], $pageLocale);
+        $catalogFallbacks = \Illuminate\Support\Facades\Lang::get('cms::site.home.catalogs.placeholders', [], $pageLocale);
+    @endphp
+    <section class="pattern-hero home-hero" data-module="reveal">
+        <div class="stack-lg">
+            <p class="eyebrow">{{ __('cms::site.home.eyebrow') }}</p>
+            <h1 class="display">{{ $hero['title'] ?? __('cms::site.home.hero.title') }}</h1>
+            <p class="lead">{{ $hero['subtitle'] ?? __('cms::site.home.hero.subtitle') }}</p>
+            @if(!empty($hero['cta_link']) && !empty($hero['cta_text']))
+                <div class="cluster">
+                    <a class="btn btn-primary" data-module="beacon" data-beacon-event="cta" data-beacon-payload="home.hero" href="{{ $hero['cta_link'] }}">{{ $hero['cta_text'] }}</a>
                 </div>
-            @endforeach
-        </div>
-    </section>
-
-    <section class="container my-5" data-analytics-section="featured-products">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h4 mb-0">{{ $locale === 'en' ? 'Featured Products' : 'Öne Çıkan Ürünler' }}</h2>
-            <a href="{{ $locale === 'en' ? url('/en/products') : url('/urunler') }}" class="btn btn-link">{{ $locale === 'en' ? 'See all' : 'Tümünü Gör' }}</a>
-        </div>
-        <div class="row g-4">
-            @foreach($featuredProducts as $product)
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        @if(!empty($product['cover_image']))
-                            <img src="{{ $product['cover_image'] }}" class="card-img-top" alt="{{ $product['name'] }}" loading="lazy" width="360" height="240">
-                        @endif
-                        <div class="card-body">
-                            <h5 class="card-title">{{ $product['name'] }}</h5>
-                            <p class="card-text">{{ $product['short_desc'] }}</p>
-                            <a href="{{ $locale === 'en' ? url('/en/product/' . $product['slug']) : url('/urun/' . $product['slug']) }}" class="btn btn-outline-primary" data-analytics-click="mini-product">{{ $locale === 'en' ? 'View details' : 'Detay' }}</a>
-                        </div>
-                    </div>
+            @else
+                <div class="cluster">
+                    <a class="btn btn-primary" data-module="beacon" data-beacon-event="cta" data-beacon-payload="home.hero" href="{{ $pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact') }}">{{ __('cms::site.home.hero.cta_default') }}</a>
                 </div>
-            @endforeach
-        </div>
-    </section>
-
-    <section class="container my-5" data-analytics-section="catalogs">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h4 mb-0">{{ $locale === 'en' ? 'Catalogs' : 'Kataloglar' }}</h2>
-            <a href="{{ $locale === 'en' ? url('/en/catalogs') : url('/kataloglar') }}" class="btn btn-link">{{ $locale === 'en' ? 'See all' : 'Tümünü Gör' }}</a>
-        </div>
-        <div class="row g-4">
-            @foreach($catalogs as $catalog)
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        @if(!empty($catalog['cover']))
-                            <img src="{{ $catalog['cover'] }}" class="card-img-top" alt="{{ $catalog['title'] ?? '' }}" loading="lazy" width="360" height="240">
-                        @endif
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ $catalog['title'] ?? '' }}</h5>
-                            <a href="{{ $catalog['file'] ?? '#' }}" target="_blank" rel="noopener" class="btn btn-outline-primary mt-auto" data-analytics-click="catalog-download">{{ $locale === 'en' ? 'Open PDF' : 'PDF Aç' }}</a>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </section>
-
-    <section class="py-5 bg-light" data-analytics-section="cta">
-        <div class="container text-center">
-            <h2>{{ $blocks['cta_band']['title'] ?? '' }}</h2>
-            @if(!empty($blocks['cta_band']['cta_text']))
-                <a class="btn btn-primary mt-3" href="{{ $blocks['cta_band']['cta_link'] ?? '#' }}" data-analytics-click="cta-band">{{ $blocks['cta_band']['cta_text'] }}</a>
             @endif
+        </div>
+        <div class="home-hero__media" data-module="lazy-media">
+            <img src="{{ $heroImage }}" srcset="{{ $heroImage }} 1280w, {{ $heroImage }} 640w" sizes="(min-width: 62rem) 50vw, 100vw" width="1280" height="720" alt="{{ $hero['title'] ?? 'Automation hero image' }}" loading="eager">
+        </div>
+    </section>
+
+    <section class="pattern-usp" data-module="reveal">
+        <div class="section-head stack-sm">
+            <h2>{{ __('cms::site.home.usp.heading') }}</h2>
+            <p>{{ __('cms::site.home.usp.subheading') }}</p>
+        </div>
+        <div class="usp-grid grid-auto">
+            @forelse($uspItems as $item)
+                <article class="usp-card stack-sm">
+                    @if(!empty($item['icon']))
+                        <img class="usp-card__icon" src="{{ $item['icon'] }}" width="48" height="48" alt="" loading="lazy">
+                    @endif
+                    <h3>{{ $item['title'] ?? __('cms::site.home.usp.default_title') }}</h3>
+                    <p>{{ $item['description'] ?? __('cms::site.home.usp.default_description') }}</p>
+                </article>
+            @empty
+                @foreach((array) $uspFallbacks as $fallback)
+                    <article class="usp-card stack-sm" data-skeleton>
+                        <div class="usp-card__icon placeholder-icon" aria-hidden="true"></div>
+                        <h3>{{ $fallback['title'] ?? __('cms::site.home.usp.default_title') }}</h3>
+                        <p>{{ $fallback['description'] ?? __('cms::site.home.usp.default_description') }}</p>
+                    </article>
+                @endforeach
+            @endforelse
+        </div>
+    </section>
+
+    <section class="pattern-product-grid" data-module="reveal skeletons">
+        <div class="section-head stack-sm">
+            <h2>{{ __('cms::site.home.products.heading') }}</h2>
+            <p>{{ __('cms::site.home.products.subheading') }}</p>
+        </div>
+        <div class="product-grid grid-auto">
+            @forelse($featuredProducts as $product)
+                <article class="product-card stack-sm">
+                    <div class="product-card__media ratio-3x2">
+                        @php $productCover = $product['cover_image'] ?? $placeholder('Product', 640, 480); @endphp
+                        <img src="{{ $productCover }}" srcset="{{ $productCover }} 640w" sizes="(min-width: 62rem) 240px, 50vw" width="640" height="480" alt="{{ $product['name'] ?? 'Product' }}" loading="lazy">
+                    </div>
+                    <div class="stack-xs">
+                        <h3>{{ $product['name'] ?? __('cms::site.home.products.placeholder_title') }}</h3>
+                        <p>{{ $product['short_desc'] ?? __('cms::site.home.products.placeholder_description') }}</p>
+                        @php
+                            $productUrl = !empty($product['slug'])
+                                ? ($pageLocale === 'en' ? route('cms.en.product.show', $product['slug']) : route('cms.product.show', $product['slug']))
+                                : ($pageLocale === 'en' ? route('cms.en.products') : route('cms.products'));
+                        @endphp
+                        <a class="btn btn-outline" href="{{ $productUrl }}">{{ __('cms::site.home.products.cta') }}</a>
+                    </div>
+                </article>
+            @empty
+                @foreach((array) $productFallbacks as $fallback)
+                    <article class="product-card stack-sm placeholder" data-skeleton>
+                        <div class="product-card__media ratio-3x2 placeholder-block"></div>
+                        <div class="stack-xs">
+                            <h3>{{ $fallback['title'] ?? __('cms::site.home.products.placeholder_title') }}</h3>
+                            <p>{{ $fallback['description'] ?? __('cms::site.home.products.placeholder_description') }}</p>
+                            <span class="btn btn-outline is-disabled">{{ __('cms::site.home.products.placeholder_cta') }}</span>
+                        </div>
+                    </article>
+                @endforeach
+            @endforelse
+        </div>
+    </section>
+
+    <section class="pattern-catalog-grid" data-module="reveal skeletons">
+        <div class="section-head stack-sm">
+            <h2>{{ __('cms::site.home.catalogs.heading') }}</h2>
+            <p>{{ __('cms::site.home.catalogs.subheading') }}</p>
+        </div>
+        <div class="catalog-grid grid-auto">
+            @forelse($catalogs as $catalog)
+                <article class="catalog-card stack-sm">
+                    <div class="catalog-card__media ratio-4x3">
+                        @php $catalogCover = $catalog['cover'] ?? $placeholder('Catalog', 640, 480); @endphp
+                        <img src="{{ $catalogCover }}" srcset="{{ $catalogCover }} 640w" sizes="(min-width: 62rem) 240px, 50vw" width="640" height="480" alt="{{ $catalog['title'] ?? 'Catalog' }}" loading="lazy">
+                    </div>
+                    <div class="stack-xs">
+                        <h3>{{ $catalog['title'] ?? __('cms::site.home.catalogs.placeholder_title') }}</h3>
+                        <a class="btn btn-outline" data-module="beacon" data-beacon-event="catalog_open" data-beacon-payload="home" href="{{ $catalog['file'] ?? '#' }}" target="_blank" rel="noopener">{{ __('cms::site.home.catalogs.cta') }}</a>
+                    </div>
+                </article>
+            @empty
+                @foreach((array) $catalogFallbacks as $fallback)
+                    <article class="catalog-card stack-sm placeholder" data-skeleton>
+                        <div class="catalog-card__media ratio-4x3 placeholder-block"></div>
+                        <div class="stack-xs">
+                            <h3>{{ $fallback['title'] ?? __('cms::site.home.catalogs.placeholder_title') }}</h3>
+                            <span class="btn btn-outline is-disabled">{{ __('cms::site.home.catalogs.placeholder_cta') }}</span>
+                        </div>
+                    </article>
+                @endforeach
+            @endforelse
+        </div>
+    </section>
+
+    <section class="pattern-feature" data-module="reveal">
+        <div class="feature-band stack-sm">
+            <h2>{{ $ctaBand['title'] ?? __('cms::site.home.feature.title') }}</h2>
+            <p>{{ __('cms::site.home.feature.subtitle') }}</p>
+            <a class="btn btn-primary" data-module="beacon" data-beacon-event="cta" data-beacon-payload="home.feature" href="{{ $ctaBand['cta_link'] ?? ($pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact')) }}">{{ $ctaBand['cta_text'] ?? __('cms::site.home.feature.cta') }}</a>
         </div>
     </section>
 @endsection
