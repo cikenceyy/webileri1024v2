@@ -27,6 +27,7 @@ class CmsServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../routes/site.php');
         $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'cms');
+        $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'cms');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/migrations');
 
         View::composer(['cms::site.partials.header', 'cms::site.partials.footer'], function ($view) {

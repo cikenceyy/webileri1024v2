@@ -1,15 +1,37 @@
-<header class="site-header" data-analytics-section="header">
-    <div class="container d-flex align-items-center justify-content-between py-3">
-        <a href="{{ $locale === 'en' ? url('/en') : url('/') }}" class="site-logo">{{ config('app.name') }}</a>
-        <nav class="site-nav">
-            <ul class="nav">
-                <li class="nav-item"><a class="nav-link" href="{{ $locale === 'en' ? url('/en') : url('/') }}">{{ $locale === 'en' ? 'Home' : 'Anasayfa' }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ $locale === 'en' ? url('/en/corporate') : url('/kurumsal') }}">{{ $locale === 'en' ? 'Corporate' : 'Kurumsal' }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ $locale === 'en' ? url('/en/products') : url('/urunler') }}">{{ $locale === 'en' ? 'Products' : 'Ürünler' }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ $locale === 'en' ? url('/en/catalogs') : url('/kataloglar') }}">{{ $locale === 'en' ? 'Catalogs' : 'Kataloglar' }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ $locale === 'en' ? url('/en/info/kvkk') : url('/bilgi/kvkk') }}">{{ $locale === 'en' ? 'KVKK' : 'KVKK' }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ $locale === 'en' ? url('/en/contact') : url('/iletisim') }}">{{ $locale === 'en' ? 'Contact' : 'İletişim' }}</a></li>
-            </ul>
-        </nav>
+@php
+    $isEn = ($locale ?? app()->getLocale()) === 'en';
+    $routePrefix = $isEn ? 'cms.en.' : 'cms.';
+    $navItems = [
+        ['label' => __('cms::site.navigation.home'), 'route' => $routePrefix . 'home'],
+        ['label' => __('cms::site.navigation.corporate'), 'route' => $routePrefix . 'corporate'],
+        ['label' => __('cms::site.navigation.products'), 'route' => $routePrefix . 'products'],
+        ['label' => __('cms::site.navigation.catalogs'), 'route' => $routePrefix . 'catalogs'],
+        ['label' => __('cms::site.navigation.contact'), 'route' => $routePrefix . 'contact'],
+    ];
+    $switchRoute = $isEn
+        ? route('cms.home')
+        : route('cms.en.home');
+@endphp
+<header class="site-header" data-module="sticky-header">
+    <div class="site-container">
+        <div class="site-header__inner cluster">
+            <a href="{{ $isEn ? route('cms.en.home') : route('cms.home') }}" class="site-logo">{{ config('app.name') }}</a>
+            <button class="site-nav__toggle" type="button" data-module="nav-toggle" aria-expanded="false" aria-controls="primary-navigation">
+                <span class="visually-hidden">{{ __('cms::site.navigation.toggle') }}</span>
+                <span class="site-nav__line"></span>
+            </button>
+            <nav id="primary-navigation" class="site-nav" aria-label="{{ __('cms::site.navigation.primary') }}">
+                <ul class="site-nav__list cluster" data-module="nav-list">
+                    @foreach($navItems as $item)
+                        <li class="site-nav__item">
+                            <a href="{{ route($item['route']) }}" class="site-nav__link @if(Route::currentRouteName() === $item['route']) is-active @endif">{{ $item['label'] }}</a>
+                        </li>
+                    @endforeach
+                </ul>
+            </nav>
+            <div class="site-header__actions cluster">
+                <a href="{{ $switchRoute }}" class="site-lang-switch" lang="{{ $isEn ? 'tr' : 'en' }}">{{ $isEn ? __('cms::site.navigation.lang_tr') : __('cms::site.navigation.lang_en') }}</a>
+            </div>
+        </div>
     </div>
 </header>

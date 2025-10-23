@@ -27,7 +27,7 @@ class InfoController extends Controller
         $data = $this->repository->read('kvkk', $locale);
         $seo = $this->seo->for('kvkk', [], $locale);
 
-        return view('site.kvkk', [
+        return view('cms::site.kvkk', [
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,

@@ -33,7 +33,7 @@ class ContactController extends Controller
         $data = $this->repository->read('contact', $locale);
         $seo = $this->seo->for('contact', [], $locale);
 
-        return view('site.contact', [
+        return view('cms::site.contact', [
             'locale' => $locale,
             'data' => $data,
             'seo' => $seo,

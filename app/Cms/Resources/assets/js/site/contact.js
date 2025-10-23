@@ -1,0 +1,11 @@
+import { bootPage } from '../common/page-boot';
+
+bootPage('contact', () => {
+    const form = document.querySelector('[data-module="contact-form"]');
+    if (!form) return;
+
+    const submittedAt = form.querySelector('input[name="submitted_at"]');
+    if (submittedAt) {
+        submittedAt.value = String(Math.floor(Date.now() / 1000));
+    }
+});

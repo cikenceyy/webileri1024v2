@@ -3,12 +3,17 @@
 namespace App\Cms\Http\Controllers\Site;
 
 use App\Cms\Support\CmsRepository;
+use App\Cms\Support\Front\Providers\ProductProvider;
 use App\Cms\Support\Seo;
 use Illuminate\Routing\Controller;
 
 class ProductShowController extends Controller
 {
-    public function __construct(protected CmsRepository $repository, protected Seo $seo)
+    public function __construct(
+        protected CmsRepository $repository,
+        protected Seo $seo,
+        protected ProductProvider $products,
+    )
     {
     }
 
@@ -24,7 +29,10 @@ class ProductShowController extends Controller
 
     protected function render(string $locale, string $slug)
     {
-        $product = $this->repository->findProductBySlug($slug, $locale);
+        $product = $this->products->detail([
+            'slug' => $slug,
+            'locale' => $locale,
+        ]);
         abort_unless($product, 404);
 
         $seo = $this->seo->for('product_show', [
@@ -33,7 +41,7 @@ class ProductShowController extends Controller
             'og_image' => $product['cover_image'] ?? null,
         ], $locale);
 
-        return view('site.product_show', [
+        return view('cms::site.product_show', [
             'locale' => $locale,
             'product' => $product,
             'seo' => $seo,

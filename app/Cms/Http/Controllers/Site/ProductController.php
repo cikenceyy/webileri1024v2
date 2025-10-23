@@ -3,12 +3,17 @@
 namespace App\Cms\Http\Controllers\Site;
 
 use App\Cms\Support\CmsRepository;
+use App\Cms\Support\Front\Providers\ProductProvider;
 use App\Cms\Support\Seo;
 use Illuminate\Routing\Controller;
 
 class ProductController extends Controller
 {
-    public function __construct(protected CmsRepository $repository, protected Seo $seo)
+    public function __construct(
+        protected CmsRepository $repository,
+        protected Seo $seo,
+        protected ProductProvider $products,
+    )
     {
     }
 
@@ -27,9 +32,11 @@ class ProductController extends Controller
         $data = $this->repository->read('products', $locale);
         $seo = $this->seo->for('products', [], $locale);
 
-        return view('site.products', [
+        return view('cms::site.products', [
             'locale' => $locale,
-            'products' => $this->repository->allProducts($locale),
+            'products' => $this->products->list([
+                'locale' => $locale,
+            ]),
             'seo' => $seo,
             'scripts' => $this->repository->scripts('products', $locale),
             'data' => $data,

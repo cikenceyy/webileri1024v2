@@ -1,77 +1,98 @@
-@php($assetKey = 'contact')
-@extends('cms::site.layout')
+@extends('cms::site.layout', ['pageId' => 'contact', 'locale' => $locale ?? app()->getLocale()])
+
+@push('site-styles')
+    @vite('app/Cms/Resources/assets/scss/site/contact.scss')
+@endpush
+
+@push('site-scripts')
+    @vite('app/Cms/Resources/assets/js/site/contact.js')
+@endpush
 
 @section('content')
-    @php($blocks = $data['blocks'] ?? [])
-    <section class="container py-5" data-analytics-section="contact">
-        <div class="row g-5">
-            <div class="col-md-5">
-                <h1>{{ $locale === 'en' ? 'Contact' : 'İletişim' }}</h1>
-                <div class="mb-3">
-                    <h5>{{ $locale === 'en' ? 'Address' : 'Adres' }}</h5>
-                    <p class="text-muted white-space-pre-wrap">{{ $blocks['coords']['address'] ?? '' }}</p>
+    @php
+        $pageLocale = $locale ?? app()->getLocale();
+        $hero = data_get($data, 'blocks.hero', []);
+        $coords = data_get($data, 'blocks.coords', []);
+        $infoEmail = $emails['info_email'] ?? 'info@example.com';
+        $notifyEmail = $emails['notify_email'] ?? 'sales@example.com';
+        $defaultAddress = \Illuminate\Support\Facades\Lang::get('cms::site.contact.defaults.address', [], $pageLocale);
+        $defaultProjectLabel = \Illuminate\Support\Facades\Lang::get('cms::site.contact.project_inquiries', [], $pageLocale);
+        $mapEmbed = $coords['map_embed'] ?? '';
+    @endphp
+    <section class="pattern-hero contact-hero" data-module="reveal">
+        <div class="stack-lg">
+            <h1>{{ $hero['title'] ?? __('cms::site.contact.hero.title') }}</h1>
+            <p class="lead">{{ $hero['subtitle'] ?? __('cms::site.contact.hero.subtitle') }}</p>
+        </div>
+    </section>
+
+    <section class="pattern-contact" data-module="reveal">
+        <div class="contact-grid">
+            <div class="contact-card stack-md">
+                <h2>{{ __('cms::site.contact.reach_us') }}</h2>
+                <div class="stack-xs">
+                    <p>{{ $coords['address'] ?? $defaultAddress }}</p>
+                    <a href="tel:{{ $coords['phone'] ?? '+902123334455' }}">{{ $coords['phone'] ?? __('cms::site.contact.defaults.phone') }}</a>
+                    <a href="mailto:{{ $coords['email'] ?? $infoEmail }}">{{ $coords['email'] ?? $infoEmail }}</a>
                 </div>
-                <div class="mb-3">
-                    <h5>Telefon</h5>
-                    <a href="tel:{{ $blocks['coords']['phone'] ?? '' }}">{{ $blocks['coords']['phone'] ?? '' }}</a>
+                <div class="stack-xs">
+                    <strong>{{ $defaultProjectLabel }}</strong>
+                    <a href="mailto:{{ $notifyEmail }}">{{ $notifyEmail }}</a>
                 </div>
-                <div class="mb-3">
-                    <h5>E-posta</h5>
-                    <a href="mailto:{{ $blocks['coords']['email'] ?? '' }}">{{ $blocks['coords']['email'] ?? '' }}</a>
-                </div>
-                @if(!empty($blocks['coords']['map_embed']))
-                    <button class="btn btn-outline-primary" id="loadMap" data-analytics-click="load-map">{{ $locale === 'en' ? 'Load Map' : 'Haritayı Yükle' }}</button>
-                    <div class="ratio ratio-16x9 mt-3 d-none" id="mapContainer"></div>
-                @endif
             </div>
-            <div class="col-md-7">
+            <div class="contact-card stack-md" data-module="map-on-demand skeletons" data-map-src="{{ $mapEmbed }}">
+                <h2>{{ __('cms::site.contact.visit_us') }}</h2>
+                <div class="map-placeholder ratio-16x9">
+                    <button class="btn btn-outline" type="button" data-map-trigger>{{ __('cms::site.contact.load_map') }}</button>
+                </div>
+            </div>
+            <div class="contact-card stack-md">
+                <h2>{{ __('cms::site.contact.share_project') }}</h2>
                 @if(session('status'))
-                    <div class="alert alert-success">{{ session('status') }}</div>
+                    <div class="alert success" role="status" aria-live="polite">{{ session('status') }}</div>
                 @endif
                 @if($errors->any())
-                    <div class="alert alert-danger">{{ $errors->first() }}</div>
+                    <div class="alert danger" role="alert">{{ $errors->first() }}</div>
                 @endif
-                <form method="POST" action="{{ $locale === 'en' ? url('/en/contact') : url('/iletisim') }}" data-analytics-section="contact-form">
+                <form action="{{ $pageLocale === 'en' ? route('cms.en.contact.submit') : route('cms.contact.submit') }}" method="POST" class="stack-sm" data-module="contact-form" novalidate>
                     @csrf
                     <input type="hidden" name="submitted_at" value="{{ time() }}">
-                    <div class="mb-3">
-                        <label class="form-label">{{ $locale === 'en' ? 'Name' : 'Ad Soyad' }}</label>
-                        <input type="text" name="name" class="form-control" required>
+                    <div class="grid-two">
+                        <label class="stack-xs">
+                            <span>{{ __('cms::site.contact.form.name') }}</span>
+                            <input type="text" name="name" required>
+                        </label>
+                        <label class="stack-xs">
+                            <span>{{ __('cms::site.contact.form.company') }}</span>
+                            <input type="text" name="company">
+                        </label>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">{{ $locale === 'en' ? 'E-mail' : 'E-posta' }}</label>
-                        <input type="email" name="email" class="form-control" required>
+                    <div class="grid-two">
+                        <label class="stack-xs">
+                            <span>{{ __('cms::site.contact.form.email') }}</span>
+                            <input type="email" name="email" required>
+                        </label>
+                        <label class="stack-xs">
+                            <span>{{ __('cms::site.contact.form.phone') }}</span>
+                            <input type="tel" name="phone">
+                        </label>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">{{ $locale === 'en' ? 'Subject' : 'Konu' }}</label>
-                        <input type="text" name="subject" class="form-control" required>
+                    <label class="stack-xs">
+                        <span>{{ __('cms::site.contact.form.subject') }}</span>
+                        <input type="text" name="subject" required>
+                    </label>
+                    <label class="stack-xs">
+                        <span>{{ __('cms::site.contact.form.message') }}</span>
+                        <textarea name="message" rows="4" required></textarea>
+                    </label>
+                    <div class="visually-hidden">
+                        <label>{{ __('cms::site.contact.form.honeypot') }}
+                            <input type="text" name="website" autocomplete="off">
+                        </label>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">{{ $locale === 'en' ? 'Message' : 'Mesaj' }}</label>
-                        <textarea name="message" class="form-control" rows="5" required></textarea>
-                    </div>
-                    <div class="d-none">
-                        <label>Leave empty</label>
-                        <input type="text" name="website" autocomplete="off">
-                    </div>
-                    <button class="btn btn-primary" type="submit" data-analytics-click="contact-submit">{{ $locale === 'en' ? 'Send' : 'Gönder' }}</button>
+                    <button class="btn btn-primary" type="submit">{{ __('cms::site.contact.form.send') }}</button>
                 </form>
             </div>
         </div>
     </section>
 @endsection
-
-@push('scripts')
-    <script>
-        const loadMapButton = document.getElementById('loadMap');
-        if (loadMapButton) {
-            loadMapButton.addEventListener('click', function () {
-                const container = document.getElementById('mapContainer');
-                if (!container.classList.contains('d-none')) return;
-                container.classList.remove('d-none');
-                container.innerHTML = `{!! addslashes($blocks['coords']['map_embed'] ?? '') !!}`;
-                this.remove();
-            });
-        }
-    </script>
-@endpush
