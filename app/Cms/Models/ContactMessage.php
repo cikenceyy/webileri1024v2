@@ -17,9 +17,14 @@ class ContactMessage extends Model
         'ip',
         'user_agent',
         'is_read',
+        'read_at',
+        'responded_at',
+        'status',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
+        'read_at' => 'datetime',
+        'responded_at' => 'datetime',
     ];
 }

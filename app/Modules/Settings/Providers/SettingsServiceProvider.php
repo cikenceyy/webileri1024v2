@@ -2,11 +2,8 @@
 
 namespace App\Modules\Settings\Providers;
 
-use App\Core\Support\Models\Company;
-use App\Core\Support\Models\CompanyDomain;
-use App\Modules\Settings\Policies\CompanyDomainPolicy;
-use App\Modules\Settings\Policies\CompanyPolicy;
-use Illuminate\Support\Facades\Gate;
+use App\Modules\Settings\Application\Services\SettingsService;
+use App\Modules\Settings\Application\Services\SettingsServiceInterface;
 use Illuminate\Support\ServiceProvider;
 
 class SettingsServiceProvider extends ServiceProvider
@@ -20,13 +17,13 @@ class SettingsServiceProvider extends ServiceProvider
         }
 
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'settings');
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/migrations');
+
+        $this->app->singleton(SettingsServiceInterface::class, SettingsService::class);
     }
 
     public function boot(): void
     {
         $this->loadRoutesFrom(__DIR__ . '/../Routes/admin.php');
-
-        Gate::policy(Company::class, CompanyPolicy::class);
-        Gate::policy(CompanyDomain::class, CompanyDomainPolicy::class);
     }
 }

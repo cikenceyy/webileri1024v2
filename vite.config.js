@@ -2,36 +2,34 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
 import { readdirSync, statSync } from 'node:fs';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 const projectRoot = path.resolve();
 
-function moduleEntries() {
-    const base = 'app/Modules';
-    let globber;
+const cmsEntries = [
+    'app/Cms/Resources/assets/scss/site/home.scss',
+    'app/Cms/Resources/assets/scss/site/corporate.scss',
+    'app/Cms/Resources/assets/scss/site/contact.scss',
+    'app/Cms/Resources/assets/scss/site/kvkk.scss',
+    'app/Cms/Resources/assets/scss/site/catalogs.scss',
+    'app/Cms/Resources/assets/scss/site/products.scss',
+    'app/Cms/Resources/assets/scss/site/product-show.scss',
+    'app/Cms/Resources/assets/scss/admin/editor.scss',
+    'app/Cms/Resources/assets/js/site/home.js',
+    'app/Cms/Resources/assets/js/site/corporate.js',
+    'app/Cms/Resources/assets/js/site/contact.js',
+    'app/Cms/Resources/assets/js/site/kvkk.js',
+    'app/Cms/Resources/assets/js/site/catalogs.js',
+    'app/Cms/Resources/assets/js/site/products.js',
+    'app/Cms/Resources/assets/js/site/product-show.js',
+    'app/Cms/Resources/assets/js/admin/editor/index.js',
+];
 
-    try {
-        // Optional dependency; falls back to manual walker when unavailable.
-        globber = require('fast-glob');
-    } catch (error) {
-        globber = null;
-    }
-
-    if (globber?.sync) {
-        const js = globber.sync(`${base}/**/Resources/js/*.js`, { dot: false });
-        const scss = globber.sync(`${base}/**/Resources/scss/*.scss`, { dot: false });
-        return [...js, ...scss];
-    }
-
+function moduleEntries(base = 'app/Modules') {
     const entries = [];
-    const basePath = path.resolve(projectRoot, base);
+    const root = path.resolve(projectRoot, base);
 
-    const walk = (currentDir) => {
-        const items = readdirSync(currentDir, { withFileTypes: true });
-
-        items.forEach((item) => {
-            const fullPath = path.join(currentDir, item.name);
+    const walk = (current) => {
+        readdirSync(current, { withFileTypes: true }).forEach((item) => {
+            const fullPath = path.join(current, item.name);
 
             if (item.isDirectory()) {
                 walk(fullPath);
@@ -39,18 +37,17 @@ function moduleEntries() {
             }
 
             if (fullPath.endsWith('.js') || fullPath.endsWith('.scss')) {
-                const relativePath = path.relative(projectRoot, fullPath).split(path.sep).join('/');
-                entries.push(relativePath);
+                entries.push(path.relative(projectRoot, fullPath).split(path.sep).join('/'));
             }
         });
     };
 
     try {
-        if (statSync(basePath).isDirectory()) {
-            walk(basePath);
+        if (statSync(root).isDirectory()) {
+            walk(root);
         }
     } catch (error) {
-        // Modules directory may not exist yet during early setups.
+        // modules directory optional
     }
 
     return entries;
@@ -66,15 +63,18 @@ export default defineConfig({
                 'resources/js/admin.js',
                 'resources/scss/pages/ui-gallery.scss',
                 'resources/js/pages/ui-gallery.js',
+                ...cmsEntries,
                 ...moduleEntries(),
             ],
             refresh: true,
+            buildDirectory: 'build/cms',
         }),
     ],
     resolve: {
         alias: {
             '@': path.resolve(projectRoot, 'resources'),
             '@modules': path.resolve(projectRoot, 'app/Modules'),
+            '@cms': path.resolve(projectRoot, 'app/Cms/Resources/assets'),
         },
     },
     build: {
@@ -96,6 +96,10 @@ export default defineConfig({
                     const moduleMatch = normalizedId.match(/app\/Modules\/([^/]+)\/Resources\//);
                     if (moduleMatch) {
                         return `mod-${moduleMatch[1].toLowerCase()}`;
+                    }
+
+                    if (normalizedId.includes('app/Cms/Resources/')) {
+                        return 'cms';
                     }
                 },
             },

@@ -15,17 +15,13 @@ class UpdateCompanyRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'theme_color' => ['nullable', 'string', 'max:16'],
+            'legal_title' => ['nullable', 'string', 'max:255'],
+            'tax_office' => ['nullable', 'string', 'max:255'],
+            'tax_number' => ['nullable', 'string', 'max:64'],
+            'website' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:64'],
             'logo_id' => ['nullable', 'integer', 'exists:media,id'],
         ];
-    }
-
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('theme_color')) {
-            $this->merge([
-                'theme_color' => trim((string) $this->input('theme_color')),
-            ]);
-        }
     }
 }

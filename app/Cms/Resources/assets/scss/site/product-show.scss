@@ -1,0 +1,19 @@
+@use './core';
+
+.product-hero {
+    align-items: start;
+}
+
+.product-meta {
+    padding: 0;
+    list-style: none;
+}
+
+.back-link {
+    font-size: var(--font-size-14);
+    color: var(--color-gray-500);
+}
+
+.product-gallery img {
+    border-radius: var(--radius-md);
+}
