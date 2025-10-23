@@ -5,6 +5,7 @@ namespace App\Modules\Settings\Http\Controllers;
 use App\Core\Support\Models\Company;
 use App\Http\Controllers\Controller;
 use App\Modules\Drive\Domain\Models\Media;
+use App\Modules\Settings\Domain\Models\CompanySetting;
 use App\Modules\Settings\Http\Requests\UpdateCompanyRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -19,21 +20,31 @@ class CompanyController extends Controller
 
         $this->authorize('view', $company);
 
-        $company->loadMissing(['domains' => fn ($query) => $query->orderByDesc('is_primary')->orderBy('domain'), 'logo']);
+        $settings = CompanySetting::query()
+            ->withoutGlobalScopes()
+            ->with('logoMedia')
+            ->where('company_id', $company->id)
+            ->first();
 
-        if (! $company->domains->contains(fn ($domain) => $domain->domain === $company->domain)) {
-            $company->domains()->firstOrCreate(
-                ['domain' => $company->domain],
-                ['is_primary' => true]
-            );
+        if (! $settings) {
+            $settings = CompanySetting::withoutEvents(function () use ($company, $request) {
+                return CompanySetting::query()
+                    ->withoutGlobalScopes()
+                    ->create([
+                        'company_id' => $company->id,
+                        'name' => $company->name,
+                        'created_by' => optional($request->user())->getKey(),
+                        'updated_by' => optional($request->user())->getKey(),
+                    ]);
+            });
 
-            $company->load(['domains' => fn ($query) => $query->orderByDesc('is_primary')->orderBy('domain')]);
+            $settings->load('logoMedia');
         }
 
         return view('settings::company.edit', [
             'company' => $company,
-            'domains' => $company->domains,
-            'logoMedia' => $company->logo,
+            'settings' => $settings,
+            'logoMedia' => $settings->logoMedia,
         ]);
     }
 
@@ -49,15 +60,38 @@ class CompanyController extends Controller
             $data['logo_id'] = $this->ensureLogoBelongsToCompany($data['logo_id'], $company->id);
         }
 
-        $company->fill([
+        $settings = CompanySetting::query()
+            ->withoutGlobalScopes()
+            ->firstOrCreate(
+                ['company_id' => $company->id],
+                ['name' => $company->name]
+            );
+
+        $settings->fill([
             'name' => $data['name'],
-            'theme_color' => isset($data['theme_color']) && $data['theme_color'] !== ''
-                ? trim((string) $data['theme_color'])
-                : null,
-            'logo_id' => $data['logo_id'] ?? null,
+            'legal_title' => $data['legal_title'] ?? null,
+            'tax_office' => $data['tax_office'] ?? null,
+            'tax_number' => $data['tax_number'] ?? null,
+            'website' => $data['website'] ?? null,
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'logo_media_id' => $data['logo_id'] ?? null,
+            'updated_by' => optional($request->user())->getKey(),
         ]);
 
-        $company->save();
+        if ($settings->wasRecentlyCreated) {
+            $settings->created_by = optional($request->user())->getKey();
+        }
+
+        $settings->save();
+
+        $companyUpdates = ['name' => $settings->name];
+
+        if (array_key_exists('logo_id', $data)) {
+            $companyUpdates['logo_id'] = $data['logo_id'];
+        }
+
+        $company->forceFill($companyUpdates)->save();
 
         return redirect()
             ->route('admin.settings.company.edit')

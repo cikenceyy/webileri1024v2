@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
-@section('title', 'Şirket Ayarları')
+@section('title', 'Şirket Bilgileri')
 
 @section('content')
-<x-ui-page-header title="Şirket Ayarları" description="Şirket bilgilerinizi ve alan adlarınızı yönetin">
+<x-ui-page-header title="Şirket Bilgileri" description="Şirket kimlik ve iletişim bilgilerinizi yönetin">
     <x-slot name="actions">
         @can('update', $company)
             <x-ui-button form="companySettingsForm" type="submit" variant="primary">
@@ -17,212 +17,161 @@
     <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
 @endif
 
-<div class="row g-4">
-    <div class="col-lg-6">
-        <x-ui-card>
-            <form
-                id="companySettingsForm"
-                method="POST"
-                action="{{ route('admin.settings.company.update') }}"
-                data-company-settings-form
-            >
-                @csrf
-                @method('PUT')
+<x-ui-card>
+    <form
+        id="companySettingsForm"
+        method="POST"
+        action="{{ route('admin.settings.company.update') }}"
+        data-company-settings-form
+    >
+        @csrf
+        @method('PUT')
 
+        <div class="row g-4">
+            <div class="col-lg-6">
                 <x-ui-input
                     name="name"
-                    label="Şirket Adı"
-                    :value="old('name', $company->name)"
+                    label="Ticari Ünvan"
+                    :value="old('name', $settings->name)"
                     required
                 />
 
                 <x-ui-input
                     class="mt-3"
-                    name="theme_color"
-                    label="Tema Rengi"
-                    placeholder="#4f46e5"
-                    :value="old('theme_color', $company->theme_color)"
+                    name="legal_title"
+                    label="Resmi Ünvan"
+                    :value="old('legal_title', $settings->legal_title)"
                 />
 
-                <div class="mt-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label fw-semibold mb-0" for="companyLogoId">Şirket Logosu</label>
-                        @php
-                            $logoPickerKey = 'company-logo';
-                            $logoPickerData = $logoMedia ? [
-                                'id' => $logoMedia->id,
-                                'name' => $logoMedia->original_name,
-                                'original_name' => $logoMedia->original_name,
-                                'mime' => $logoMedia->mime,
-                                'ext' => $logoMedia->ext,
-                                'size' => $logoMedia->size,
-                                'path' => $logoMedia->path,
-                                'url' => route('admin.drive.media.download', $logoMedia),
-                                'category' => $logoMedia->category,
-                            ] : null;
-                        @endphp
-                        <div class="d-flex gap-2">
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-outline-secondary"
-                                data-drive-picker-open
-                                data-drive-picker-key="{{ $logoPickerKey }}"
-                                data-drive-picker-modal="companyLogoPickerModal"
-                                data-drive-picker-folder="{{ \App\Modules\Drive\Domain\Models\Media::CATEGORY_MEDIA_PRODUCTS }}"
-                            >
-                                Sürücüden Seç
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-outline-danger"
-                                data-drive-picker-clear
-                                data-drive-picker-key="{{ $logoPickerKey }}"
-                            >
-                                Temizle
-                            </button>
-                        </div>
-                    </div>
-
-                    <input
-                        type="hidden"
-                        name="logo_id"
-                        id="companyLogoId"
-                        value="{{ old('logo_id', $logoMedia?->id) }}"
-                        data-drive-picker-input
-                        data-drive-picker-key="{{ $logoPickerKey }}"
-                    >
-
-                    <div class="border rounded p-3 d-flex align-items-center gap-3 bg-light">
-                        <div
-                            class="w-100"
-                            data-drive-picker-preview
-                            data-drive-picker-key="{{ $logoPickerKey }}"
-                            data-drive-picker-template="inventory-media"
-                            data-empty-message="Drive üzerinden bir logo seçin. Görsel formatlar önerilir."
-                            data-drive-picker-state="{{ $logoPickerData ? 'filled' : 'empty' }}"
-                            data-drive-picker-value='@json($logoPickerData)'
-                        >
-                            @if($logoMedia)
-                                <div class="inventory-media-preview">
-                                    <x-ui-file-icon :ext="$logoMedia->ext" size="36" />
-                                    <div class="inventory-media-preview__meta">
-                                        <div class="inventory-media-preview__name">{{ $logoMedia->original_name }}</div>
-                                        <div class="inventory-media-preview__desc">{{ $logoMedia->mime }} · {{ number_format(($logoMedia->size ?? 0) / 1024, 1, ',', '.') }} KB</div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="inventory-media-empty">Drive üzerinden bir logo seçin. Görsel formatlar önerilir.</div>
-                            @endif
-                        </div>
-                    </div>
-
-                    @error('logo_id')
-                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                @can('update', $company)
-                    <div class="mt-4 d-flex justify-content-end">
-                        <x-ui-button type="submit" variant="primary">Kaydet</x-ui-button>
-                    </div>
-                @endcan
-            </form>
-        </x-ui-card>
-    </div>
-
-    <div class="col-lg-6">
-        <x-ui-card>
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h2 class="h5 mb-0">Alan Adları</h2>
-                <span class="badge bg-light text-dark">Primary: {{ $company->domain }}</span>
-            </div>
-
-            <x-ui-alert type="info" class="mb-4">
-                Birincil alan adını değiştirdiğinizde, yönetim paneline yeni alan adıyla erişmeniz gerekir.
-            </x-ui-alert>
-
-            @can('create', \App\Core\Support\Models\CompanyDomain::class)
-                <form method="POST" action="{{ route('admin.settings.company.domains.store') }}" class="row g-2 align-items-end mb-4">
-                    @csrf
-                    <div class="col-md-7">
+                <div class="row mt-3 g-3">
+                    <div class="col-md-6">
                         <x-ui-input
-                            name="domain"
-                            label="Yeni Alan Adı"
-                            placeholder="example.com"
-                            :value="old('domain')"
+                            name="tax_office"
+                            label="Vergi Dairesi"
+                            :value="old('tax_office', $settings->tax_office)"
                         />
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-check mt-4 pt-1">
-                            <input class="form-check-input" type="checkbox" value="1" id="domainPrimary" name="is_primary" @checked(old('is_primary'))>
-                            <label class="form-check-label" for="domainPrimary">Primary yap</label>
-                        </div>
+                    <div class="col-md-6">
+                        <x-ui-input
+                            name="tax_number"
+                            label="Vergi Numarası"
+                            :value="old('tax_number', $settings->tax_number)"
+                        />
                     </div>
-                    <div class="col-md-2 d-flex justify-content-end">
-                        <x-ui-button type="submit" class="w-100">Ekle</x-ui-button>
+                </div>
+
+                <x-ui-input
+                    class="mt-3"
+                    name="website"
+                    label="Web Sitesi"
+                    placeholder="https://example.com"
+                    :value="old('website', $settings->website)"
+                />
+
+                <div class="row mt-3 g-3">
+                    <div class="col-md-6">
+                        <x-ui-input
+                            name="email"
+                            label="E-posta"
+                            type="email"
+                            placeholder="info@example.com"
+                            :value="old('email', $settings->email)"
+                        />
                     </div>
-                </form>
-            @endcan
+                    <div class="col-md-6">
+                        <x-ui-input
+                            name="phone"
+                            label="Telefon"
+                            placeholder="+90 555 000 00 00"
+                            :value="old('phone', $settings->phone)"
+                        />
+                    </div>
+                </div>
+            </div>
 
-            @error('domain')
-                <x-ui-alert type="danger" class="mb-3">{{ $message }}</x-ui-alert>
-            @enderror
+            <div class="col-lg-6">
+                <label class="form-label fw-semibold" for="companyLogoId">Şirket Logosu</label>
+                @php
+                    $logoPickerKey = 'company-logo';
+                    $logoPickerData = $logoMedia ? [
+                        'id' => $logoMedia->id,
+                        'name' => $logoMedia->original_name,
+                        'original_name' => $logoMedia->original_name,
+                        'mime' => $logoMedia->mime,
+                        'ext' => $logoMedia->ext,
+                        'size' => $logoMedia->size,
+                        'path' => $logoMedia->path,
+                        'url' => route('admin.drive.media.download', $logoMedia),
+                        'category' => $logoMedia->category,
+                    ] : null;
+                @endphp
+                <div class="d-flex gap-2 mb-3">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        data-drive-picker-open
+                        data-drive-picker-key="{{ $logoPickerKey }}"
+                        data-drive-picker-modal="companyLogoPickerModal"
+                        data-drive-picker-folder="{{ \App\Modules\Drive\Domain\Models\Media::CATEGORY_MEDIA_PRODUCTS }}"
+                    >
+                        Sürücüden Seç
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        data-drive-picker-clear
+                        data-drive-picker-key="{{ $logoPickerKey }}"
+                    >
+                        Temizle
+                    </button>
+                </div>
 
-            @if($domains->count())
-                <x-ui-table dense>
-                    <thead>
-                        <tr>
-                            <th scope="col">Alan Adı</th>
-                            <th scope="col">Durum</th>
-                            <th scope="col" class="text-end">İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($domains as $domain)
-                            <tr>
-                                <td class="align-middle">{{ $domain->domain }}</td>
-                                <td class="align-middle">
-                                    @if($domain->is_primary)
-                                        <x-ui-badge type="success" soft>Primary</x-ui-badge>
-                                    @else
-                                        <x-ui-badge type="secondary" soft>Alias</x-ui-badge>
-                                    @endif
-                                </td>
-                                <td class="align-middle text-end">
-                                    <div class="d-inline-flex gap-2">
-                                        @can('update', $domain)
-                                            @if(! $domain->is_primary)
-                                                <form method="POST" action="{{ route('admin.settings.company.domains.make_primary', $domain) }}">
-                                                    @csrf
-                                                    <x-ui-button type="submit" variant="outline" size="sm">Primary Yap</x-ui-button>
-                                                </form>
-                                            @endif
-                                        @endcan
-                                        @can('delete', $domain)
-                                            <form
-                                                method="POST"
-                                                action="{{ route('admin.settings.company.domains.destroy', $domain) }}"
-                                                onsubmit="return confirm('Alan adını silmek istediğinize emin misiniz?');"
-                                            >
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-ui-button type="submit" variant="danger" size="sm" @disabled($domain->is_primary && $domains->count() <= 1)>
-                                                    Sil
-                                                </x-ui-button>
-                                            </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </x-ui-table>
-            @else
-                <x-ui-empty title="Alan adı bulunmuyor" description="Yeni alan adları ekleyerek alternatif giriş adresleri tanımlayın." />
-            @endif
-        </x-ui-card>
-    </div>
-</div>
+                <input
+                    type="hidden"
+                    name="logo_id"
+                    id="companyLogoId"
+                    value="{{ old('logo_id', $logoMedia?->id) }}"
+                    data-drive-picker-input
+                    data-drive-picker-key="{{ $logoPickerKey }}"
+                >
+
+                <div class="border rounded p-3 d-flex align-items-center gap-3 bg-light">
+                    <div
+                        class="w-100"
+                        data-drive-picker-preview
+                        data-drive-picker-key="{{ $logoPickerKey }}"
+                        data-drive-picker-template="inventory-media"
+                        data-empty-message="Drive üzerinden bir logo seçin."
+                        data-drive-picker-state="{{ $logoPickerData ? 'filled' : 'empty' }}"
+                        data-drive-picker-value='@json($logoPickerData)'
+                    >
+                        @if($logoMedia)
+                            <div class="inventory-media-preview">
+                                <x-ui-file-icon :ext="$logoMedia->ext" size="36" />
+                                <div class="inventory-media-preview__meta">
+                                    <div class="inventory-media-preview__name">{{ $logoMedia->original_name }}</div>
+                                    <div class="inventory-media-preview__desc">{{ $logoMedia->mime }} · {{ number_format(($logoMedia->size ?? 0) / 1024, 1, ',', '.') }} KB</div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="inventory-media-empty">Drive üzerinden bir logo seçin.</div>
+                        @endif
+                    </div>
+                </div>
+
+                @error('logo_id')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        @can('update', $company)
+            <div class="mt-4 d-flex justify-content-end">
+                <x-ui-button type="submit" variant="primary">Kaydet</x-ui-button>
+            </div>
+        @endcan
+    </form>
+</x-ui-card>
 
 <x-ui-modal id="companyLogoPickerModal" size="xl">
     <x-slot name="title">Drive'dan Logo Seç</x-slot>
