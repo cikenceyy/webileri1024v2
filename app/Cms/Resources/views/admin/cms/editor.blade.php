@@ -68,6 +68,10 @@
                                     <p class="text-muted small mb-3">{{ __('EN boş bırakılırsa TR içeriği gösterilecektir.') }}</p>
                                     <div class="accordion" id="editor-blocks-{{ $localeKey }}">
                                         @foreach($pageConfig['blocks'] ?? [] as $blockKey => $definition)
+                                            @php
+                                                $isRepeater = !empty($definition['repeater']);
+                                                $items = data_get($content, "$localeKey.blocks.$blockKey", []);
+                                            @endphp
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header" id="heading-{{ $localeKey }}-{{ $blockKey }}">
                                                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $localeKey }}-{{ $blockKey }}" aria-expanded="true">
@@ -79,11 +83,10 @@
                                                         @if(!empty($definition['help']))
                                                             <p class="text-muted small mb-3">{{ $definition['help'] }}</p>
                                                         @endif
-                                                        @php($isRepeater = !empty($definition['repeater']))
                                                         @if($isRepeater)
                                                             <div class="repeater" data-repeater data-block-key="{{ $blockKey }}" data-locale="{{ $localeKey }}">
-                                                                  <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                      <h3 class="h6 mb-0 text-uppercase text-muted">{{ $definition['label'] ?? ucfirst(str_replace('_', ' ', $blockKey)) }}</h3>
+                                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                    <h3 class="h6 mb-0 text-uppercase text-muted">{{ $definition['label'] ?? ucfirst(str_replace('_', ' ', $blockKey)) }}</h3>
                                                                     <button class="btn btn-sm btn-outline-primary" type="button" data-repeater-add>{{ __('Add item') }}</button>
                                                                 </div>
                                                                 <template data-repeater-template>
@@ -110,8 +113,7 @@
                                                                     </div>
                                                                 </template>
                                                                 <div class="repeater-items" data-repeater-items>
-                                                                    @php $items = data_get($content, "$localeKey.blocks.$blockKey", []); @endphp
-                                                                    @foreach($items as $index => $item)
+                                                                    @forelse($items as $index => $item)
                                                                         <div class="repeater-item border rounded p-3 mb-3" data-repeater-item>
                                                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                                                 <strong class="small text-uppercase text-muted">{{ __('Item') }} #{{ $loop->iteration }}</strong>
@@ -133,24 +135,24 @@
                                                                                 </div>
                                                                             @endforeach
                                                                         </div>
-                                                                    @endforeach
+                                                                    @empty
+                                                                        <p class="text-muted small" data-repeater-empty>{{ __('No items yet.') }}</p>
+                                                                    @endforelse
                                                                 </div>
                                                             </div>
-                                                        @endif
-                                                        @unless($isRepeater)
-                                                            @php $fields = data_get($content, "$localeKey.blocks.$blockKey", []); @endphp
+                                                        @else
                                                             @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
                                                                 <div class="mb-3">
                                                                     <label class="form-label">{{ $fieldDefinition['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)) }}</label>
                                                                     @include('cms::admin.cms.partials.field', [
                                                                         'type' => $fieldDefinition['type'] ?? 'text',
                                                                         'name' => "content[{$localeKey}][{$blockKey}][{$fieldKey}]",
-                                                                        'value' => $fields[$fieldKey] ?? null,
+                                                                        'value' => $items[$fieldKey] ?? null,
                                                                         'meta' => $fieldDefinition,
                                                                     ])
                                                                 </div>
                                                             @endforeach
-                                                        @endunless
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
