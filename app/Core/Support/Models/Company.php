@@ -15,7 +15,6 @@ class Company extends Model
     protected $fillable = [
         'name',
         'domain',
-        'theme_color',
         'logo_id',
     ];
 
