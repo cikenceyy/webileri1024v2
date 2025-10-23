@@ -1,5 +1,6 @@
 <?php
 
+use App\Cms\Providers\CmsServiceProvider;
 use App\Consoles\Providers\ConsoleServiceProvider;
 use App\Core\Providers\AccessServiceProvider;
 use App\Core\Providers\CoreServiceProvider;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'http.cache' => HttpCacheHeaders::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
     })
     ->withProviders([
@@ -32,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ModuleLoaderServiceProvider::class,
         CoreServiceProvider::class,
         ConsoleServiceProvider::class,
+        CmsServiceProvider::class,
         App\Providers\AppServiceProvider::class,
         App\Providers\EventServiceProvider::class,
     ])

@@ -14,6 +14,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -27,17 +28,21 @@ class InvoiceController extends Controller
 
     public function index(Request $request): View
     {
-        $query = Invoice::query()->with(['customer']);
+        $query = Invoice::query()->with(['customer', 'allocations']);
 
-        if ($search = $request->string('q')) {
+        $search = (string) $request->string('q')->trim();
+        if ($search !== '') {
             $query->where(function ($q) use ($search): void {
                 $like = '%' . $search . '%';
                 $q->where('invoice_no', 'like', $like)
-                    ->orWhereHas('customer', static fn ($c) => $c->where('name', 'like', $like));
+                    ->orWhereHas('customer', static function ($customer) use ($like): void {
+                        $customer->where('name', 'like', $like);
+                    });
             });
         }
 
-        if ($status = $request->string('status')) {
+        $status = (string) $request->string('status')->trim();
+        if ($status !== '') {
             $query->where('status', $status);
         }
 
@@ -45,10 +50,30 @@ class InvoiceController extends Controller
             $query->where('customer_id', $customerId);
         }
 
-        $invoices = $query->latest('issue_date')->paginate(15)->withQueryString();
+        $preset = (string) $request->string('preset')->trim();
+        if ($preset !== '') {
+            $today = Carbon::today();
+            if ($preset === 'today') {
+                $query->whereDate('issue_date', $today);
+            } elseif ($preset === 'week') {
+                $query->whereBetween('issue_date', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+            } elseif ($preset === 'published') {
+                $query->where('status', 'published');
+            }
+        }
+
+        $invoices = $query->latest('issue_date')->paginate(20)->withQueryString();
+
+        $metrics = [
+            'draft' => Invoice::where('status', 'draft')->count(),
+            'published' => Invoice::where('status', 'published')->count(),
+            'overdue' => Invoice::where('status', 'published')->where('balance_due', '>', 0)->whereDate('due_date', '<', now())->count(),
+            'total_due' => Invoice::whereIn('status', ['published', 'partial'])->sum('balance_due'),
+        ];
 
         return view('finance::invoices.index', [
             'invoices' => $invoices,
+            'metrics' => $metrics,
             'filters' => $request->only(['q', 'status', 'customer_id']),
             'customers' => Customer::orderBy('name')->get(['id', 'name']),
         ]);

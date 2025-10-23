@@ -2,6 +2,7 @@
 
 namespace App\Modules\Inventory\Providers;
 
+use App\Core\Views\AdminSidebar;
 use App\Modules\Inventory\Console\Commands\RebuildOnHand;
 use App\Modules\Inventory\Domain\Models\PriceList;
 use App\Modules\Inventory\Domain\Models\Product;

@@ -1,117 +1,72 @@
 @extends('layouts.admin')
 
-@section('title', $priceList->name)
+@section('title', $pricelist->name)
+@section('module', 'Inventory')
+
+@push('page-styles')
+    @vite('app/Modules/Inventory/Resources/scss/pricelists.scss')
+@endpush
+
+@push('page-scripts')
+    @vite('app/Modules/Inventory/Resources/js/pricelists.js')
+@endpush
 
 @section('content')
-<x-ui-page-header :title="$priceList->name" description="Fiyat listesi detayları">
-    <x-slot name="actions">
-        <a href="{{ route('admin.inventory.pricelists.index') }}" class="btn btn-outline-secondary">Listeye Dön</a>
-        @can('update', $priceList)
-            <x-ui-button variant="primary" href="{{ route('admin.inventory.pricelists.edit', $priceList) }}">Düzenle</x-ui-button>
-        @endcan
-    </x-slot>
-</x-ui-page-header>
+    <section class="inv-prices" data-pricelist="{{ $pricelist->id }}">
+        <header class="inv-prices__header">
+            <h1 class="inv-prices__title">{{ $pricelist->name }}</h1>
+            <span class="inv-badge">{{ $pricelist->currency }}</span>
+        </header>
 
-@if(session('status'))
-    <x-ui-alert type="success" dismissible>{{ session('status') }}</x-ui-alert>
-@endif
-
-<div class="row g-4">
-    <div class="col-lg-5">
-        <x-ui-card>
-            <dl class="row mb-0">
-                <dt class="col-sm-5 text-muted">Ad</dt>
-                <dd class="col-sm-7 fw-semibold">{{ $priceList->name }}</dd>
-                <dt class="col-sm-5 text-muted">Tür</dt>
-                <dd class="col-sm-7">{{ $priceList->type === 'sale' ? 'Satış' : 'Satın Alma' }}</dd>
-                <dt class="col-sm-5 text-muted">Para Birimi</dt>
-                <dd class="col-sm-7">{{ strtoupper($priceList->currency) }}</dd>
-                <dt class="col-sm-5 text-muted">Durum</dt>
-                <dd class="col-sm-7">
-                    <x-ui-badge :type="$priceList->active ? 'success' : 'secondary'" soft>{{ $priceList->active ? 'Aktif' : 'Pasif' }}</x-ui-badge>
-                </dd>
-            </dl>
-        </x-ui-card>
-        <x-ui-card class="mt-4">
-            <h2 class="h6">Yeni Satır</h2>
-            @can('update', $priceList)
-                <form method="POST" action="{{ route('admin.inventory.pricelists.items.store', $priceList) }}" data-pricelist-item-form>
-                    @csrf
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label" for="priceListProduct">Ürün</label>
-                            <select class="form-select" id="priceListProduct" name="product_id" required data-pricelist-product data-old-value="{{ old('product_id') }}">
-                                <option value="">Seçin...</option>
-                                @foreach($products as $product)
-                                    <option value="{{ $product->id }}" @selected(old('product_id') == $product->id) data-variants='@json($product->variants->map(fn($variant) => ['id' => $variant->id, 'label' => $variant->sku])->values())'>
-                                        {{ $product->sku }} — {{ $product->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('product_id')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label" for="priceListVariant">Varyant (opsiyonel)</label>
-                            <select class="form-select" id="priceListVariant" name="variant_id" data-pricelist-variant data-old-value="{{ old('variant_id') }}">
-                                <option value="">Varyant seçin</option>
-                            </select>
-                            @error('variant_id')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-12">
-                            <x-ui-input type="number" step="0.01" min="0" name="price" label="Fiyat" placeholder="0,00" required :value="old('price')" />
-                        </div>
+        <section class="inv-prices__sim" data-simulation>
+            <h2 class="inv-prices__section-title">Mini Simülasyon</h2>
+            <form class="inv-prices__sim-form">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Ürün Sayısı</label>
+                        <input type="number" class="form-control" min="1" value="5" data-sim-products>
                     </div>
-                    <div class="d-flex justify-content-end mt-3">
-                        <x-ui-button type="submit" variant="primary">Satır Ekle</x-ui-button>
+                    <div class="col-md-4">
+                        <label class="form-label">İskonto %</label>
+                        <input type="number" class="form-control" min="0" max="100" value="0" data-sim-discount>
                     </div>
-                </form>
-            @else
-                <p class="text-muted mb-0">Bu listede değişiklik yapma yetkiniz yok.</p>
-            @endcan
-        </x-ui-card>
-    </div>
-    <div class="col-lg-7">
-        <x-ui-card>
-            <h2 class="h6 mb-3">Satırlar</h2>
-            @if($priceList->items->isEmpty())
-                <p class="text-muted mb-0">Henüz bir fiyat satırı eklenmemiş.</p>
-            @else
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th>Ürün</th>
-                                <th>Varyant</th>
-                                <th>Fiyat</th>
-                                <th class="text-end">İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($priceList->items as $item)
-                                <tr>
-                                    <td>{{ $item->product?->name ?? 'Silindi' }}</td>
-                                    <td>{{ $item->variant?->sku ?? '—' }}</td>
-                                    <td>{{ number_format((float) $item->price, 2, ',', '.') }}</td>
-                                    <td class="text-end">
-                                        @can('update', $priceList)
-                                            <form method="POST" action="{{ route('admin.inventory.pricelists.items.destroy', [$priceList, $item]) }}" onsubmit="return confirm('Satırı kaldırmak istediğinize emin misiniz?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-ui-button type="submit" variant="danger" size="sm">Sil</x-ui-button>
-                                            </form>
-                                        @endcan
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-outline-primary" data-action="simulate">Hesapla</button>
+                    </div>
                 </div>
-            @endif
-        </x-ui-card>
-    </div>
-</div>
+                <p class="inv-prices__sim-result" data-sim-result>Sonuç bekleniyor…</p>
+            </form>
+        </section>
+
+        <section class="inv-prices__items" data-items>
+            <h2 class="inv-prices__section-title">Kalemler</h2>
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Fiyat</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($pricelist->items as $item)
+                        <tr data-item="{{ $item->id }}">
+                            <td>{{ $item->product?->name ?? 'Ürün' }}</td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control" value="{{ $item->price }}" step="0.01" data-field="price">
+                                    <span class="input-group-text">{{ $pricelist->currency }}</span>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-action="item-save">Kaydet</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-action="item-remove">Sil</button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-outline-primary" data-action="item-add">Yeni Kalem Ekle</button>
+        </section>
+    </section>
 @endsection

@@ -273,9 +273,9 @@
   &__usage {
     margin-top: var(--ui-space-2);
     padding: var(--ui-space-3);
-    border: 1px solid color-mix(in srgb, var(--ui-color-border) 70%, transparent);
-    background: color-mix(in srgb, var(--ui-color-primary) 6%, var(--ui-color-surface));
-    border-radius: var(--ui-radius-md);
+    border: 1px solid var(--ui-color-border-subtle);
+    background: var(--ui-color-surface);
+    border-radius: 0;
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-2);
@@ -303,7 +303,7 @@
   &__usage-bar {
     position: relative;
     height: 8px;
-    border-radius: 999px;
+    border-radius: 0;
     background: color-mix(in srgb, var(--ui-color-border) 50%, transparent);
     overflow: hidden;
   }
@@ -352,10 +352,10 @@
   flex-direction: column;
   gap: var(--ui-space-3);
   padding: var(--ui-space-4);
-  border: 1px solid var(--ui-color-border-subtle);
   background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
   transition: border-color var(--ui-time-fast) var(--ui-ease-standard),
-    box-shadow var(--ui-time-fast) var(--ui-ease-standard);
+  box-shadow var(--ui-time-fast) var(--ui-ease-standard);
 
   &:hover,
   &:focus-within {
