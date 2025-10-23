@@ -11,13 +11,15 @@
 @section('content')
     @php
         $pageLocale = $locale ?? app()->getLocale();
-        $hero = data_get($data, 'blocks.hero', []);
-        $coords = data_get($data, 'blocks.coords', []);
+        $hero = data_get($data, 'blocks.page_hero', data_get($data, 'blocks.hero', []));
+        $contactCard = data_get($data, 'blocks.contact_cards', []);
+        $socialLinks = data_get($data, 'blocks.social_links', []);
+        $map = data_get($data, 'blocks.map.map_embed');
+        $formCopy = data_get($data, 'blocks.form_copy', []);
         $infoEmail = $emails['info_email'] ?? 'info@example.com';
         $notifyEmail = $emails['notify_email'] ?? 'sales@example.com';
         $defaultAddress = \Illuminate\Support\Facades\Lang::get('cms::site.contact.defaults.address', [], $pageLocale);
         $defaultProjectLabel = \Illuminate\Support\Facades\Lang::get('cms::site.contact.project_inquiries', [], $pageLocale);
-        $mapEmbed = $coords['map_embed'] ?? '';
     @endphp
     <section class="pattern-hero contact-hero" data-module="reveal">
         <div class="stack-lg">
@@ -31,23 +33,36 @@
             <div class="contact-card stack-md">
                 <h2>{{ __('cms::site.contact.reach_us') }}</h2>
                 <div class="stack-xs">
-                    <p>{{ $coords['address'] ?? $defaultAddress }}</p>
-                    <a href="tel:{{ $coords['phone'] ?? '+902123334455' }}">{{ $coords['phone'] ?? __('cms::site.contact.defaults.phone') }}</a>
-                    <a href="mailto:{{ $coords['email'] ?? $infoEmail }}">{{ $coords['email'] ?? $infoEmail }}</a>
+                    <p>{{ $contactCard['address'] ?? $defaultAddress }}</p>
+                    <a href="tel:{{ $contactCard['phone'] ?? '+902123334455' }}">{{ $contactCard['phone'] ?? __('cms::site.contact.defaults.phone') }}</a>
+                    <a href="mailto:{{ $contactCard['email'] ?? $infoEmail }}">{{ $contactCard['email'] ?? $infoEmail }}</a>
+                    @if(!empty($contactCard['hours']))
+                        <span class="contact-hours">{{ $contactCard['hours'] }}</span>
+                    @endif
                 </div>
                 <div class="stack-xs">
                     <strong>{{ $defaultProjectLabel }}</strong>
                     <a href="mailto:{{ $notifyEmail }}">{{ $notifyEmail }}</a>
                 </div>
+                @if(!empty($socialLinks))
+                    <div class="contact-social cluster">
+                        @foreach($socialLinks as $link)
+                            <a href="{{ $link['url'] ?? '#' }}" target="_blank" rel="noopener">{{ $link['name'] ?? __('cms::site.contact.social.placeholder') }}</a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
-            <div class="contact-card stack-md" data-module="map-on-demand skeletons" data-map-src="{{ $mapEmbed }}">
+            <div class="contact-card stack-md" data-module="map-on-demand skeletons" data-map-src="{{ $map }}">
                 <h2>{{ __('cms::site.contact.visit_us') }}</h2>
                 <div class="map-placeholder ratio-16x9">
                     <button class="btn btn-outline" type="button" data-map-trigger>{{ __('cms::site.contact.load_map') }}</button>
                 </div>
             </div>
             <div class="contact-card stack-md">
-                <h2>{{ __('cms::site.contact.share_project') }}</h2>
+                <h2>{{ $formCopy['title'] ?? __('cms::site.contact.share_project') }}</h2>
+                @if(!empty($formCopy['subtitle']))
+                    <p>{{ $formCopy['subtitle'] }}</p>
+                @endif
                 @if(session('status'))
                     <div class="alert success" role="status" aria-live="polite">{{ session('status') }}</div>
                 @endif
@@ -90,7 +105,7 @@
                             <input type="text" name="website" autocomplete="off">
                         </label>
                     </div>
-                    <button class="btn btn-primary" type="submit">{{ __('cms::site.contact.form.send') }}</button>
+                    <button class="btn btn-primary" type="submit" data-module="beacon" data-beacon-event="form_submit" data-beacon-payload="contact">{{ __('cms::site.contact.form.send') }}</button>
                 </form>
             </div>
         </div>

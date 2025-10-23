@@ -22,3 +22,17 @@
 .contact-card form textarea {
     min-height: 7.5rem;
 }
+
+.contact-hours {
+    font-size: var(--font-size-14);
+    color: var(--color-gray-500);
+}
+
+.contact-social a {
+    color: var(--color-primary-500);
+    font-weight: 600;
+}
+
+.contact-social a:hover {
+    text-decoration: underline;
+}

@@ -49,7 +49,7 @@ class ProductShowController extends Controller
             'product' => $product,
             'seo' => $seo,
             'scripts' => $this->repository->scripts('product_show', $locale),
-            'data' => ['blocks' => []],
+            'data' => $this->repository->read('product_show', $locale),
         ]);
     }
 }

@@ -12,7 +12,8 @@
     @php
         $pageLocale = $locale ?? app()->getLocale();
         $placeholder = fn ($label, $width, $height) => 'data:image/svg+xml;utf8,' . rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {$width} {$height}'><rect width='100%' height='100%' fill='%23e4e7ec'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Inter, sans-serif' font-size='24' fill='%23667085'>{$label}</text></svg>");
-        $hero = data_get($data, 'blocks.hero', []);
+        $hero = data_get($data, 'blocks.page_hero', data_get($data, 'blocks.hero', []));
+        $filters = data_get($data, 'blocks.filters', []);
         $placeholders = \Illuminate\Support\Facades\Lang::get('cms::site.products.placeholders', [], $pageLocale);
     @endphp
 
@@ -23,10 +24,21 @@
         </div>
     </section>
 
+    @if(!empty($filters))
+        <section class="pattern-filters" data-module="reveal">
+            <div class="filters cluster" role="tablist" aria-label="{{ __('cms::site.products.filters.label') }}">
+                <button type="button" class="filter-chip is-active" data-filter="all">{{ __('cms::site.products.filters.all') }}</button>
+                @foreach($filters as $filter)
+                    <button type="button" class="filter-chip" data-filter="{{ $filter['slug'] ?? '' }}">{{ $filter['label'] ?? __('cms::site.products.filters.unknown') }}</button>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <section class="pattern-product-grid" data-module="reveal skeletons">
-        <div class="product-grid grid-auto">
+        <div class="product-grid grid-auto" data-filter-target>
             @forelse($products as $product)
-                <article class="product-card stack-sm">
+                <article class="product-card stack-sm" data-category="{{ $product['category'] ?? 'all' }}">
                     <div class="product-card__media ratio-3x2">
                         @php $productCover = $product['cover_image'] ?? $placeholder('Product', 640, 480); @endphp
                         <img src="{{ $productCover }}" srcset="{{ $productCover }} 640w" sizes="(min-width: 62rem) 240px, 50vw" width="640" height="480" alt="{{ $product['name'] }}" loading="lazy">
@@ -39,7 +51,7 @@
                                 ? ($pageLocale === 'en' ? route('cms.en.product.show', $product['slug']) : route('cms.product.show', $product['slug']))
                                 : ($pageLocale === 'en' ? route('cms.en.products') : route('cms.products'));
                         @endphp
-                        <a class="btn btn-outline" href="{{ $productUrl }}">{{ __('cms::site.products.grid.cta') }}</a>
+                        <a class="btn btn-outline" data-module="beacon" data-beacon-event="product_card_view" data-beacon-payload="{{ $product['slug'] ?? 'product' }}" href="{{ $productUrl }}">{{ __('cms::site.products.grid.cta') }}</a>
                     </div>
                 </article>
             @empty
@@ -54,6 +66,9 @@
                     </article>
                 @endforeach
             @endforelse
+        </div>
+        <div class="product-empty" data-empty-state hidden>
+            <p>{{ __('cms::site.products.grid.empty') }}</p>
         </div>
     </section>
 @endsection

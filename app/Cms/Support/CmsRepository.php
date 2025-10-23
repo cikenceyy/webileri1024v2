@@ -326,11 +326,31 @@ class CmsRepository
                 'gallery' => $this->normaliseGallery($product->gallery ?? []),
                 'sku' => $product->sku ?? null,
                 'is_featured' => (bool) ($product->is_featured ?? false),
+                'category' => $this->categorySlug($product, $locale),
                 'updated_at' => $updatedAt,
             ];
         }
 
         return $collection;
+    }
+
+    protected function categorySlug(object $product, string $locale): string
+    {
+        $candidates = [
+            $product->category_slug ?? null,
+            $product->family_slug ?? null,
+            $product->segment_slug ?? null,
+            $this->localizedAttribute($product, 'category', $locale),
+            $product->category ?? null,
+        ];
+
+        foreach ($candidates as $value) {
+            if (is_string($value) && $value !== '') {
+                return Str::of($value)->lower()->slug()->value();
+            }
+        }
+
+        return 'all';
     }
 
     protected function normaliseGallery(mixed $gallery): array

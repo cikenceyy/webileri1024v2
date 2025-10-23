@@ -12,8 +12,8 @@
 
 .site-main {
     display: grid;
-    gap: clamp(var(--space-32), 5vw, 4.5rem);
-    padding-block: clamp(var(--space-32), 6vw, 5rem);
+    gap: clamp(var(--space-40), 6vw, var(--space-72));
+    padding-block: clamp(var(--space-40), 7vw, var(--space-80));
 }
 
 .site-header {
