@@ -79,10 +79,11 @@
                                                         @if(!empty($definition['help']))
                                                             <p class="text-muted small mb-3">{{ $definition['help'] }}</p>
                                                         @endif
-                                                        @if(!empty($definition['repeater']))
+                                                        @php($isRepeater = !empty($definition['repeater']))
+                                                        @if($isRepeater)
                                                             <div class="repeater" data-repeater data-block-key="{{ $blockKey }}" data-locale="{{ $localeKey }}">
-                                                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                    <h3 class="h6 mb-0 text-uppercase text-muted">{{ $label }}</h3>
+                                                                  <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                      <h3 class="h6 mb-0 text-uppercase text-muted">{{ $definition['label'] ?? ucfirst(str_replace('_', ' ', $blockKey)) }}</h3>
                                                                     <button class="btn btn-sm btn-outline-primary" type="button" data-repeater-add>{{ __('Add item') }}</button>
                                                                 </div>
                                                                 <template data-repeater-template>
@@ -135,7 +136,8 @@
                                                                     @endforeach
                                                                 </div>
                                                             </div>
-                                                        @else
+                                                        @endif
+                                                        @unless($isRepeater)
                                                             @php $fields = data_get($content, "$localeKey.blocks.$blockKey", []); @endphp
                                                             @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
                                                                 <div class="mb-3">
@@ -148,7 +150,7 @@
                                                                     ])
                                                                 </div>
                                                             @endforeach
-                                                        @endif
+                                                        @endunless
                                                     </div>
                                                 </div>
                                             </div>
