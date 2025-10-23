@@ -27,7 +27,7 @@
             <h2>{{ $body['title'] ?? __('cms::site.kvkk.body.title') }}</h2>
             <p>{{ $body['text'] ?? __('cms::site.kvkk.body.text') }}</p>
             @if($attachment)
-                <a class="btn btn-outline" data-module="beacon" data-beacon-event="kvkk.pdf" href="{{ $attachment }}" target="_blank" rel="noopener">{{ __('cms::site.kvkk.body.cta') }}</a>
+                <a class="btn btn-outline" data-module="beacon" data-beacon-event="catalog_open" data-beacon-payload="kvkk" href="{{ $attachment }}" target="_blank" rel="noopener">{{ __('cms::site.kvkk.body.cta') }}</a>
             @else
                 <span class="btn btn-outline is-disabled">{{ __('cms::site.kvkk.body.placeholder_cta') }}</span>
             @endif

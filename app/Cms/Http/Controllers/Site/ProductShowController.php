@@ -39,7 +39,10 @@ class ProductShowController extends Controller
             'title' => $product['name'] ?? null,
             'description' => $product['short_desc'] ?? null,
             'og_image' => $product['cover_image'] ?? null,
-        ], $locale);
+        ], $locale, [
+            'slug' => $slug,
+            'product' => $product,
+        ]);
 
         return view('cms::site.product_show', [
             'locale' => $locale,

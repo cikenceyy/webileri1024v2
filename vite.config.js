@@ -12,6 +12,7 @@ const cmsEntries = [
     'app/Cms/Resources/assets/scss/site/catalogs.scss',
     'app/Cms/Resources/assets/scss/site/products.scss',
     'app/Cms/Resources/assets/scss/site/product-show.scss',
+    'app/Cms/Resources/assets/scss/admin/editor.scss',
     'app/Cms/Resources/assets/js/site/home.js',
     'app/Cms/Resources/assets/js/site/corporate.js',
     'app/Cms/Resources/assets/js/site/contact.js',
@@ -19,6 +20,7 @@ const cmsEntries = [
     'app/Cms/Resources/assets/js/site/catalogs.js',
     'app/Cms/Resources/assets/js/site/products.js',
     'app/Cms/Resources/assets/js/site/product-show.js',
+    'app/Cms/Resources/assets/js/admin/editor/index.js',
 ];
 
 function moduleEntries(base = 'app/Modules') {

@@ -17,7 +17,7 @@
             <input type="hidden" name="{{ $name }}" value="{{ $value }}">
         </div>
     @endif
-    <input type="file" class="form-control" name="{{ $name }}" @if($accept) accept="{{ $accept }}" @endif>
+    <input type="file" class="form-control" name="{{ $name }}" data-field-type="{{ $type }}" @if($accept) accept="{{ $accept }}" @endif>
 @elseif($type === 'link')
     <input type="url" class="form-control" name="{{ $name }}" value="{{ $value }}" placeholder="https://...">
 @else

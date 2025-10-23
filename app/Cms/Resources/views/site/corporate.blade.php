@@ -23,7 +23,7 @@
             <h1>{{ $hero['title'] ?? __('cms::site.corporate.hero.title') }}</h1>
             <p class="lead">{{ $hero['subtitle'] ?? __('cms::site.corporate.hero.subtitle') }}</p>
             @if(!empty($hero['cta_link']) && !empty($hero['cta_text']))
-                <a class="btn btn-primary" data-module="beacon" data-beacon-event="corporate.hero.cta" href="{{ $hero['cta_link'] }}">{{ $hero['cta_text'] }}</a>
+            <a class="btn btn-primary" data-module="beacon" data-beacon-event="cta" data-beacon-payload="corporate.hero" href="{{ $hero['cta_link'] }}">{{ $hero['cta_text'] }}</a>
             @endif
         </div>
         <div class="media-frame ratio-16x9">

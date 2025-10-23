@@ -7,18 +7,13 @@ use App\Cms\Http\Controllers\Site\HomeController;
 use App\Cms\Http\Controllers\Site\InfoController;
 use App\Cms\Http\Controllers\Site\ProductController;
 use App\Cms\Http\Controllers\Site\ProductShowController;
-use App\Cms\Support\SitemapGenerator;
+use App\Cms\Http\Controllers\Site\RobotsController;
+use App\Cms\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web'])->group(function () {
-    Route::get('/sitemap.xml', function (SitemapGenerator $generator) {
-        return $generator->generate();
-    })->name('cms.sitemap');
-
-    Route::get('/robots.txt', function () {
-        $content = app()->environment('production') ? 'User-agent: *\nAllow: /' : 'User-agent: *\nDisallow: /';
-        return response($content, 200, ['Content-Type' => 'text/plain']);
-    });
+    Route::get('/sitemap.xml', SitemapController::class)->name('cms.sitemap');
+    Route::get('/robots.txt', RobotsController::class)->name('cms.robots');
 
     Route::get('/', [HomeController::class, 'index'])->name('cms.home');
     Route::get('/kurumsal', [CorporateController::class, 'index'])->name('cms.corporate');

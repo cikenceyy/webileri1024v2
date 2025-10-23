@@ -1,10 +1,26 @@
-export function beacon(element) {
-    if (!element) {
+export function emitBeacon(eventName, payload = null, href = null) {
+    const endpoint = document.body.dataset.beaconEndpoint;
+    if (!navigator.sendBeacon || !endpoint) {
         return;
     }
 
-    const endpoint = element.dataset.beaconEndpoint || document.body.dataset.beaconEndpoint;
-    if (!navigator.sendBeacon || !endpoint) {
+    const body = {
+        event: eventName || 'interaction',
+        payload,
+        href,
+        timestamp: Date.now(),
+    };
+
+    try {
+        const blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+        navigator.sendBeacon(endpoint, blob);
+    } catch (error) {
+        // Ignore beacon errors silently.
+    }
+}
+
+export function beacon(element) {
+    if (!element) {
         return;
     }
 
@@ -12,19 +28,7 @@ export function beacon(element) {
     const payload = element.dataset.beaconPayload || null;
 
     const handler = () => {
-        const body = {
-            event: eventName,
-            payload,
-            href: element.getAttribute('href') || null,
-            timestamp: Date.now(),
-        };
-
-        try {
-            const blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
-            navigator.sendBeacon(endpoint, blob);
-        } catch (error) {
-            // Ignore beacon errors silently.
-        }
+        emitBeacon(eventName, payload, element.getAttribute('href') || null);
     };
 
     element.addEventListener('click', handler);

@@ -24,7 +24,7 @@
                     <li><strong>{{ __('cms::site.product_show.sku') }}:</strong> {{ $product['sku'] ?? '—' }}</li>
                     <li>{{ __('cms::site.product_show.price_callout') }}</li>
                 </ul>
-                <a class="btn btn-primary" data-module="beacon" data-beacon-event="product.cta" href="{{ $pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact') }}">{{ __('cms::site.product_show.cta') }}</a>
+                <a class="btn btn-primary" data-module="beacon" data-beacon-event="product_contact" data-beacon-payload="product" href="{{ $pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact') }}">{{ __('cms::site.product_show.cta') }}</a>
             </div>
             <div class="product-gallery" data-module="light-gallery">
                 <div class="gallery-main ratio-4x3">

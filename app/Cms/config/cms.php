@@ -171,4 +171,12 @@ return [
     'analytics' => [
         'endpoint' => null,
     ],
+    'cache' => [
+        'warm_pages' => true,
+    ],
+    'robots' => [
+        'index_environments' => ['production'],
+        'override' => env('CMS_ROBOTS_OVERRIDE'),
+        'sitemap' => null,
+    ],
 ];

@@ -124,6 +124,7 @@ class ProductProvider
                 'cover_image' => $product['cover_image'],
                 'gallery' => $product['gallery'],
                 'is_featured' => (bool) ($product['is_featured'] ?? false),
+                'updated_at' => now(),
             ];
         }, $stubs);
     }

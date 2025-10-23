@@ -77,6 +77,7 @@ class ContactController extends Controller
             'ip' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
             'is_read' => false,
+            'status' => 'new',
         ]);
 
         $emails = $this->repository->emails();

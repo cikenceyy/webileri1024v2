@@ -36,11 +36,11 @@
             <p class="lead">{{ $hero['subtitle'] ?? __('cms::site.home.hero.subtitle') }}</p>
             @if(!empty($hero['cta_link']) && !empty($hero['cta_text']))
                 <div class="cluster">
-                    <a class="btn btn-primary" data-module="beacon" data-beacon-event="home.hero.cta" href="{{ $hero['cta_link'] }}">{{ $hero['cta_text'] }}</a>
+                    <a class="btn btn-primary" data-module="beacon" data-beacon-event="cta" data-beacon-payload="home.hero" href="{{ $hero['cta_link'] }}">{{ $hero['cta_text'] }}</a>
                 </div>
             @else
                 <div class="cluster">
-                    <a class="btn btn-primary" data-module="beacon" data-beacon-event="home.hero.cta" href="{{ $pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact') }}">{{ __('cms::site.home.hero.cta_default') }}</a>
+                    <a class="btn btn-primary" data-module="beacon" data-beacon-event="cta" data-beacon-payload="home.hero" href="{{ $pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact') }}">{{ __('cms::site.home.hero.cta_default') }}</a>
                 </div>
             @endif
         </div>
@@ -127,7 +127,7 @@
                     </div>
                     <div class="stack-xs">
                         <h3>{{ $catalog['title'] ?? __('cms::site.home.catalogs.placeholder_title') }}</h3>
-                        <a class="btn btn-outline" data-module="beacon" data-beacon-event="home.catalog.open" href="{{ $catalog['file'] ?? '#' }}" target="_blank" rel="noopener">{{ __('cms::site.home.catalogs.cta') }}</a>
+                        <a class="btn btn-outline" data-module="beacon" data-beacon-event="catalog_open" data-beacon-payload="home" href="{{ $catalog['file'] ?? '#' }}" target="_blank" rel="noopener">{{ __('cms::site.home.catalogs.cta') }}</a>
                     </div>
                 </article>
             @empty
@@ -148,7 +148,7 @@
         <div class="feature-band stack-sm">
             <h2>{{ $ctaBand['title'] ?? __('cms::site.home.feature.title') }}</h2>
             <p>{{ __('cms::site.home.feature.subtitle') }}</p>
-            <a class="btn btn-primary" data-module="beacon" data-beacon-event="home.feature.cta" href="{{ $ctaBand['cta_link'] ?? ($pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact')) }}">{{ $ctaBand['cta_text'] ?? __('cms::site.home.feature.cta') }}</a>
+            <a class="btn btn-primary" data-module="beacon" data-beacon-event="cta" data-beacon-payload="home.feature" href="{{ $ctaBand['cta_link'] ?? ($pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact')) }}">{{ $ctaBand['cta_text'] ?? __('cms::site.home.feature.cta') }}</a>
         </div>
     </section>
 @endsection

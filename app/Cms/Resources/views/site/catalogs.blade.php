@@ -34,7 +34,7 @@
                     <div class="stack-xs">
                         <h2>{{ $catalog['title'] ?? __('cms::site.catalogs.card.title') }}</h2>
                         @if(!empty($catalog['file']))
-                            <a class="btn btn-outline" data-module="beacon" data-beacon-event="catalogs.open" href="{{ $catalog['file'] }}" target="_blank" rel="noopener">{{ __('cms::site.catalogs.card.cta') }}</a>
+                            <a class="btn btn-outline" data-module="beacon" data-beacon-event="catalog_open" data-beacon-payload="catalogs" href="{{ $catalog['file'] }}" target="_blank" rel="noopener">{{ __('cms::site.catalogs.card.cta') }}</a>
                         @else
                             <span class="btn btn-outline is-disabled">{{ __('cms::site.catalogs.card.placeholder_cta') }}</span>
                         @endif
