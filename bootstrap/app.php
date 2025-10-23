@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         OrchestrationServiceProvider::class,
         ModuleLoaderServiceProvider::class,
         CoreServiceProvider::class,
+        App\Cms\Providers\CmsServiceProvider::class,
         ConsoleServiceProvider::class,
         CmsServiceProvider::class,
         App\Providers\AppServiceProvider::class,
