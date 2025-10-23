@@ -1,38 +1,47 @@
 <?php
 
 use App\Modules\Finance\Http\Controllers\AllocationController;
-use App\Modules\Finance\Http\Controllers\ApInvoiceController;
-use App\Modules\Finance\Http\Controllers\ApPaymentController;
-use App\Modules\Finance\Http\Controllers\BankAccountController;
 use App\Modules\Finance\Http\Controllers\BankTransactionController;
+use App\Modules\Finance\Http\Controllers\CashPanelController;
+use App\Modules\Finance\Http\Controllers\CollectionConsoleController;
+use App\Modules\Finance\Http\Controllers\FinanceHomeController;
 use App\Modules\Finance\Http\Controllers\InvoiceController;
 use App\Modules\Finance\Http\Controllers\ReceiptController;
-use App\Modules\Finance\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'tenant', 'auth', 'verified'])
     ->prefix('/admin/finance')
     ->name('admin.finance.')
     ->group(function (): void {
+        Route::get('/', FinanceHomeController::class)->name('home');
+
+        Route::get('collections', [CollectionConsoleController::class, 'index'])->name('collections.index');
+        Route::get('collections/invoices/{invoice}', [CollectionConsoleController::class, 'show'])
+            ->name('collections.show');
+        Route::put('collections/invoices/{invoice}/lane', [CollectionConsoleController::class, 'updateLane'])
+            ->name('collections.lane');
+
         Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
-        Route::resource('invoices', InvoiceController::class);
         Route::get('invoices/from-order/{order}', [InvoiceController::class, 'createFromOrder'])->name('invoices.from-order');
+        Route::resource('invoices', InvoiceController::class);
 
-        Route::resource('receipts', ReceiptController::class);
+        Route::resource('receipts', ReceiptController::class)->only(['index', 'create', 'store', 'show']);
 
-        Route::get('allocations', [AllocationController::class, 'index'])->name('allocations.index');
         Route::post('allocations', [AllocationController::class, 'store'])->name('allocations.store');
         Route::delete('allocations/{allocation}', [AllocationController::class, 'destroy'])->name('allocations.destroy');
 
-        Route::resource('bank-accounts', BankAccountController::class)->except(['show']);
-        Route::get('bank-transactions', [BankTransactionController::class, 'index'])->name('bank-transactions.index');
-        Route::post('bank-transactions', [BankTransactionController::class, 'store'])->name('bank-transactions.store');
-        Route::delete('bank-transactions/{bankTransaction}', [BankTransactionController::class, 'destroy'])->name('bank-transactions.destroy');
+        Route::get('cash-panel', [CashPanelController::class, 'index'])->name('cash-panel.index');
+        Route::post('cash-panel/accounts', [CashPanelController::class, 'storeAccount'])->name('cash-panel.accounts.store');
+        Route::patch('cash-panel/accounts/{account}', [CashPanelController::class, 'updateAccount'])
+            ->name('cash-panel.accounts.update');
+        Route::delete('cash-panel/accounts/{account}', [CashPanelController::class, 'destroyAccount'])
+            ->name('cash-panel.accounts.destroy');
+        Route::post('cash-panel/transactions', [CashPanelController::class, 'storeTransaction'])
+            ->name('cash-panel.transactions.store');
+        Route::delete('cash-panel/transactions/{transaction}', [CashPanelController::class, 'destroyTransaction'])
+            ->name('cash-panel.transactions.destroy');
+        Route::post('cash-panel/transactions/import', [CashPanelController::class, 'importTransactions'])
+            ->name('cash-panel.transactions.import');
 
-        Route::get('reports/aging', [ReportController::class, 'aging'])->name('reports.aging');
-        Route::get('reports/receipts', [ReportController::class, 'receipts'])->name('reports.receipts');
-        Route::get('reports/summary', [ReportController::class, 'summary'])->name('reports.summary');
-
-        Route::resource('ap-invoices', ApInvoiceController::class)->only(['index', 'show', 'update']);
-        Route::resource('ap-payments', ApPaymentController::class)->only(['index', 'create', 'store']);
+        Route::get('transactions', [BankTransactionController::class, 'index'])->name('transactions.index');
     });

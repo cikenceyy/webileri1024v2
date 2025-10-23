@@ -24,6 +24,7 @@ class Invoice extends Model
         'due_date',
         'currency',
         'status',
+        'collection_lane',
         'subtotal',
         'discount_total',
         'tax_total',

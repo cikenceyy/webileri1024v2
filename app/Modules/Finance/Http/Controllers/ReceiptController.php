@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Modules\Marketing\Domain\Models\Customer;
 use App\Modules\Finance\Domain\Models\Receipt;
 use App\Modules\Finance\Http\Requests\StoreReceiptRequest;
-use App\Modules\Finance\Http\Requests\UpdateReceiptRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,18 +14,20 @@ class ReceiptController extends Controller
 {
     public function __construct()
     {
-        $this->authorizeResource(Receipt::class, 'receipt');
+        $this->authorizeResource(Receipt::class, 'receipt', ['except' => ['store']]);
     }
 
     public function index(Request $request): View
     {
         $query = Receipt::query()->with('customer', 'bankAccount');
 
-        if ($search = $request->string('q')) {
+        if ($search = $request->string('q')->trim()) {
             $query->where(function ($q) use ($search): void {
                 $like = '%' . $search . '%';
                 $q->where('receipt_no', 'like', $like)
-                    ->orWhereHas('customer', static fn ($c) => $c->where('name', 'like', $like));
+                    ->orWhereHas('customer', static function ($customer) use ($like): void {
+                        $customer->where('name', 'like', $like);
+                    });
             });
         }
 
@@ -60,7 +61,7 @@ class ReceiptController extends Controller
 
         $receipt = Receipt::create($data);
 
-        return redirect()->route('admin.finance.receipts.show', $receipt)->with('status', __('Receipt created successfully.'));
+        return redirect()->route('admin.finance.receipts.show', $receipt)->with('status', __('Tahsilat kaydedildi.'));
     }
 
     public function show(Receipt $receipt): View
@@ -70,27 +71,6 @@ class ReceiptController extends Controller
         return view('finance::receipts.show', [
             'receipt' => $receipt,
         ]);
-    }
-
-    public function edit(Receipt $receipt): View
-    {
-        return view('finance::receipts.edit', array_merge($this->formData(), [
-            'receipt' => $receipt,
-        ]));
-    }
-
-    public function update(UpdateReceiptRequest $request, Receipt $receipt): RedirectResponse
-    {
-        $receipt->update($request->validated());
-
-        return redirect()->route('admin.finance.receipts.show', $receipt)->with('status', __('Receipt updated successfully.'));
-    }
-
-    public function destroy(Receipt $receipt): RedirectResponse
-    {
-        $receipt->delete();
-
-        return redirect()->route('admin.finance.receipts.index')->with('status', __('Receipt deleted.'));
     }
 
     protected function formData(): array

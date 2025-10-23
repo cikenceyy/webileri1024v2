@@ -4,6 +4,14 @@
 
 @section('module', 'finance')
 
+@push('page-styles')
+    @vite('app/Modules/Finance/Resources/scss/finance.scss')
+@endpush
+
+@push('page-scripts')
+    @vite('app/Modules/Finance/Resources/js/finance.js')
+@endpush
+
 @section('content')
     <x-ui-page-header :title="__('New Invoice')" />
 
