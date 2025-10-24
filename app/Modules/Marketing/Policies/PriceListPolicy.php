@@ -2,47 +2,41 @@
 
 namespace App\Modules\Marketing\Policies;
 
+use App\Core\Access\Policies\CompanyOwnedPolicy;
 use App\Models\User;
 use App\Modules\Inventory\Domain\Models\PriceList;
 
-class PriceListPolicy
+class PriceListPolicy extends CompanyOwnedPolicy
 {
+    protected string $permissionPrefix = 'marketing.pricelists';
+
     public function viewAny(User $user): bool
     {
-        return $this->hasPermission($user, 'marketing.pricelist.view');
+        return $user->can($this->permissionKey('view'));
     }
 
     public function view(User $user, PriceList $priceList): bool
     {
-        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'marketing.pricelist.view');
+        return $this->allows($user, $priceList, 'view');
     }
 
     public function create(User $user): bool
     {
-        return $this->hasPermission($user, 'marketing.pricelist.create');
+        return parent::create($user);
     }
 
     public function update(User $user, PriceList $priceList): bool
     {
-        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'marketing.pricelist.update');
+        return $this->allows($user, $priceList, 'update');
     }
 
     public function delete(User $user, PriceList $priceList): bool
     {
-        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'marketing.pricelist.delete');
+        return $this->allows($user, $priceList, 'delete');
     }
 
-    protected function sameCompany(User $user, PriceList $priceList): bool
+    public function bulkUpdate(User $user, PriceList $priceList): bool
     {
-        return (int) $user->company_id === (int) $priceList->company_id;
-    }
-
-    protected function hasPermission(User $user, string $permission): bool
-    {
-        if (! method_exists($user, 'hasPermissionTo') || ! class_exists(\Spatie\Permission\Models\Permission::class)) {
-            return true;
-        }
-
-        return $user->hasPermissionTo($permission);
+        return $this->allows($user, $priceList, 'bulk_update');
     }
 }

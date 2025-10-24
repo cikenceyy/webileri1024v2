@@ -12,4 +12,8 @@ return [
         'ap_review' => false,
         'payment_suggestions' => false,
     ],
+    'marketing' => [
+        'returns' => true,
+        'pricelists_bulk_update' => true,
+    ],
 ];

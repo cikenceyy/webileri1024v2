@@ -3,7 +3,7 @@
 ## Şirket Bazlı Policy Temelleri
 - `App\Core\Access\Policies\CompanyOwnedPolicy` şirket eşleşmesini ilk satırda doğrular ve `$permissionPrefix` ile modül anahtarlarını üretir. Policy sınıfları bu abstract sınıfı extend ederek sadece izin soneklerini (`view`, `update`, `delete`) override etmeden kullanabilir.【F:app/Core/Access/Policies/CompanyOwnedPolicy.php†L5-L49】
 - `create` metodu model örneği gerektirmediğinden prefix tanımlıysa doğrudan `<prefix>.create` anahtarını çağırır; prefix boşsa klasik `create` izni aranır. Modül spesifik politikalar bu davranışı `protected $permissionPrefix = 'inventory.product';` gibi tanımlarla özelleştirir.【F:app/Core/Access/Policies/CompanyOwnedPolicy.php†L19-L43】
-- Marketing modülü örneği: `CustomerPolicy` ve `OrderPolicy` `CompanyOwnedPolicy`'yi extend ederek `protected $permissionPrefix = 'marketing.customer'` ve `marketing.order` tanımlar; `import` ve `approve` gibi ekstra eylemler için özel metodlar içerir.【F:app/Modules/Marketing/Policies/CustomerPolicy.php†L1-L34】【F:app/Modules/Marketing/Policies/OrderPolicy.php†L1-L148】
+- Marketing modülü örneği: `CustomerPolicy` ve `OrderPolicy` `CompanyOwnedPolicy`'yi extend ederek `protected $permissionPrefix = 'marketing.customers'` ve `marketing.orders` tanımlar; `import` ve `approve` gibi ekstra eylemler için özel metodlar içerir.【F:app/Modules/Marketing/Policies/CustomerPolicy.php†L1-L20】【F:app/Modules/Marketing/Policies/OrderPolicy.php†L1-L43】
 
 ## Provider Entegrasyonu
 - `AccessServiceProvider` AuthServiceProvider’ı extend ederek policy haritasını genişletmeye hazır hale getirir; tenant context ve izin kataloğu aynı provider içinde yönetilir.【F:app/Core/Providers/AccessServiceProvider.php†L5-L95】

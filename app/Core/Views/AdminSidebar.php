@@ -60,17 +60,14 @@ class AdminSidebar
                         'icon' => 'bi bi-bullseye',
                         'route' => 'admin.marketing.index',
                         'pattern' => 'admin/marketing*',
-                        'children' => [
-                            ['label' => 'Genel Bakış', 'route' => 'admin.marketing.index', 'pattern' => 'admin/marketing'],
+                        'children' => array_values(array_filter([
                             ['label' => 'Müşteriler', 'route' => 'admin.marketing.customers.index', 'pattern' => 'admin/marketing/customers*'],
-                            ['label' => 'Fırsatlar', 'route' => 'admin.marketing.opportunities.index', 'pattern' => 'admin/marketing/opportunities*'],
-                            ['label' => 'Teklifler', 'route' => 'admin.marketing.quotes.index', 'pattern' => 'admin/marketing/quotes*'],
                             ['label' => 'Siparişler', 'route' => 'admin.marketing.orders.index', 'pattern' => 'admin/marketing/orders*'],
                             ['label' => 'Fiyat Listeleri', 'route' => 'admin.marketing.pricelists.index', 'pattern' => 'admin/marketing/pricelists*'],
-                            ['label' => 'Satış Raporu', 'route' => 'admin.marketing.reports.sales', 'pattern' => 'admin/marketing/reports/sales*'],
-                            ['label' => 'Aktivite Akışı', 'route' => 'admin.marketing.activities.index', 'pattern' => 'admin/marketing/activities*'],
-                            ['label' => 'Müşteri İçe Aktarım', 'route' => 'admin.marketing.customers.import.form', 'pattern' => 'admin/marketing/import/customers*'],
-                        ],
+                            config('features.marketing.returns', true)
+                                ? ['label' => 'İadeler (RMA)', 'route' => 'admin.marketing.returns.index', 'pattern' => 'admin/marketing/returns*']
+                                : null,
+                        ])),
                     ],
                     [
                         'label' => 'Satın Alma',

@@ -29,7 +29,7 @@ class OrderToCashOrchestration implements OrchestrationContract
      * @var array<string, string>
      */
     private const STEP_PERMISSION_MAP = [
-        'so.confirm' => 'marketing.order.confirm',
+        'so.confirm' => 'marketing.orders.confirm',
         'inv.allocate' => 'inventory.stock.allocate',
         'ship.dispatch' => 'logistics.shipment.dispatch',
         'ar.invoice.post' => 'finance.invoice.post',
