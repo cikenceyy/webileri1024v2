@@ -4,21 +4,20 @@ namespace App\Consoles\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class MTOQueryRequest extends FormRequest
+class O2CFilterRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * @return array<string, array<int, string>|string>
-     */
     public function rules(): array
     {
         return [
-            'status' => ['nullable', 'string', 'max:50'],
-            'product_id' => ['nullable', 'integer'],
+            'status' => ['nullable', 'string'],
+            'customer_id' => ['nullable', 'integer'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
         ];
     }
 }

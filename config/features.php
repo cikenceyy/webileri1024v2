@@ -19,5 +19,15 @@ return [
     'logistics' => [
         'print' => true,
         'variance_reason_codes' => true,
+        'quality_blocking' => false,
+    ],
+    'consoles' => [
+        'o2c' => true,
+        'p2p' => true,
+        'mto' => true,
+        'replenish' => true,
+        'returns' => true,
+        'quality' => true,
+        'closeout' => true,
     ],
 ];

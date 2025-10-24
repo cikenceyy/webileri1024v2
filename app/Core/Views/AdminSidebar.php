@@ -2,6 +2,8 @@
 
 namespace App\Core\Views;
 
+use Illuminate\Support\Facades\Gate;
+
 class AdminSidebar
 {
     /**
@@ -24,24 +26,7 @@ class AdminSidebar
                     ],
                 ],
             ],
-            [
-                'title' => 'Konsollar',
-                'description' => 'Operasyonel süreç panoları',
-                'items' => [
-                    [
-                        'label' => 'Operasyon Konsolları',
-                        'icon' => 'bi bi-kanban',
-                        'route' => 'consoles.today',
-                        'pattern' => 'consoles*',
-                        'children' => [
-                            ['label' => 'Bugün Panosu', 'route' => 'consoles.today', 'pattern' => 'admin/consoles/today'],
-                            ['label' => 'Order-to-Cash', 'route' => 'consoles.o2c', 'pattern' => 'admin/consoles/o2c*'],
-                            ['label' => 'Procure-to-Pay', 'route' => 'consoles.p2p', 'pattern' => 'admin/consoles/p2p*'],
-                            ['label' => 'Make-to-Order', 'route' => 'consoles.mto', 'pattern' => 'admin/consoles/mto*'],
-                        ],
-                    ],
-                ],
-            ],
+            ...self::consoleSection(),
             [
                 'title' => 'İş Birimleri',
                 'description' => 'Modül bazlı uygulama rotaları',
@@ -159,5 +144,92 @@ class AdminSidebar
                 ],
             ],
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function consoleSection(): array
+    {
+        $definitions = [
+            [
+                'key' => 'o2c',
+                'label' => 'Order to Cash',
+                'icon' => 'bi bi-repeat',
+                'route' => 'admin.consoles.o2c.index',
+                'pattern' => 'admin/consoles/o2c*',
+                'gate' => 'viewO2CConsole',
+            ],
+            [
+                'key' => 'p2p',
+                'label' => 'Procure to Pay',
+                'icon' => 'bi bi-basket',
+                'route' => 'admin.consoles.p2p.index',
+                'pattern' => 'admin/consoles/p2p*',
+                'gate' => 'viewP2PConsole',
+            ],
+            [
+                'key' => 'mto',
+                'label' => 'Make to Order',
+                'icon' => 'bi bi-diagram-3',
+                'route' => 'admin.consoles.mto.index',
+                'pattern' => 'admin/consoles/mto*',
+                'gate' => 'viewMTOConsole',
+            ],
+            [
+                'key' => 'replenish',
+                'label' => 'Replenish',
+                'icon' => 'bi bi-arrow-left-right',
+                'route' => 'admin.consoles.replenish.index',
+                'pattern' => 'admin/consoles/replenish*',
+                'gate' => 'viewReplenishConsole',
+            ],
+            [
+                'key' => 'returns',
+                'label' => 'Returns',
+                'icon' => 'bi bi-arrow-counterclockwise',
+                'route' => 'admin.consoles.returns.index',
+                'pattern' => 'admin/consoles/returns*',
+                'gate' => 'viewReturnsConsole',
+            ],
+            [
+                'key' => 'quality',
+                'label' => 'Quality',
+                'icon' => 'bi bi-shield-check',
+                'route' => 'admin.consoles.quality.index',
+                'pattern' => 'admin/consoles/quality*',
+                'gate' => 'viewQualityConsole',
+            ],
+            [
+                'key' => 'closeout',
+                'label' => 'Closeout',
+                'icon' => 'bi bi-printer',
+                'route' => 'admin.consoles.closeout.index',
+                'pattern' => 'admin/consoles/closeout*',
+                'gate' => 'viewCloseoutConsole',
+            ],
+        ];
+
+        $items = [];
+        foreach ($definitions as $definition) {
+            if (config('features.consoles.' . $definition['key'], true) && Gate::allows($definition['gate'])) {
+                $items[] = [
+                    'label' => $definition['label'],
+                    'icon' => $definition['icon'],
+                    'route' => $definition['route'],
+                    'pattern' => $definition['pattern'],
+                ];
+            }
+        }
+
+        if (empty($items)) {
+            return [];
+        }
+
+        return [[
+            'title' => 'Konsollar',
+            'description' => 'Operasyonel süreç panoları',
+            'items' => $items,
+        ]];
     }
 }

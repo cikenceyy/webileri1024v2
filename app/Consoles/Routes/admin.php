@@ -1,23 +1,36 @@
 <?php
 
+use App\Consoles\Http\Controllers\CloseoutController;
 use App\Consoles\Http\Controllers\MTOController;
 use App\Consoles\Http\Controllers\O2CController;
 use App\Consoles\Http\Controllers\P2PController;
-use App\Consoles\Http\Controllers\TodayBoardController;
+use App\Consoles\Http\Controllers\QualityController;
+use App\Consoles\Http\Controllers\ReplenishController;
+use App\Consoles\Http\Controllers\ReturnsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/consoles')
-    ->as('consoles.')
+    ->as('admin.consoles.')
     ->middleware(['web', 'auth', 'tenant'])
     ->group(static function (): void {
-        Route::get('today', [TodayBoardController::class, 'index'])->name('today');
+        Route::get('o2c', [O2CController::class, 'index'])->name('o2c.index');
+        Route::post('o2c/action', [O2CController::class, 'action'])->name('o2c.action');
 
-        Route::get('o2c', [O2CController::class, 'index'])->name('o2c');
-        Route::post('o2c/execute/{step}', [O2CController::class, 'execute'])->name('o2c.execute');
+        Route::get('p2p', [P2PController::class, 'index'])->name('p2p.index');
+        Route::post('p2p/action', [P2PController::class, 'action'])->name('p2p.action');
 
-        Route::get('p2p', [P2PController::class, 'index'])->name('p2p');
-        Route::post('p2p/execute/{step}', [P2PController::class, 'execute'])->name('p2p.execute');
+        Route::get('mto', [MTOController::class, 'index'])->name('mto.index');
+        Route::post('mto/action', [MTOController::class, 'action'])->name('mto.action');
 
-        Route::get('mto', [MTOController::class, 'index'])->name('mto');
-        Route::post('mto/execute/{step}', [MTOController::class, 'execute'])->name('mto.execute');
+        Route::get('replenish', [ReplenishController::class, 'index'])->name('replenish.index');
+        Route::post('replenish/transfer', [ReplenishController::class, 'createTransfer'])->name('replenish.transfer');
+
+        Route::get('returns', [ReturnsController::class, 'index'])->name('returns.index');
+        Route::post('returns/action', [ReturnsController::class, 'action'])->name('returns.action');
+
+        Route::get('quality', [QualityController::class, 'index'])->name('quality.index');
+        Route::post('quality/record', [QualityController::class, 'record'])->name('quality.record');
+
+        Route::get('closeout', [CloseoutController::class, 'index'])->name('closeout.index');
+        Route::post('closeout/print', [CloseoutController::class, 'batchPrint'])->name('closeout.print');
     });

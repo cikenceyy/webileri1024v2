@@ -2,40 +2,50 @@
 
 namespace App\Consoles\Http\Controllers;
 
-use App\Consoles\Domain\Dto\P2PQuery;
-use App\Consoles\Http\Requests\P2PActionRequest;
-use App\Consoles\Http\Requests\P2PQueryRequest;
-use App\Core\Orchestrations\ProcureToPayOrchestration;
+use App\Consoles\Domain\P2PConsoleService;
+use App\Consoles\Http\Requests\P2PBulkActionRequest;
+use App\Consoles\Http\Requests\P2PFilterRequest;
 use App\Http\Controllers\Controller;
-use App\Modules\Procurement\Domain\Models\PurchaseOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use LogicException;
 
 class P2PController extends Controller
 {
-    public function index(P2PQueryRequest $request, ProcureToPayOrchestration $orchestration): View
+    public function index(P2PFilterRequest $request, P2PConsoleService $service): View
     {
-        $this->authorize('viewAny', PurchaseOrder::class);
+        $this->authorize('viewP2PConsole');
 
-        $query = P2PQuery::fromArray($request->validated());
-        $state = $orchestration->preview($query->toArray());
+        $companyId = currentCompanyId();
+        $state = $service->summary($companyId, $request->validated());
 
-        return view('consoles::p2p', [
+        return view('consoles::admin.p2p.index', [
             'state' => $state,
-            'filters' => $query->toArray(),
-            'module' => 'Consoles',
-            'page' => 'p2p',
         ]);
     }
 
-    public function execute(P2PActionRequest $request, string $step, ProcureToPayOrchestration $orchestration): RedirectResponse
+    public function action(P2PBulkActionRequest $request, P2PConsoleService $service): RedirectResponse
     {
-        $result = $orchestration->executeStep(
-            $step,
-            $request->validated(),
-            $request->header('X-Idempotency-Key')
-        );
+        $this->authorize('viewP2PConsole');
 
-        return back()->with($result->success ? 'success' : 'error', $result->message);
+        $companyId = currentCompanyId();
+        $action = $request->validated('action');
+        $ids = array_filter($request->validated('ids', []));
+        $warehouseId = $request->integer('warehouse_id');
+        $reason = $request->validated('reason');
+
+        try {
+            match ($action) {
+                'approve_pos' => $service->approvePurchaseOrders($companyId, $ids),
+                'po_to_grn' => $service->createReceiptsFromPurchaseOrders($companyId, $ids, $warehouseId),
+                'receive_grn' => $service->receiveReceipts($companyId, $ids, $warehouseId),
+                'reconcile_grn' => $service->reconcileReceipts($companyId, $ids, $reason),
+                default => null,
+            };
+        } catch (LogicException $e) {
+            return back()->withErrors(['action' => $e->getMessage()]);
+        }
+
+        return back()->with('status', __('İşlem tamamlandı.'));
     }
 }
