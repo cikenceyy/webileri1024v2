@@ -21,6 +21,11 @@ Route::prefix('admin')
             Route::get('/', DashboardController::class)->name('dashboard');
             Route::post('logout', [LoginController::class, 'logout'])->name('auth.logout');
 
+            $settingsRoutes = base_path('app/Modules/Settings/Routes/admin.php');
+            if (file_exists($settingsRoutes)) {
+                require $settingsRoutes;
+            }
+
             Route::fallback(function () {
                 abort(404);
             });
