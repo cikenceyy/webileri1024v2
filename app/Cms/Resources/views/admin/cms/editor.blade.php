@@ -56,6 +56,7 @@
                     @csrf
                     <input type="hidden" name="page" value="{{ $pageKey }}">
                     <input type="hidden" name="preview_token" value="{{ $previewToken }}">
+
                     <div class="editor-panel" data-editor-panel="content">
                         <div class="locale-tabs" role="tablist">
                             @foreach($locales as $localeKey => $label)
@@ -64,14 +65,12 @@
                         </div>
                         <div class="locale-panels">
                             @foreach($locales as $localeKey => $label)
+                                @php($blockValues = data_get($content, "$localeKey.blocks", []))
                                 <div class="locale-panel @if($localeKey === $activeLocale) is-active @endif" data-locale-panel="{{ $localeKey }}">
                                     <p class="text-muted small mb-3">{{ __('EN boş bırakılırsa TR içeriği gösterilecektir.') }}</p>
                                     <div class="accordion" id="editor-blocks-{{ $localeKey }}">
                                         @foreach($pageConfig['blocks'] ?? [] as $blockKey => $definition)
-                                            @php
-                                                $isRepeater = !empty($definition['repeater']);
-                                                $items = data_get($content, "$localeKey.blocks.$blockKey", []);
-                                            @endphp
+                                            @php($isRepeater = !empty($definition['repeater']))
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header" id="heading-{{ $localeKey }}-{{ $blockKey }}">
                                                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $localeKey }}-{{ $blockKey }}" aria-expanded="true">
@@ -83,15 +82,18 @@
                                                         @if(!empty($definition['help']))
                                                             <p class="text-muted small mb-3">{{ $definition['help'] }}</p>
                                                         @endif
+
                                                         @if($isRepeater)
+                                                            @php($items = $blockValues[$blockKey] ?? [])
                                                             <div class="repeater" data-repeater data-block-key="{{ $blockKey }}" data-locale="{{ $localeKey }}">
                                                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                                                    <h3 class="h6 mb-0 text-uppercase text-muted">{{ $definition['label'] ?? ucfirst(str_replace('_', ' ', $blockKey)) }}</h3>
+                                                                    <strong class="small text-uppercase text-muted">{{ $definition['label'] ?? ucfirst(str_replace('_', ' ', $blockKey)) }}</strong>
                                                                     <button class="btn btn-sm btn-outline-primary" type="button" data-repeater-add>{{ __('Add item') }}</button>
                                                                 </div>
+
                                                                 <template data-repeater-template>
                                                                     <div class="repeater-item border rounded p-3 mb-3" data-repeater-item>
-                                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                        <div class="d-flex justify-content-between align-items-start mb-2">
                                                                             <strong class="small text-uppercase text-muted">{{ __('Item') }}</strong>
                                                                             <div class="btn-group btn-group-sm" role="group">
                                                                                 <button class="btn btn-outline-secondary" type="button" data-repeater-up aria-label="{{ __('Move up') }}">&uarr;</button>
@@ -99,23 +101,18 @@
                                                                                 <button class="btn btn-outline-danger" type="button" data-repeater-remove>{{ __('Remove') }}</button>
                                                                             </div>
                                                                         </div>
-                                                                        @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
-                                                                            <div class="mb-3">
-                                                                                <label class="form-label small text-uppercase">{{ $fieldDefinition['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)) }}</label>
-                                                                                @include('cms::admin.cms.partials.field', [
-                                                                                    'type' => $fieldDefinition['type'] ?? 'text',
-                                                                                    'name' => "content[{$localeKey}][{$blockKey}][__INDEX__][{$fieldKey}]",
-                                                                                    'value' => null,
-                                                                                    'meta' => $fieldDefinition,
-                                                                                ])
-                                                                            </div>
-                                                                        @endforeach
+                                                                        @include('cms::admin.cms.partials.repeater-fields', [
+                                                                            'fields' => $definition['fields'] ?? [],
+                                                                            'namePrefix' => "content[{$localeKey}][{$blockKey}][__INDEX__]",
+                                                                            'values' => [],
+                                                                        ])
                                                                     </div>
                                                                 </template>
+
                                                                 <div class="repeater-items" data-repeater-items>
                                                                     @forelse($items as $index => $item)
                                                                         <div class="repeater-item border rounded p-3 mb-3" data-repeater-item>
-                                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                            <div class="d-flex justify-content-between align-items-start mb-2">
                                                                                 <strong class="small text-uppercase text-muted">{{ __('Item') }} #{{ $loop->iteration }}</strong>
                                                                                 <div class="btn-group btn-group-sm" role="group">
                                                                                     <button class="btn btn-outline-secondary" type="button" data-repeater-up aria-label="{{ __('Move up') }}">&uarr;</button>
@@ -123,17 +120,11 @@
                                                                                     <button class="btn btn-outline-danger" type="button" data-repeater-remove>{{ __('Remove') }}</button>
                                                                                 </div>
                                                                             </div>
-                                                                            @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label small text-uppercase">{{ $fieldDefinition['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)) }}</label>
-                                                                                    @include('cms::admin.cms.partials.field', [
-                                                                                        'type' => $fieldDefinition['type'] ?? 'text',
-                                                                                        'name' => "content[{$localeKey}][{$blockKey}][{$index}][{$fieldKey}]",
-                                                                                        'value' => $item[$fieldKey] ?? null,
-                                                                                        'meta' => $fieldDefinition,
-                                                                                    ])
-                                                                                </div>
-                                                                            @endforeach
+                                                                            @include('cms::admin.cms.partials.repeater-fields', [
+                                                                                'fields' => $definition['fields'] ?? [],
+                                                                                'namePrefix' => "content[{$localeKey}][{$blockKey}][{$index}]",
+                                                                                'values' => $item,
+                                                                            ])
                                                                         </div>
                                                                     @empty
                                                                         <p class="text-muted small" data-repeater-empty>{{ __('No items yet.') }}</p>
@@ -141,17 +132,11 @@
                                                                 </div>
                                                             </div>
                                                         @else
-                                                            @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
-                                                                <div class="mb-3">
-                                                                    <label class="form-label">{{ $fieldDefinition['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)) }}</label>
-                                                                    @include('cms::admin.cms.partials.field', [
-                                                                        'type' => $fieldDefinition['type'] ?? 'text',
-                                                                        'name' => "content[{$localeKey}][{$blockKey}][{$fieldKey}]",
-                                                                        'value' => $fields[$fieldKey] ?? null,
-                                                                        'meta' => $fieldDefinition,
-                                                                    ])
-                                                                </div>
-                                                            @endforeach
+                                                            @include('cms::admin.cms.partials.repeater-fields', [
+                                                                'fields' => $definition['fields'] ?? [],
+                                                                'namePrefix' => "content[{$localeKey}][{$blockKey}]",
+                                                                'values' => $blockValues[$blockKey] ?? [],
+                                                            ])
                                                         @endif
                                                     </div>
                                                 </div>
@@ -162,12 +147,15 @@
                             @endforeach
                         </div>
                     </div>
+
                     <div class="editor-panel" data-editor-panel="seo" hidden>
                         @include('cms::admin.cms.seo', ['locales' => $locales, 'seo' => $seoData])
                     </div>
+
                     <div class="editor-panel" data-editor-panel="scripts" hidden>
                         @include('cms::admin.cms.scripts', ['locales' => $locales, 'scripts' => $scripts])
                     </div>
+
                     <div class="editor-panel" data-editor-panel="emails" hidden>
                         <div class="card shadow-sm">
                             <div class="card-body">
