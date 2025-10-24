@@ -112,7 +112,7 @@ class AdminSidebar
                         'pattern' => 'admin/logistics*',
                         'children' => [
                             ['label' => 'Sevkiyatlar', 'route' => 'admin.logistics.shipments.index', 'pattern' => 'admin/logistics/shipments*'],
-                            ['label' => 'Teslimat Raporu', 'route' => 'admin.logistics.reports.register', 'pattern' => 'admin/logistics/reports/register*'],
+                            ['label' => 'Mal Kabul (GRN)', 'route' => 'admin.logistics.receipts.index', 'pattern' => 'admin/logistics/receipts*'],
                         ],
                     ],
                     [

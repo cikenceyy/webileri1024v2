@@ -16,4 +16,8 @@ return [
         'returns' => true,
         'pricelists_bulk_update' => true,
     ],
+    'logistics' => [
+        'print' => true,
+        'variance_reason_codes' => true,
+    ],
 ];

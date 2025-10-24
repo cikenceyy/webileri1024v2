@@ -15,6 +15,7 @@ class SettingsDTO implements Arrayable
      *     receipt_prefix:string,
      *     order_prefix:string,
      *     shipment_prefix:string,
+     *     grn_prefix:string,
      *     work_order_prefix:string,
      *     padding:int,
      *     reset_policy:string
@@ -25,11 +26,14 @@ class SettingsDTO implements Arrayable
      *     price_list_id:int|null,
      *     tax_inclusive:bool,
      *     production_issue_warehouse_id:int|null,
-     *     production_receipt_warehouse_id:int|null
+     *     production_receipt_warehouse_id:int|null,
+     *     shipment_warehouse_id:int|null,
+     *     receipt_warehouse_id:int|null
      * } $defaults
      * @param array{
      *     invoice_print_template:string|null,
-     *     shipment_note_template:string|null
+     *     shipment_note_template:string|null,
+     *     grn_note_template:string|null
      * } $documents
      * @param array{
      *     company_locale:string,
@@ -63,6 +67,7 @@ class SettingsDTO implements Arrayable
                 'receipt_prefix' => 'RCPT',
                 'order_prefix' => 'ORD',
                 'shipment_prefix' => 'SHP',
+                'grn_prefix' => 'GRN',
                 'work_order_prefix' => 'WO',
                 'padding' => 6,
                 'reset_policy' => 'yearly',
@@ -74,10 +79,13 @@ class SettingsDTO implements Arrayable
                 'tax_inclusive' => false,
                 'production_issue_warehouse_id' => null,
                 'production_receipt_warehouse_id' => null,
+                'shipment_warehouse_id' => null,
+                'receipt_warehouse_id' => null,
             ],
             documents: [
                 'invoice_print_template' => null,
                 'shipment_note_template' => null,
+                'grn_note_template' => null,
             ],
             general: [
                 'company_locale' => 'tr_TR',
@@ -167,6 +175,7 @@ class SettingsDTO implements Arrayable
      *     receipt_prefix:string,
      *     order_prefix:string,
      *     shipment_prefix:string,
+     *     grn_prefix:string,
      *     padding:int,
      *     reset_policy:string
      * }
@@ -178,6 +187,7 @@ class SettingsDTO implements Arrayable
             'receipt_prefix' => (string) ($data['receipt_prefix'] ?? 'RCPT'),
             'order_prefix' => (string) ($data['order_prefix'] ?? 'ORD'),
             'shipment_prefix' => (string) ($data['shipment_prefix'] ?? 'SHP'),
+            'grn_prefix' => (string) ($data['grn_prefix'] ?? 'GRN'),
             'work_order_prefix' => (string) ($data['work_order_prefix'] ?? 'WO'),
             'padding' => (int) ($data['padding'] ?? 6),
             'reset_policy' => (string) ($data['reset_policy'] ?? 'yearly'),
@@ -190,7 +200,11 @@ class SettingsDTO implements Arrayable
      *     payment_terms_days:int,
      *     warehouse_id:int|null,
      *     price_list_id:int|null,
-     *     tax_inclusive:bool
+     *     tax_inclusive:bool,
+     *     production_issue_warehouse_id:int|null,
+     *     production_receipt_warehouse_id:int|null,
+     *     shipment_warehouse_id:int|null,
+     *     receipt_warehouse_id:int|null
      * }
      */
     protected static function normalizeDefaults(array $data): array
@@ -202,18 +216,21 @@ class SettingsDTO implements Arrayable
             'tax_inclusive' => (bool) ($data['tax_inclusive'] ?? false),
             'production_issue_warehouse_id' => isset($data['production_issue_warehouse_id']) ? (int) $data['production_issue_warehouse_id'] : null,
             'production_receipt_warehouse_id' => isset($data['production_receipt_warehouse_id']) ? (int) $data['production_receipt_warehouse_id'] : null,
+            'shipment_warehouse_id' => isset($data['shipment_warehouse_id']) ? (int) $data['shipment_warehouse_id'] : null,
+            'receipt_warehouse_id' => isset($data['receipt_warehouse_id']) ? (int) $data['receipt_warehouse_id'] : null,
         ];
     }
 
     /**
      * @param array<string, mixed> $data
-     * @return array{invoice_print_template:string|null,shipment_note_template:string|null}
+     * @return array{invoice_print_template:string|null,shipment_note_template:string|null,grn_note_template:string|null}
      */
     protected static function normalizeDocuments(array $data): array
     {
         return [
             'invoice_print_template' => isset($data['invoice_print_template']) ? (string) $data['invoice_print_template'] : null,
             'shipment_note_template' => isset($data['shipment_note_template']) ? (string) $data['shipment_note_template'] : null,
+            'grn_note_template' => isset($data['grn_note_template']) ? (string) $data['grn_note_template'] : null,
         ];
     }
 

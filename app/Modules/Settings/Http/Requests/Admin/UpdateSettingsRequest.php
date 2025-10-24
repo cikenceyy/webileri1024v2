@@ -39,6 +39,7 @@ class UpdateSettingsRequest extends FormRequest
             'sequencing.invoice_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
             'sequencing.order_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
             'sequencing.shipment_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
+            'sequencing.grn_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
             'sequencing.work_order_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
             'sequencing.padding' => ['required', 'integer', 'min:3', 'max:8'],
             'sequencing.reset_policy' => ['required', Rule::in(['never', 'yearly'])],
@@ -48,8 +49,11 @@ class UpdateSettingsRequest extends FormRequest
             'defaults.tax_inclusive' => ['required', 'boolean'],
             'defaults.production_issue_warehouse_id' => ['nullable', 'integer', $warehouseRule],
             'defaults.production_receipt_warehouse_id' => ['nullable', 'integer', $warehouseRule],
+            'defaults.shipment_warehouse_id' => ['nullable', 'integer', $warehouseRule],
+            'defaults.receipt_warehouse_id' => ['nullable', 'integer', $warehouseRule],
             'documents.invoice_print_template' => ['nullable', 'string', 'max:191'],
             'documents.shipment_note_template' => ['nullable', 'string', 'max:191'],
+            'documents.grn_note_template' => ['nullable', 'string', 'max:191'],
             'general.company_locale' => ['required', 'string', 'max:10', 'regex:/^[a-z]{2}[_-][A-Z]{2}$/'],
             'general.timezone' => ['required', 'string', 'timezone:all'],
             'general.decimal_precision' => ['required', 'integer', Rule::in([2, 3])],
@@ -87,7 +91,7 @@ class UpdateSettingsRequest extends FormRequest
 
         $defaults = $this->input('defaults', []);
         $defaults['tax_inclusive'] = filter_var($defaults['tax_inclusive'] ?? false, FILTER_VALIDATE_BOOL);
-        foreach (['warehouse_id', 'price_list_id', 'production_issue_warehouse_id', 'production_receipt_warehouse_id'] as $key) {
+        foreach (['warehouse_id', 'price_list_id', 'production_issue_warehouse_id', 'production_receipt_warehouse_id', 'shipment_warehouse_id', 'receipt_warehouse_id'] as $key) {
             if (array_key_exists($key, $defaults) && $defaults[$key] === '') {
                 $defaults[$key] = null;
             }

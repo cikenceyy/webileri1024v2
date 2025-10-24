@@ -18,6 +18,7 @@
         'invoice_prefix' => 'INV',      // A-Z0-9 ve -_/ karakterleri
         'order_prefix' => 'ORD',
         'shipment_prefix' => 'SHP',
+        'grn_prefix' => 'GRN',
         'work_order_prefix' => 'WO',
         'padding' => 6,                 // 3-8 arası
         'reset_policy' => 'yearly',     // yearly | never
@@ -29,10 +30,13 @@
         'tax_inclusive' => false,
         'production_issue_warehouse_id' => null,
         'production_receipt_warehouse_id' => null,
+        'shipment_warehouse_id' => null,
+        'receipt_warehouse_id' => null,
     ],
     'documents' => [
         'invoice_print_template' => null,
         'shipment_note_template' => null,
+        'grn_note_template' => null,
     ],
     'general' => [
         'company_locale' => 'tr_TR',

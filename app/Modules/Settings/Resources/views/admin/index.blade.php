@@ -149,6 +149,13 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <x-ui-input
+                                        name="sequencing[grn_prefix]"
+                                        label="{{ __('GRN Prefix') }}"
+                                        value="{{ old('sequencing.grn_prefix', $sequencing['grn_prefix'] ?? 'GRN') }}"
+                                    />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <x-ui-input
                                         name="sequencing[work_order_prefix]"
                                         label="{{ __('İş Emri Prefix') }}"
                                         value="{{ old('sequencing.work_order_prefix', $sequencing['work_order_prefix'] ?? 'WO') }}"
@@ -221,6 +228,22 @@
                                         help="{{ __('Üretim tamamlandığında kullanılacak depo kimliği.') }}"
                                     />
                                 </div>
+                                <div class="col-12 col-md-4">
+                                    <x-ui-input
+                                        name="defaults[shipment_warehouse_id]"
+                                        label="{{ __('Sevkiyat Varsayılan Depo ID') }}"
+                                        value="{{ old('defaults.shipment_warehouse_id', $defaults['shipment_warehouse_id'] ?? '') }}"
+                                        help="{{ __('Sevkiyat oluştururken kullanılacak depo kimliği.') }}"
+                                    />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <x-ui-input
+                                        name="defaults[receipt_warehouse_id]"
+                                        label="{{ __('GRN Varsayılan Depo ID') }}"
+                                        value="{{ old('defaults.receipt_warehouse_id', $defaults['receipt_warehouse_id'] ?? '') }}"
+                                        help="{{ __('Mal kabul işlemlerinde kullanılacak depo kimliği.') }}"
+                                    />
+                                </div>
                                 <div class="col-12 col-md-4 d-flex align-items-end">
                                     <div class="w-100">
                                         <input type="hidden" name="defaults[tax_inclusive]" value="0">
@@ -250,6 +273,13 @@
                                         name="documents[shipment_note_template]"
                                         label="{{ __('Sevkiyat Notu Şablon Kodu') }}"
                                         value="{{ old('documents.shipment_note_template', $documents['shipment_note_template']) }}"
+                                    />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <x-ui-input
+                                        name="documents[grn_note_template]"
+                                        label="{{ __('GRN Şablon Kodu') }}"
+                                        value="{{ old('documents.grn_note_template', $documents['grn_note_template'] ?? '') }}"
                                     />
                                 </div>
                                 <div class="col-12">
