@@ -12,6 +12,7 @@
 @endpush
 
 @section('content')
+
     @php
         use App\Modules\Drive\Domain\Models\Media;
         use Illuminate\Support\Str;
@@ -51,6 +52,17 @@
 
         $activeCategory = in_array($tab, array_keys($categories), true) ? $tab : Media::CATEGORY_DOCUMENTS;
 
+        $moduleLabels = Media::moduleOptions();
+        $moduleOptions = collect($moduleLabels)
+            ->map(fn($label, $slug) => ['value' => $slug, 'label' => $label])
+            ->values()
+            ->all();
+        $defaultModule = array_key_first($moduleLabels) ?? Media::MODULE_DEFAULT;
+        $activeModule = Str::startsWith($tab, 'module_') ? Str::after($tab, 'module_') : $defaultModule;
+        if (!array_key_exists($activeModule, $moduleLabels)) {
+            $activeModule = $defaultModule;
+        }
+
         $categoryLimits = collect($categoryConfig ?? [])->mapWithKeys(
             fn($config, $key) => [
                 $key => [
@@ -63,31 +75,92 @@
         $totalCount = $mediaItems->total();
         $activeTabLabel = $tabs[$tab] ?? 'Tümü';
 
-        $folderGroups = [
-            'Sık Kullanılanlar' => array_values(array_filter(['recent', 'important'], fn ($key) => array_key_exists($key, $tabs))),
-            'Kategoriler' => array_values(array_filter(array_keys($categories), fn ($key) => array_key_exists($key, $tabs))),
+        $moduleIcons = [
+            Media::MODULE_CMS => 'bi bi-layout-text-window',
+            Media::MODULE_MARKETING => 'bi bi-megaphone',
+            Media::MODULE_FINANCE => 'bi bi-cash-stack',
+            Media::MODULE_LOGISTICS => 'bi bi-truck',
+            Media::MODULE_INVENTORY => 'bi bi-boxes',
+            Media::MODULE_PRODUCTION => 'bi bi-gear-wide-connected',
+            Media::MODULE_HR => 'bi bi-people',
         ];
 
+        $quickGroups = [
+            [
+                'title' => 'Son Yüklenenler',
+                'items' => [
+                    ['key' => 'recent_documents', 'label' => 'Belgeler', 'icon' => 'bi bi-file-earmark-text'],
+                    ['key' => 'recent_media', 'label' => 'Medya', 'icon' => 'bi bi-image'],
+                ],
+            ],
+            [
+                'title' => 'Önemliler',
+                'items' => [
+                    ['key' => 'important_documents', 'label' => 'Belgeler', 'icon' => 'bi bi-star-fill'],
+                    ['key' => 'important_media', 'label' => 'Medya', 'icon' => 'bi bi-star-fill'],
+                ],
+            ],
+        ];
+
+        $moduleGroup = [
+            'title' => 'Modüller',
+            'items' => collect($moduleLabels)
+                ->map(
+                    fn($label, $slug) => [
+                        'key' => 'module_' . $slug,
+                        'label' => $label,
+                        'icon' => $moduleIcons[$slug] ?? 'bi bi-folder',
+                    ],
+                )
+                ->values()
+                ->all(),
+        ];
+
+        $folderGroups = collect(array_merge($quickGroups, [$moduleGroup]))
+            ->map(function ($group) use ($tabs) {
+                $items = collect($group['items'] ?? [])
+                    ->filter(fn($item) => array_key_exists($item['key'], $tabs))
+                    ->values()
+                    ->all();
+
+                return array_merge($group, ['items' => $items]);
+            })
+            ->filter(fn($group) => count($group['items']) > 0)
+            ->values()
+            ->all();
+
         $buildTabUrl = static function (string $key) use ($pickerMode) {
-            return route('admin.drive.media.index', array_filter([
-                'tab' => $key,
-                'picker' => $pickerMode ? 1 : null,
-                'q' => request('q'),
-                'ext' => request('ext'),
-                'mime' => request('mime'),
-                'uploader' => request('uploader'),
-                'date_from' => request('date_from'),
-                'date_to' => request('date_to'),
-                'size_min' => request('size_min'),
-                'size_max' => request('size_max'),
-                'sort' => request('sort'),
-                'dir' => request('dir'),
-            ]));
+            return route(
+                'admin.drive.media.index',
+                array_filter([
+                    'tab' => $key,
+                    'picker' => $pickerMode ? 1 : null,
+                    'q' => request('q'),
+                    'ext' => request('ext'),
+                    'mime' => request('mime'),
+                    'uploader' => request('uploader'),
+                    'date_from' => request('date_from'),
+                    'date_to' => request('date_to'),
+                    'size_min' => request('size_min'),
+                    'size_max' => request('size_max'),
+                    'sort' => request('sort'),
+                    'dir' => request('dir'),
+                ]),
+            );
         };
 
         $folderIcons = [
-            'recent' => 'bi bi-clock-history',
-            'important' => 'bi bi-star-fill',
+            'recent_documents' => 'bi bi-file-earmark-text',
+            'recent_media' => 'bi bi-image',
+            'important_documents' => 'bi bi-star-fill',
+            'important_media' => 'bi bi-star-fill',
+            'module_' . Media::MODULE_CMS => $moduleIcons[Media::MODULE_CMS] ?? 'bi bi-folder',
+            'module_' . Media::MODULE_MARKETING => $moduleIcons[Media::MODULE_MARKETING] ?? 'bi bi-folder',
+            'module_' . Media::MODULE_FINANCE => $moduleIcons[Media::MODULE_FINANCE] ?? 'bi bi-folder',
+            'module_' . Media::MODULE_LOGISTICS => $moduleIcons[Media::MODULE_LOGISTICS] ?? 'bi bi-folder',
+            'module_' . Media::MODULE_INVENTORY => $moduleIcons[Media::MODULE_INVENTORY] ?? 'bi bi-folder',
+            'module_' . Media::MODULE_PRODUCTION => $moduleIcons[Media::MODULE_PRODUCTION] ?? 'bi bi-folder',
+            'module_' . Media::MODULE_HR => $moduleIcons[Media::MODULE_HR] ?? 'bi bi-folder',
             Media::CATEGORY_DOCUMENTS => 'bi bi-file-earmark-text',
             Media::CATEGORY_MEDIA_PRODUCTS => 'bi bi-box-seam',
             Media::CATEGORY_MEDIA_CATALOGS => 'bi bi-book',
@@ -99,9 +172,10 @@
         $storageLimit = (int) ($storage['limit'] ?? 0);
         $storageUsed = (int) ($storage['used'] ?? 0);
         $storageRemaining = max($storageLimit - $storageUsed, 0);
-        $storagePercent = $storageLimit > 0
-            ? min(100, max(0, (float) ($storage['percentage'] ?? (($storageUsed / max($storageLimit, 1)) * 100))))
-            : 0;
+        $storagePercent =
+            $storageLimit > 0
+                ? min(100, max(0, (float) ($storage['percentage'] ?? ($storageUsed / max($storageLimit, 1)) * 100)))
+                : 0;
 
     @endphp
 
@@ -109,6 +183,7 @@
         data-drive-root data-drive-total="{{ $totalCount }}"
         data-drive-page-size="{{ $mediaItems->perPage() }}" data-drive-search-url="{{ route('admin.drive.media.index') }}"
         data-drive-active-tab="{{ $tab }}" data-category-default="{{ $activeCategory }}"
+        data-module-default="{{ $defaultModule }}" data-module-active="{{ $activeModule }}"
         data-category-limits='@json($categoryLimits)' data-picker-mode="{{ $pickerMode ? '1' : '0' }}"
         data-upload-url="{{ route('admin.drive.media.store') }}"
         data-upload-many-url="{{ route('admin.drive.media.store_many') }}"
@@ -140,32 +215,37 @@
                     </div>
 
                     <ul class="drive-tree__groups">
-                        @foreach ($folderGroups as $groupTitle => $keys)
-                            @if (count($keys))
-                                @php
-                                    $groupId = 'drive-tree-' . Str::slug($groupTitle) . '-' . $loop->index;
-                                @endphp
+                        @foreach ($folderGroups as $groupIndex => $group)
+                            @php
+                                $groupTitle = $group['title'] ?? 'Klasör';
+                                $items = $group['items'] ?? [];
+                                $groupId = 'drive-tree-' . Str::slug($groupTitle) . '-' . $groupIndex;
+                            @endphp
+                            @if (count($items))
                                 <li class="drive-tree__group" data-drive-tree-item>
-                                    <div class="drive-tree__toggle" aria-controls="{{ $groupId }}">
+                                    <button class="drive-tree__toggle" type="button" aria-controls="{{ $groupId }}" aria-expanded="true" data-drive-tree-toggle>
                                         <span class="drive-tree__toggle-label">{{ $groupTitle }}</span>
-                                    </div>
+                                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                    </button>
                                     <ul class="drive-tree__panel" id="{{ $groupId }}" data-drive-tree-panel role="group" aria-hidden="false">
-                                        @foreach ($keys as $key)
+                                        @foreach ($items as $item)
                                             @php
+                                                $key = $item['key'];
+                                                $label = $item['label'] ?? ($tabs[$key] ?? ucfirst($key));
+                                                $iconClass = $item['icon'] ?? ($folderIcons[$key] ?? $folderIcons['default']);
                                                 $isActive = $tab === $key;
                                                 $folderStat = $stats[$key] ?? ['total' => 0];
                                                 $importantCount = $folderStat['important'] ?? null;
-                                                $icon = $folderIcons[$key] ?? $folderIcons['default'];
                                                 $itemUrl = $buildTabUrl($key);
                                             @endphp
                                             <li class="drive-tree__item">
-                                                <a href="{{ $itemUrl }}" class="drive-tree__link {{ $isActive ? 'is-active' : '' }}" data-drive-folder-link data-drive-folder="{{ $key }}" aria-current="{{ $isActive ? 'page' : 'false' }}" >
+                                                <a href="{{ $itemUrl }}" class="drive-tree__link {{ $isActive ? 'is-active' : '' }}" data-drive-folder-link data-drive-folder="{{ $key }}" aria-current="{{ $isActive ? 'page' : 'false' }}">
                                                     <span class="drive-tree__icon">
-                                                        <i class="{!! $icon !!}"> </i>
+                                                        <i class="{{ $iconClass }}" aria-hidden="true"></i>
                                                     </span>
                                                     <span class="drive-tree__info">
                                                         <span class="drive-tree__name">
-                                                            {{ $tabs[$key] ?? ucfirst($key) }}
+                                                            {{ $label }}
                                                         </span>
                                                         <span class="drive-tree__stats">
                                                             <span class="drive-tree__count">
@@ -236,7 +316,8 @@
                 <div class="drive__grid" data-drive-grid>
                     @forelse($mediaItems as $media)
                         @php
-                            $searchIndex = Str::lower($media->original_name . ' ' . $media->mime . ' ' . $media->ext);
+                            $moduleLabel = Media::moduleLabel($media->module);
+                            $searchIndex = Str::lower($media->original_name . ' ' . $media->mime . ' ' . $media->ext . ' ' . $media->module . ' ' . $moduleLabel);
                             $uploaderName = $media->uploader?->name ?? 'Sistem';
                             $importantTitleOn = 'Önemli işaretini kaldır';
                             $importantTitleOff = 'Önemli olarak işaretle';
@@ -249,6 +330,8 @@
                             data-mime="{{ Str::lower($media->mime) }}"
                             data-size="{{ (int) $media->size }}"
                             data-category="{{ $media->category }}"
+                            data-module="{{ $media->module }}"
+                            data-module-label="{{ Str::lower($moduleLabel ?? '') }}"
                             data-path="{{ $media->path }}"
                             data-important="{{ $media->is_important ? '1' : '0' }}"
                             data-download-url="{{ route('admin.drive.media.download', $media) }}"
@@ -269,6 +352,10 @@
                                                 · {{ $media->created_at?->diffForHumans() }}
                                                 <br/>
                                                 · {{ $formatSize($media->size) }}
+                                                @if ($moduleLabel)
+                                                    <br/>
+                                                    · {{ $moduleLabel }}
+                                                @endif
                                             </p>
                                         </div>
                                     </div>
@@ -360,8 +447,8 @@
                                     seçin. Aynı anda en fazla 10 dosya yüklenebilir.</p>
                             </div>
                             <div class="drive-upload__controls">
-                                <x-ui-select name="upload_category" label="Kategori" class="mb-0"
-                                    data-drive-category-select :options="$categories" :value="$activeCategory" />
+                                <x-ui-select name="module" label="Modül" class="mb-0"
+                                    data-drive-module-select :options="$moduleOptions" :value="$activeModule" />
                                 <x-ui-button variant="ghost" data-action="drive-close-upload">Kapat</x-ui-button>
                             </div>
                         </div>

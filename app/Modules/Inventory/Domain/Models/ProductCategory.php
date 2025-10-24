@@ -19,7 +19,13 @@ class ProductCategory extends Model
         'parent_id',
         'code',
         'name',
+        'slug',
         'status',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'bool',
     ];
 
     public function parent(): BelongsTo

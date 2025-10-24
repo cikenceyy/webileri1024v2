@@ -3,7 +3,6 @@
   align-items: center;
   gap: var(--ui-space-2);
   padding: 0.5rem 0.75rem;
-  border-radius: var(--ui-radius-pill);
   background: var(--ui-color-surface-alt);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-color-border) 60%, transparent);
 }
@@ -12,7 +11,6 @@
   appearance: none;
   width: 34px;
   height: 34px;
-  border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--ui-color-border) 70%, transparent);
   background: #fff;
   color: var(--ui-color-text);
@@ -33,7 +31,8 @@
   outline: none;
 }
 
-.ui-pagination__control:disabled {
+.ui-pagination__control:disabled,
+.ui-pagination__control.is-disabled {
   opacity: 0.4;
   cursor: not-allowed;
   background: color-mix(in srgb, var(--ui-color-border) 30%, transparent);
@@ -49,9 +48,11 @@
 }
 
 .ui-pagination__page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-width: 34px;
   height: 34px;
-  border-radius: 50%;
   border: none;
   background: transparent;
   color: var(--ui-color-text-subtle);
@@ -73,4 +74,17 @@
   background: var(--ui-color-primary);
   color: #fff;
   box-shadow: 0 6px 18px color-mix(in srgb, var(--ui-color-primary) 28%, transparent);
+}
+
+.ui-pagination__page.is-disabled {
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.ui-pagination__ellipsis {
+  min-width: 24px;
+  text-align: center;
+  color: var(--ui-color-text-muted);
+  font-weight: 600;
 }

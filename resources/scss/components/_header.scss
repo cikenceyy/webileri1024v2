@@ -145,7 +145,6 @@
   color: var(--ui-color-primary-strong);
   background: color-mix(in srgb, var(--ui-color-primary) 26%, transparent);
   border-color: color-mix(in srgb, var(--ui-color-primary) 40%, transparent);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
 }
 
 .ui-header__nav-link.is-active .ui-header__nav-icon {

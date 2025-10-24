@@ -2,7 +2,9 @@
 
 namespace App\Modules\Production\Providers;
 
+use App\Modules\Production\Domain\Models\Bom;
 use App\Modules\Production\Domain\Models\WorkOrder;
+use App\Modules\Production\Policies\BomPolicy;
 use App\Modules\Production\Policies\WorkOrderPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -23,5 +25,6 @@ class ProductionServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom($basePath . '/Database/migrations');
 
         Gate::policy(WorkOrder::class, WorkOrderPolicy::class);
+        Gate::policy(Bom::class, BomPolicy::class);
     }
 }

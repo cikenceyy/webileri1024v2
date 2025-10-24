@@ -11,7 +11,7 @@ use App\Cms\Http\Controllers\Site\RobotsController;
 use App\Cms\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['guest' , 'web'])->group(function () {
+Route::middleware(['web'])->group(function () {
     Route::get('/sitemap.xml', SitemapController::class)->name('cms.sitemap');
     Route::get('/robots.txt', RobotsController::class)->name('cms.robots');
 

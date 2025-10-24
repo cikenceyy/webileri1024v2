@@ -26,7 +26,7 @@ StepResult::failure(string $message, array $errors = [])
 | `so.confirm` | `order_id` | Siparişi `confirmed` durumuna geçirir, varsa stok rezervasyonu açar. |
 | `inv.allocate` | `order_id` | `StockService::reserveForOrder` ile rezervasyon tekrar çalıştırılır. |
 | `ship.dispatch` | `shipment_id` | `ShipmentService::ship` çağrılır, aksi halde status=`shipped`. |
-| `ar.invoice.post` | `order_id` | `BillingService::fromOrder` veya fallback ile fatura üretir. |
+| `ar.invoice.post` | `order_id` | Settings bazlı numaralandırma ile fatura oluşturur, satırları InvoiceCalculator hesaplar. |
 | `ar.payment.register` | `invoice_id`, `amount?`, `receipt_date?`, `bank_account_id?`, `notes?` | Tahsilat (`Receipt` + `Allocation`) kaydı yapar, bakiye güncellenir. |
 
 ### Procure-to-Pay (`ProcureToPayOrchestration`)
@@ -43,9 +43,9 @@ StepResult::failure(string $message, array $errors = [])
 | Step | Gerekli Alanlar | Açıklama |
 | --- | --- | --- |
 | `wo.release` | `order_id?`, `work_order_id?` | Siparişten iş emri üretir veya mevcut emri `released` yapar. |
-| `wo.issue.materials` | `work_order_id`, `materials[]?` (product_id, variant_id?, qty, unit?, notes?) | Malzeme çıkışı yapar, `WoMaterialIssue` oluşturur, iş emri `in_progress`. |
-| `wo.finish` | `work_order_id` | İş emrini `done` durumuna alır (veya `WoService::close`). |
-| `inv.receive.finished` | `work_order_id`, `qty?`, `notes?` | Ürün depoya alınır (`WoReceipt` + stok girişi). |
+| `wo.issue.materials` | `work_order_id`, `materials[]?` (component_product_id, component_variant_id?, qty, warehouse_id?, bin_id?) | Malzeme çıkışı yapar, `WorkOrderIssue` oluşturur, iş emri `in_progress`. |
+| `wo.finish` | `work_order_id`, `qty?`, `warehouse_id?`, `bin_id?` | `WorkOrderCompleter::post` ile üretim girişini stok defterine yazar ve iş emrini `completed` yapar. |
+| `wo.close` | `work_order_id` | Tamamlanan iş emri kapatılır, değişikliklere karşı kilitlenir. |
 
 ## Yetkilendirme & İzinler
 

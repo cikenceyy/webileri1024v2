@@ -80,6 +80,7 @@ class ProductProvider
                 'cover_image' => null,
                 'gallery' => [null, null, null],
                 'is_featured' => true,
+                'category' => 'assembly',
             ],
             [
                 'slug' => 'precision-pick-and-place',
@@ -95,6 +96,7 @@ class ProductProvider
                 'cover_image' => null,
                 'gallery' => [null, null],
                 'is_featured' => true,
+                'category' => 'robotics',
             ],
             [
                 'slug' => 'smart-buffer-system',
@@ -110,6 +112,7 @@ class ProductProvider
                 'cover_image' => null,
                 'gallery' => [null],
                 'is_featured' => false,
+                'category' => 'intralogistics',
             ],
         ];
 
@@ -124,6 +127,7 @@ class ProductProvider
                 'cover_image' => $product['cover_image'],
                 'gallery' => $product['gallery'],
                 'is_featured' => (bool) ($product['is_featured'] ?? false),
+                'category' => $product['category'] ?? 'all',
                 'updated_at' => now(),
             ];
         }, $stubs);

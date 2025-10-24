@@ -13,7 +13,7 @@
         : route('cms.en.home');
 @endphp
 <header class="site-header" data-module="sticky-header">
-    <div class="site-container">
+    <div class="container">
         <div class="site-header__inner cluster">
             <a href="{{ $isEn ? route('cms.en.home') : route('cms.home') }}" class="site-logo">{{ config('app.name') }}</a>
             <button class="site-nav__toggle" type="button" data-module="nav-toggle" aria-expanded="false" aria-controls="primary-navigation">

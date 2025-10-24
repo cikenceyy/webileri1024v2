@@ -3,8 +3,6 @@
 namespace App\Modules\Production\Domain\Models;
 
 use App\Core\Tenancy\Traits\BelongsToCompany;
-use App\Modules\Marketing\Domain\Models\Order;
-use App\Modules\Marketing\Domain\Models\OrderLine;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Model;
@@ -17,43 +15,31 @@ class WorkOrder extends Model
 
     protected $fillable = [
         'company_id',
-        'order_id',
-        'order_line_id',
+        'doc_no',
         'product_id',
         'variant_id',
-        'work_order_no',
-        'qty',
-        'unit',
+        'bom_id',
+        'target_qty',
+        'uom',
         'status',
-        'planned_start_date',
         'due_date',
+        'started_at',
+        'completed_at',
+        'source_type',
+        'source_id',
         'notes',
-        'closed_at',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:3',
-        'planned_start_date' => 'date',
+        'target_qty' => 'float',
         'due_date' => 'date',
-        'closed_at' => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
-    public static function generateNo(int $companyId): string
+    public function bom(): BelongsTo
     {
-        return next_number('WO', [
-            'prefix' => 'WO',
-            'reset_period' => 'monthly',
-        ], $companyId);
-    }
-
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class);
-    }
-
-    public function orderLine(): BelongsTo
-    {
-        return $this->belongsTo(OrderLine::class);
+        return $this->belongsTo(Bom::class);
     }
 
     public function product(): BelongsTo
@@ -66,13 +52,18 @@ class WorkOrder extends Model
         return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
 
-    public function materialIssues(): HasMany
+    public function issues(): HasMany
     {
-        return $this->hasMany(WoMaterialIssue::class);
+        return $this->hasMany(WorkOrderIssue::class)->orderBy('posted_at');
     }
 
     public function receipts(): HasMany
     {
-        return $this->hasMany(WoReceipt::class);
+        return $this->hasMany(WorkOrderReceipt::class)->orderBy('posted_at');
+    }
+
+    public function operations(): HasMany
+    {
+        return $this->hasMany(WorkOrderOperation::class)->orderBy('sort');
     }
 }

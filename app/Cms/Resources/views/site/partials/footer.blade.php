@@ -2,7 +2,7 @@
     $isEn = ($locale ?? app()->getLocale()) === 'en';
 @endphp
 <footer class="site-footer">
-    <div class="site-container">
+    <div class="container">
         <div class="site-footer__grid grid-auto">
             <div>
                 <h2 class="site-footer__brand">{{ config('app.name') }}</h2>

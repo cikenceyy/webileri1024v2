@@ -17,7 +17,7 @@ class PageController extends Controller
 
     public function index()
     {
-        return view('admin.cms.index', [
+        return view('cms::admin.cms.index', [
             'pages' => config('cms.pages'),
         ]);
     }
@@ -27,7 +27,7 @@ class PageController extends Controller
         $pageConfig = config('cms.pages.' . $page);
         abort_unless($pageConfig, 404);
 
-        return view('admin.cms.edit', [
+        return view('cms::admin.cms.edit', [
             'pageKey' => $page,
             'pageConfig' => $pageConfig,
             'content' => [

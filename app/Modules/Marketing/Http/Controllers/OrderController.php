@@ -2,6 +2,7 @@
 
 namespace App\Modules\Marketing\Http\Controllers;
 
+use App\Core\Contracts\SettingsReader;
 use App\Modules\Marketing\Domain\Models\Customer;
 use App\Modules\Marketing\Domain\Models\CustomerContact;
 use App\Modules\Marketing\Domain\Models\Order;
@@ -65,11 +66,18 @@ class OrderController extends \App\Http\Controllers\Controller
         ]);
     }
 
-    public function create(): View
+    public function create(SettingsReader $settingsReader): View
     {
+        $defaults = array_merge([
+            'price_list_id' => null,
+            'payment_terms_days' => 0,
+            'tax_inclusive' => false,
+        ], $settingsReader->getDefaults(currentCompanyId()));
+
         return view('marketing::orders.create', [
             'customers' => Customer::orderBy('name')->get(),
             'contacts' => CustomerContact::orderBy('name')->get(),
+            'settingsDefaults' => $defaults,
         ]);
     }
 
@@ -123,14 +131,21 @@ class OrderController extends \App\Http\Controllers\Controller
         ]);
     }
 
-    public function edit(Order $order): View
+    public function edit(Order $order, SettingsReader $settingsReader): View
     {
         $order->load(['lines' => fn ($q) => $q->orderBy('sort_order')]);
+
+        $defaults = array_merge([
+            'price_list_id' => null,
+            'payment_terms_days' => 0,
+            'tax_inclusive' => false,
+        ], $settingsReader->getDefaults(currentCompanyId()));
 
         return view('marketing::orders.edit', [
             'order' => $order,
             'customers' => Customer::orderBy('name')->get(),
             'contacts' => CustomerContact::orderBy('name')->get(),
+            'settingsDefaults' => $defaults,
         ]);
     }
 

@@ -46,81 +46,22 @@
                                     @if(!empty($definition['help']))
                                         <p class="text-muted small mb-3">{{ $definition['help'] }}</p>
                                     @endif
-                                    @if(!empty($definition['repeater']))
+
+                                    <div class="row g-4">
                                         @foreach($locales as $localeKey => $localeLabel)
-                                            @php $items = $content[$localeKey]['blocks'][$blockKey] ?? []; @endphp
-                                            <div class="mb-4" data-repeater="{{ $blockKey }}" data-locale="{{ $localeKey }}">
-                                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <h3 class="h6 mb-0">{{ $localeLabel }}</h3>
-                                                    <button class="btn btn-sm btn-outline-primary" type="button" data-repeater-add>
-                                                        {{ __('Add item') }}
-                                                    </button>
-                                                </div>
-                                                <template data-repeater-template>
-                                                    <div class="border rounded p-3 mb-3 repeater-item">
-                                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                                            <strong class="small text-uppercase text-muted">{{ __('Item') }}</strong>
-                                                            <button class="btn btn-sm btn-outline-danger" type="button" data-repeater-remove>{{ __('Remove') }}</button>
-                                                        </div>
-                                                        @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
-                                                            <div class="mb-3">
-                                                                <label class="form-label small text-uppercase">{{ $fieldDefinition['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)) }}</label>
-                                                                @include('cms::admin.cms.partials.field', [
-                                                                    'type' => $fieldDefinition['type'] ?? 'text',
-                                                                    'name' => "content[{$localeKey}][{$blockKey}][__INDEX__][{$fieldKey}]",
-                                                                    'value' => null,
-                                                                    'meta' => $fieldDefinition,
-                                                                ])
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </template>
-                                                <div class="repeater-items">
-                                                    @forelse($items as $index => $item)
-                                                        <div class="border rounded p-3 mb-3 repeater-item">
-                                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                                <strong class="small text-uppercase text-muted">{{ __('Item') }} #{{ $loop->iteration }}</strong>
-                                                                <button class="btn btn-sm btn-outline-danger" type="button" data-repeater-remove>{{ __('Remove') }}</button>
-                                                            </div>
-                                                            @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
-                                                                <div class="mb-3">
-                                                                    <label class="form-label small text-uppercase">{{ $fieldDefinition['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)) }}</label>
-                                                                    @include('cms::admin.cms.partials.field', [
-                                                                        'type' => $fieldDefinition['type'] ?? 'text',
-                                                                        'name' => "content[{$localeKey}][{$blockKey}][{$index}][{$fieldKey}]",
-                                                                        'value' => $item[$fieldKey] ?? null,
-                                                                        'meta' => $fieldDefinition,
-                                                                    ])
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @empty
-                                                        <p class="text-muted small">{{ __('No items yet.') }}</p>
-                                                    @endforelse
-                                                </div>
+                                            @php($blockValues = data_get($content, "$localeKey.blocks.$blockKey", []))
+                                            <div class="col-lg-6" data-block-locale="{{ $localeKey }}">
+                                                <h3 class="h6 text-uppercase text-muted mb-3">{{ $localeLabel }}</h3>
+                                                @include('cms::admin.cms.partials.block-fields', [
+                                                    'mode' => 'form',
+                                                    'definition' => $definition,
+                                                    'blockKey' => $blockKey,
+                                                    'localeKey' => $localeKey,
+                                                    'values' => $blockValues,
+                                                ])
                                             </div>
                                         @endforeach
-                                    @else
-                                        <div class="row g-4">
-                                            @foreach($locales as $localeKey => $localeLabel)
-                                                <div class="col-lg-6">
-                                                    <h3 class="h6 text-uppercase text-muted mb-3">{{ $localeLabel }}</h3>
-                                                    @php $fields = $content[$localeKey]['blocks'][$blockKey] ?? []; @endphp
-                                                    @foreach($definition['fields'] ?? [] as $fieldKey => $fieldDefinition)
-                                                        <div class="mb-3">
-                                                            <label class="form-label">{{ $fieldDefinition['label'] ?? ucfirst(str_replace('_', ' ', $fieldKey)) }}</label>
-                                                            @include('cms::admin.cms.partials.field', [
-                                                                'type' => $fieldDefinition['type'] ?? 'text',
-                                                                'name' => "content[{$localeKey}][{$blockKey}][{$fieldKey}]",
-                                                                'value' => $fields[$fieldKey] ?? null,
-                                                                'meta' => $fieldDefinition,
-                                                            ])
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -165,10 +106,10 @@
 
 @push('scripts')
     <script>
-        const container = document.querySelector('[data-tab-container]');
-        if (container) {
-            const buttons = container.querySelectorAll('[data-tab-target]');
-            const panels = container.querySelectorAll('[data-tab-panel]');
+        document.querySelectorAll('[data-tab-container]').forEach((container) => {
+            const buttons = Array.from(container.querySelectorAll('[data-tab-target]'));
+            const panels = Array.from(container.querySelectorAll('[data-tab-panel]'));
+
             buttons.forEach((button) => {
                 button.addEventListener('click', () => {
                     const target = button.getAttribute('data-tab-target');
@@ -178,32 +119,52 @@
                     });
                 });
             });
-        }
+        });
 
-        document.querySelectorAll('[data-repeater-add]').forEach((button) => {
-            button.addEventListener('click', function () {
-                const wrapper = this.closest('[data-repeater]');
-                const container = wrapper.querySelector('.repeater-items');
+        document.addEventListener('click', (event) => {
+            if (event.target.matches('[data-repeater-add]')) {
+                const wrapper = event.target.closest('[data-repeater]');
+                if (!wrapper) {
+                    return;
+                }
+
+                const container = wrapper.querySelector('[data-repeater-items]');
                 const template = wrapper.querySelector('[data-repeater-template]');
-                if (!container || !template) return;
+                if (!container || !template) {
+                    return;
+                }
 
                 const index = container.children.length;
                 const clone = template.content.cloneNode(true);
                 clone.querySelectorAll('[name]').forEach((input) => {
-                    const name = input.getAttribute('name');
-                    if (name) {
-                        input.setAttribute('name', name.replace('__INDEX__', index));
+                    const original = input.getAttribute('name');
+                    if (original) {
+                        input.setAttribute('name', original.replace('__INDEX__', index));
                     }
                 });
                 container.appendChild(clone);
-            });
-        });
 
-        document.addEventListener('click', (event) => {
+                const emptyState = wrapper.querySelector('[data-repeater-empty]');
+                if (emptyState) {
+                    emptyState.classList.add('d-none');
+                }
+            }
+
             if (event.target.matches('[data-repeater-remove]')) {
-                const item = event.target.closest('.repeater-item');
-                if (item) {
-                    item.remove();
+                const item = event.target.closest('[data-repeater-item]');
+                if (!item) {
+                    return;
+                }
+                const wrapper = event.target.closest('[data-repeater]');
+                item.remove();
+                if (wrapper) {
+                    const container = wrapper.querySelector('[data-repeater-items]');
+                    if (container && container.children.length === 0) {
+                        const emptyState = wrapper.querySelector('[data-repeater-empty]');
+                        if (emptyState) {
+                            emptyState.classList.remove('d-none');
+                        }
+                    }
                 }
             }
         });
