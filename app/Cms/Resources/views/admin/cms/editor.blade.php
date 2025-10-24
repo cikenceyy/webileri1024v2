@@ -147,7 +147,7 @@
                                                                     @include('cms::admin.cms.partials.field', [
                                                                         'type' => $fieldDefinition['type'] ?? 'text',
                                                                         'name' => "content[{$localeKey}][{$blockKey}][{$fieldKey}]",
-                                                                        'value' => $items[$fieldKey] ?? null,
+                                                                        'value' => $fields[$fieldKey] ?? null,
                                                                         'meta' => $fieldDefinition,
                                                                     ])
                                                                 </div>
