@@ -32,6 +32,10 @@ class StoreManyMediaRequest extends FormRequest
                     Media::CATEGORY_PAGES,
                 ]),
             ],
+            'module' => [
+                'required',
+                Rule::in(Media::moduleKeys()),
+            ],
             'files' => ['required', 'array', 'min:1', 'max:10'],
             'files.*' => array_filter([
                 'required',
@@ -50,6 +54,10 @@ class StoreManyMediaRequest extends FormRequest
                 'category' => strtolower((string) $this->input('category')),
             ]);
         }
+
+        $this->merge([
+            'module' => strtolower((string) ($this->input('module') ?: Media::MODULE_DEFAULT)),
+        ]);
     }
 
     public function withValidator($validator): void

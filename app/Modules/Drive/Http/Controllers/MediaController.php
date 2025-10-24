@@ -60,7 +60,7 @@ class MediaController extends Controller
             'stats' => $stats,
             'tabs' => $tabs,
             'pickerMode' => $pickerMode,
-            'filters' => $request->only(['q', 'uploader', 'ext', 'mime', 'date_from', 'date_to', 'size_min', 'size_max', 'category']),
+            'filters' => $request->only(['q', 'uploader', 'ext', 'mime', 'date_from', 'date_to', 'size_min', 'size_max', 'category', 'module']),
             'categoryConfig' => config('drive.categories', []),
             'globalMaxBytes' => (int) config('drive.max_upload_bytes', 50 * 1024 * 1024),
             'storage' => $storage,
@@ -70,10 +70,12 @@ class MediaController extends Controller
     public function store(StoreMediaRequest $request)
     {
         $companyId = (int) $request->attributes->get('company_id');
+        $data = $request->validated();
         $file = $request->file('file');
-        $category = $request->validated()['category'];
+        $category = $data['category'];
+        $module = $data['module'] ?? Media::MODULE_DEFAULT;
 
-        $media = $this->persistUploadedFile($file, $category, $companyId);
+        $media = $this->persistUploadedFile($file, $category, $companyId, $module);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -91,7 +93,9 @@ class MediaController extends Controller
     public function storeMany(StoreManyMediaRequest $request): JsonResponse
     {
         $companyId = (int) $request->attributes->get('company_id');
-        $category = $request->validated()['category'];
+        $data = $request->validated();
+        $category = $data['category'];
+        $module = $data['module'] ?? Media::MODULE_DEFAULT;
         $files = $request->file('files', []);
 
         $results = [
@@ -102,7 +106,7 @@ class MediaController extends Controller
 
         foreach ($files as $file) {
             try {
-                $media = $this->persistUploadedFile($file, $category, $companyId);
+                $media = $this->persistUploadedFile($file, $category, $companyId, $module);
                 $results['uploaded'][] = $this->serializeMedia($media);
             } catch (\Throwable $exception) {
                 report($exception);
@@ -231,14 +235,28 @@ class MediaController extends Controller
 
     protected function applyTabFilter($query, string $tab)
     {
+        $documentCategories = Media::documentCategories();
+        $mediaCategories = Media::mediaCategories();
+
+        if (str_starts_with($tab, 'module_')) {
+            $module = Str::after($tab, 'module_');
+            if (in_array($module, Media::moduleKeys(), true)) {
+                return $query->where('module', $module)->orderByDesc('created_at');
+            }
+        }
+
         return match ($tab) {
+            'recent_documents' => $query->whereIn('category', $documentCategories)->orderByDesc('created_at'),
+            'recent_media' => $query->whereIn('category', $mediaCategories)->orderByDesc('created_at'),
+            'important_documents' => $query->whereIn('category', $documentCategories)->where('is_important', true)->orderByDesc('created_at'),
+            'important_media' => $query->whereIn('category', $mediaCategories)->where('is_important', true)->orderByDesc('created_at'),
             'recent' => $query->where('created_at', '>=', now()->subDays(30))->orderByDesc('created_at'),
             'important' => $query->where('is_important', true)->orderByDesc('created_at'),
             Media::CATEGORY_DOCUMENTS,
             Media::CATEGORY_MEDIA_PRODUCTS,
             Media::CATEGORY_MEDIA_CATALOGS,
             Media::CATEGORY_PAGES => $query->where('category', $tab)->orderByDesc('created_at'),
-            default => $query->where('category', Media::CATEGORY_DOCUMENTS)->orderByDesc('created_at'),
+            default => $query->whereIn('category', $documentCategories)->orderByDesc('created_at'),
         };
     }
 
@@ -263,6 +281,13 @@ class MediaController extends Controller
 
         $query->when($request->filled('mime'), function ($q) use ($request) {
             $q->where('mime', strtolower($request->input('mime')));
+        });
+
+        $query->when($request->filled('module'), function ($q) use ($request) {
+            $module = strtolower((string) $request->input('module'));
+            if (in_array($module, Media::moduleKeys(), true)) {
+                $q->where('module', $module);
+            }
         });
 
         $query->when($request->filled('date_from'), function ($q) use ($request) {
@@ -317,29 +342,68 @@ class MediaController extends Controller
         }
 
         $allowed = array_keys($this->tabDefinitions());
+        if (in_array($tab, $allowed, true)) {
+            return $tab;
+        }
 
-        return in_array($tab, $allowed, true) ? $tab : Media::CATEGORY_DOCUMENTS;
+        $aliases = [
+            'recent' => 'recent_documents',
+            'important' => 'important_documents',
+        ];
+
+        if (isset($aliases[$tab])) {
+            return $aliases[$tab];
+        }
+
+        return 'recent_documents';
     }
 
     protected function tabDefinitions(): array
     {
-        return [
-            'recent' => 'Son Yüklenenler',
-            'important' => 'Önemli',
+        $definitions = [
+            'recent_documents' => 'Son Yüklenenler · Belgeler',
+            'recent_media' => 'Son Yüklenenler · Medya',
+            'important_documents' => 'Önemliler · Belgeler',
+            'important_media' => 'Önemliler · Medya',
+        ];
+
+        $definitions = array_merge($definitions, $this->moduleDefinitions());
+
+        $definitions += [
             Media::CATEGORY_DOCUMENTS => 'Belgeler',
             Media::CATEGORY_MEDIA_PRODUCTS => 'Ürün Görselleri',
             Media::CATEGORY_MEDIA_CATALOGS => 'Katalog İçerikleri',
             Media::CATEGORY_PAGES => 'Sayfa Dosyaları',
+            'recent' => 'Son Yüklenenler',
+            'important' => 'Önemli',
         ];
+
+        return $definitions;
     }
 
     protected function buildStats(): array
     {
         $base = Media::query();
+        $documentCategories = Media::documentCategories();
+        $mediaCategories = Media::mediaCategories();
 
         $stats = [
-            'recent' => ['total' => (clone $base)->where('created_at', '>=', now()->subDays(30))->count()],
-            'important' => ['total' => (clone $base)->where('is_important', true)->count()],
+            'recent_documents' => [
+                'total' => (clone $base)->whereIn('category', $documentCategories)->count(),
+                'important' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
+            ],
+            'recent_media' => [
+                'total' => (clone $base)->whereIn('category', $mediaCategories)->count(),
+                'important' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
+            ],
+            'important_documents' => [
+                'total' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
+                'important' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
+            ],
+            'important_media' => [
+                'total' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
+                'important' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
+            ],
         ];
 
         foreach ([
@@ -354,7 +418,21 @@ class MediaController extends Controller
             ];
         }
 
+        foreach (Media::moduleKeys() as $module) {
+            $stats['module_' . $module] = [
+                'total' => (clone $base)->where('module', $module)->count(),
+                'important' => (clone $base)->where('module', $module)->where('is_important', true)->count(),
+            ];
+        }
+
         return $stats;
+    }
+
+    protected function moduleDefinitions(): array
+    {
+        return collect(Media::moduleOptions())
+            ->mapWithKeys(static fn ($label, $slug) => ['module_' . $slug => $label])
+            ->all();
     }
 
     protected function buildPickerStats(): array
@@ -367,13 +445,16 @@ class MediaController extends Controller
         ];
     }
 
-    protected function persistUploadedFile(UploadedFile $file, string $category, int $companyId): Media
+    protected function persistUploadedFile(UploadedFile $file, string $category, int $companyId, ?string $module = null): Media
     {
         $meta = $this->uploadFile($file, $category, $companyId);
 
         return Media::create(array_merge($meta, [
             'company_id' => $companyId,
             'category' => $category,
+            'module' => $module && in_array($module, Media::moduleKeys(), true)
+                ? $module
+                : Media::MODULE_DEFAULT,
             'uploaded_by' => Auth::id(),
         ]));
     }
@@ -429,6 +510,8 @@ class MediaController extends Controller
         return [
             'id' => $media->id,
             'category' => $media->category,
+            'module' => $media->module,
+            'module_label' => Media::moduleLabel($media->module),
             'original_name' => $media->original_name,
             'mime' => $media->mime,
             'ext' => $media->ext,
