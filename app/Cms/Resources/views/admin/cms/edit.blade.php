@@ -35,7 +35,6 @@
             <div class="tab-panel" data-tab-panel="content">
                 <div class="accordion" id="cms-blocks">
                     @foreach($pageConfig['blocks'] ?? [] as $blockKey => $definition)
-                        @php($isRepeater = !empty($definition['repeater']))
                         <div class="accordion-item mb-3">
                             <h2 class="accordion-header" id="heading-{{ $blockKey }}">
                                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $blockKey }}" aria-expanded="true">
@@ -53,53 +52,13 @@
                                             @php($blockValues = data_get($content, "$localeKey.blocks.$blockKey", []))
                                             <div class="col-lg-6" data-block-locale="{{ $localeKey }}">
                                                 <h3 class="h6 text-uppercase text-muted mb-3">{{ $localeLabel }}</h3>
-
-                                                @if($isRepeater)
-                                                    <div class="mb-4" data-repeater data-block-key="{{ $blockKey }}" data-locale="{{ $localeKey }}">
-                                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                                            <strong class="small text-uppercase text-muted">{{ $definition['label'] ?? ucfirst(str_replace('_', ' ', $blockKey)) }}</strong>
-                                                            <button class="btn btn-sm btn-outline-primary" type="button" data-repeater-add>{{ __('Add item') }}</button>
-                                                        </div>
-
-                                                        <template data-repeater-template>
-                                                            <div class="border rounded p-3 mb-3 repeater-item" data-repeater-item>
-                                                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                                                    <strong class="small text-uppercase text-muted">{{ __('Item') }}</strong>
-                                                                    <button class="btn btn-sm btn-outline-danger" type="button" data-repeater-remove>{{ __('Remove') }}</button>
-                                                                </div>
-                                                                @include('cms::admin.cms.partials.repeater-fields', [
-                                                                    'fields' => $definition['fields'] ?? [],
-                                                                    'namePrefix' => "content[{$localeKey}][{$blockKey}][__INDEX__]",
-                                                                    'values' => [],
-                                                                ])
-                                                            </div>
-                                                        </template>
-
-                                                        <div class="repeater-items" data-repeater-items>
-                                                            @forelse($blockValues as $index => $item)
-                                                                <div class="border rounded p-3 mb-3 repeater-item" data-repeater-item>
-                                                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                                                        <strong class="small text-uppercase text-muted">{{ __('Item') }} #{{ $loop->iteration }}</strong>
-                                                                        <button class="btn btn-sm btn-outline-danger" type="button" data-repeater-remove>{{ __('Remove') }}</button>
-                                                                    </div>
-                                                                    @include('cms::admin.cms.partials.repeater-fields', [
-                                                                        'fields' => $definition['fields'] ?? [],
-                                                                        'namePrefix' => "content[{$localeKey}][{$blockKey}][{$index}]",
-                                                                        'values' => $item,
-                                                                    ])
-                                                                </div>
-                                                            @empty
-                                                                <p class="text-muted small" data-repeater-empty>{{ __('No items yet.') }}</p>
-                                                            @endforelse
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    @include('cms::admin.cms.partials.repeater-fields', [
-                                                        'fields' => $definition['fields'] ?? [],
-                                                        'namePrefix' => "content[{$localeKey}][{$blockKey}]",
-                                                        'values' => is_array($blockValues) ? $blockValues : [],
-                                                    ])
-                                                @endif
+                                                @include('cms::admin.cms.partials.block-fields', [
+                                                    'mode' => 'form',
+                                                    'definition' => $definition,
+                                                    'blockKey' => $blockKey,
+                                                    'localeKey' => $localeKey,
+                                                    'values' => $blockValues,
+                                                ])
                                             </div>
                                         @endforeach
                                     </div>
