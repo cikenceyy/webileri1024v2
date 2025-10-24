@@ -29,7 +29,8 @@
                             <option value="draft" @selected(($filters['status'] ?? null) === 'draft')>Taslak</option>
                             <option value="released" @selected(($filters['status'] ?? null) === 'released')>Serbest</option>
                             <option value="in_progress" @selected(($filters['status'] ?? null) === 'in_progress')>Üretimde</option>
-                            <option value="done" @selected(($filters['status'] ?? null) === 'done')>Tamamlandı</option>
+                            <option value="completed" @selected(($filters['status'] ?? null) === 'completed')>Tamamlandı</option>
+                            <option value="closed" @selected(($filters['status'] ?? null) === 'closed')>Kapandı</option>
                         </select>
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
@@ -69,10 +70,10 @@
             <div class="col">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
-                        <span class="text-uppercase small text-muted fw-semibold">Kontrol Bekleyen</span>
+                        <span class="text-uppercase small text-muted fw-semibold">Tamamlandı</span>
                         <div class="d-flex align-items-baseline gap-2">
-                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['awaiting_qc'] ?? 0) }}</span>
-                            <span class="text-muted small">adet</span>
+                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['completed'] ?? 0) }}</span>
+                            <span class="text-muted small">iş emri</span>
                         </div>
                     </div>
                 </div>
@@ -80,9 +81,9 @@
             <div class="col">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
-                        <span class="text-uppercase small text-muted fw-semibold">Tamamlandı</span>
+                        <span class="text-uppercase small text-muted fw-semibold">Kapatıldı</span>
                         <div class="d-flex align-items-baseline gap-2">
-                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['completed'] ?? 0) }}</span>
+                            <span class="h2 fw-bold text-primary mb-0">{{ number_format($state['kpis']['closed'] ?? 0) }}</span>
                             <span class="text-muted small">iş emri</span>
                         </div>
                     </div>
@@ -94,7 +95,7 @@
             'wo.release' => 'work_order_id',
             'wo.issue.materials' => 'work_order_id',
             'wo.finish' => 'work_order_id',
-            'inv.receive.finished' => 'work_order_id',
+            'wo.close' => 'work_order_id',
         ])
 
         <div class="row g-4">
@@ -120,7 +121,7 @@
                                             <div class="d-flex flex-column gap-3">
                                                 <div class="d-flex justify-content-between align-items-start gap-3">
                                                     <div>
-                                                        <div class="fw-semibold">{{ $row['work_order_no'] ?? ('WO-' . ($row['id'] ?? '')) }}</div>
+                                                        <div class="fw-semibold">{{ $row['doc_no'] ?? ('WO-' . ($row['id'] ?? '')) }}</div>
                                                         @if(!empty($row['due_date']))
                                                             <div class="text-muted small">Termin: {{ $row['due_date'] }}</div>
                                                         @endif

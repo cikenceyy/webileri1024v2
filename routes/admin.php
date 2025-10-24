@@ -33,11 +33,23 @@ Route::prefix('admin')
 
             if (config('features.legacy_routing.inventory_bom')) {
                 Route::get('inventory/bom', function () {
-                    return redirect()->route('admin.production.bom.index');
+                    return redirect()->route('admin.production.boms.index');
                 })->name('legacy.inventory.bom.index');
 
                 Route::get('inventory/bom/{product}', function ($product) {
-                    return redirect()->route('admin.production.bom.show', ['product' => $product]);
+                    $companyId = currentCompanyId();
+                    $bom = \App\Modules\Production\Domain\Models\Bom::query()
+                        ->where('company_id', $companyId)
+                        ->where('product_id', $product)
+                        ->orderByDesc('is_active')
+                        ->orderByDesc('version')
+                        ->first();
+
+                    if ($bom) {
+                        return redirect()->route('admin.production.boms.show', $bom);
+                    }
+
+                    return redirect()->route('admin.production.boms.index');
                 })->name('legacy.inventory.bom.show');
             }
 

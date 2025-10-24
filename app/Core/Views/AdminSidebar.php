@@ -98,11 +98,11 @@ class AdminSidebar
                     [
                         'label' => 'Üretim',
                         'icon' => 'bi bi-gear-wide-connected',
-                        'route' => 'admin.production.work-orders.index',
+                        'route' => 'admin.production.workorders.index',
                         'pattern' => 'admin/production*',
                         'children' => [
-                            ['label' => 'Üretim Emirleri', 'route' => 'admin.production.work-orders.index', 'pattern' => 'admin/production/work-orders*'],
-                            ['label' => 'Ürün Reçeteleri', 'route' => 'admin.production.bom.index', 'pattern' => 'admin/production/bom*'],
+                            ['label' => 'Üretim Emirleri', 'route' => 'admin.production.workorders.index', 'pattern' => 'admin/production/workorders*'],
+                            ['label' => 'Ürün Reçeteleri', 'route' => 'admin.production.boms.index', 'pattern' => 'admin/production/boms*'],
                         ],
                     ],
                     [

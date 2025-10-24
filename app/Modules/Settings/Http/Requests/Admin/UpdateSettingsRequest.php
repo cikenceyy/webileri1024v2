@@ -39,12 +39,15 @@ class UpdateSettingsRequest extends FormRequest
             'sequencing.invoice_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
             'sequencing.order_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
             'sequencing.shipment_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
+            'sequencing.work_order_prefix' => ['required', 'string', 'regex:/^[A-Z0-9\-_\/]+$/'],
             'sequencing.padding' => ['required', 'integer', 'min:3', 'max:8'],
             'sequencing.reset_policy' => ['required', Rule::in(['never', 'yearly'])],
             'defaults.payment_terms_days' => ['required', 'integer', 'min:0', 'max:180'],
             'defaults.warehouse_id' => ['nullable', 'integer', $warehouseRule],
             'defaults.price_list_id' => ['nullable', 'integer', $priceListRule],
             'defaults.tax_inclusive' => ['required', 'boolean'],
+            'defaults.production_issue_warehouse_id' => ['nullable', 'integer', $warehouseRule],
+            'defaults.production_receipt_warehouse_id' => ['nullable', 'integer', $warehouseRule],
             'documents.invoice_print_template' => ['nullable', 'string', 'max:191'],
             'documents.shipment_note_template' => ['nullable', 'string', 'max:191'],
             'general.company_locale' => ['required', 'string', 'max:10', 'regex:/^[a-z]{2}[_-][A-Z]{2}$/'],
@@ -84,6 +87,11 @@ class UpdateSettingsRequest extends FormRequest
 
         $defaults = $this->input('defaults', []);
         $defaults['tax_inclusive'] = filter_var($defaults['tax_inclusive'] ?? false, FILTER_VALIDATE_BOOL);
+        foreach (['warehouse_id', 'price_list_id', 'production_issue_warehouse_id', 'production_receipt_warehouse_id'] as $key) {
+            if (array_key_exists($key, $defaults) && $defaults[$key] === '') {
+                $defaults[$key] = null;
+            }
+        }
 
         $documents = $this->input('documents', []);
         foreach ($documents as $key => $value) {

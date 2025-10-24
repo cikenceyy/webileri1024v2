@@ -8,10 +8,10 @@
 - Sidebar entry appears under **CRM & Pazarlama → Fiyat Listeleri**.
 
 ## BOM flow (Inventory → Production)
-- Routes relocated under `/admin/production/bom` with names `admin.production.bom.index` and `admin.production.bom.show`.
+- Routes relocated under `/admin/production/boms` with names `admin.production.boms.*`.
 - Controller namespace now `App\Modules\Production\Http\Controllers\Admin\BomController` with policy guard `App\Modules\Production\Policies\BomPolicy`.
-- BOM views and assets moved to `production::admin.bom.*` with Vite sources in `app/Modules/Production/Resources`.
-- Permissions renamed to `production.bom.{view,create,update,delete}` and registered in `ProductionServiceProvider`.
+- BOM views and assets moved to `production::admin.boms.*` with Vite sources in `app/Modules/Production/Resources`.
+- Permissions renamed to `production.boms.{view,create,update,delete}` and registered in `ProductionServiceProvider`.
 - Sidebar entry appears under **Üretim → Ürün Reçeteleri**.
 
 ## Finance navigation tightening
@@ -23,7 +23,7 @@
 - Buttons and links to Tahsilat Konsolu render only when the feature flag is enabled.
 
 ## Legacy redirects & feature flags
-- Transitional redirects for `/admin/inventory/pricelists*` → `/admin/marketing/pricelists*` and `/admin/inventory/bom*` → `/admin/production/bom*` are enabled while `config('features.legacy_routing.inventory_{pricelists|bom}')` remain `true`.
+- Transitional redirects for `/admin/inventory/pricelists*` → `/admin/marketing/pricelists*` and `/admin/inventory/bom*` → `/admin/production/boms*` are enabled while `config('features.legacy_routing.inventory_{pricelists|bom}')` remain `true`.
 - Toggle heavy finance menus and consoles via `config/features.php`:
   - `finance.collections_console`
   - `finance.reports_center`

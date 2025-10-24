@@ -15,6 +15,7 @@ class SettingsDTO implements Arrayable
      *     receipt_prefix:string,
      *     order_prefix:string,
      *     shipment_prefix:string,
+     *     work_order_prefix:string,
      *     padding:int,
      *     reset_policy:string
      * } $sequencing
@@ -22,7 +23,9 @@ class SettingsDTO implements Arrayable
      *     payment_terms_days:int,
      *     warehouse_id:int|null,
      *     price_list_id:int|null,
-     *     tax_inclusive:bool
+     *     tax_inclusive:bool,
+     *     production_issue_warehouse_id:int|null,
+     *     production_receipt_warehouse_id:int|null
      * } $defaults
      * @param array{
      *     invoice_print_template:string|null,
@@ -60,6 +63,7 @@ class SettingsDTO implements Arrayable
                 'receipt_prefix' => 'RCPT',
                 'order_prefix' => 'ORD',
                 'shipment_prefix' => 'SHP',
+                'work_order_prefix' => 'WO',
                 'padding' => 6,
                 'reset_policy' => 'yearly',
             ],
@@ -68,6 +72,8 @@ class SettingsDTO implements Arrayable
                 'warehouse_id' => null,
                 'price_list_id' => null,
                 'tax_inclusive' => false,
+                'production_issue_warehouse_id' => null,
+                'production_receipt_warehouse_id' => null,
             ],
             documents: [
                 'invoice_print_template' => null,
@@ -172,6 +178,7 @@ class SettingsDTO implements Arrayable
             'receipt_prefix' => (string) ($data['receipt_prefix'] ?? 'RCPT'),
             'order_prefix' => (string) ($data['order_prefix'] ?? 'ORD'),
             'shipment_prefix' => (string) ($data['shipment_prefix'] ?? 'SHP'),
+            'work_order_prefix' => (string) ($data['work_order_prefix'] ?? 'WO'),
             'padding' => (int) ($data['padding'] ?? 6),
             'reset_policy' => (string) ($data['reset_policy'] ?? 'yearly'),
         ];
@@ -193,6 +200,8 @@ class SettingsDTO implements Arrayable
             'warehouse_id' => isset($data['warehouse_id']) ? (int) $data['warehouse_id'] : null,
             'price_list_id' => isset($data['price_list_id']) ? (int) $data['price_list_id'] : null,
             'tax_inclusive' => (bool) ($data['tax_inclusive'] ?? false),
+            'production_issue_warehouse_id' => isset($data['production_issue_warehouse_id']) ? (int) $data['production_issue_warehouse_id'] : null,
+            'production_receipt_warehouse_id' => isset($data['production_receipt_warehouse_id']) ? (int) $data['production_receipt_warehouse_id'] : null,
         ];
     }
 

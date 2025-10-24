@@ -10,44 +10,64 @@ class WorkOrderPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $this->hasPermission($user, 'production.workorder.view');
+        return $this->hasPermission($user, 'production.workorders.view');
     }
 
     public function view(User $user, WorkOrder $workOrder): bool
     {
         return $this->sameCompany($user, $workOrder)
-            && $this->hasPermission($user, 'production.workorder.view');
+            && $this->hasPermission($user, 'production.workorders.view');
     }
 
     public function create(User $user): bool
     {
-        return $this->hasPermission($user, 'production.workorder.create');
+        return $this->hasPermission($user, 'production.workorders.create');
     }
 
     public function update(User $user, WorkOrder $workOrder): bool
     {
         return $this->sameCompany($user, $workOrder)
-            && $this->hasPermission($user, 'production.workorder.update');
+            && $this->hasPermission($user, 'production.workorders.update');
     }
 
-    public function delete(User $user, WorkOrder $workOrder): bool
+    public function release(User $user, WorkOrder $workOrder): Response
     {
-        return $this->sameCompany($user, $workOrder)
-            && $this->hasPermission($user, 'production.workorder.delete');
+        return $this->guard($user, $workOrder, 'production.workorders.release');
+    }
+
+    public function start(User $user, WorkOrder $workOrder): Response
+    {
+        return $this->guard($user, $workOrder, 'production.workorders.start');
+    }
+
+    public function issue(User $user, WorkOrder $workOrder): Response
+    {
+        return $this->guard($user, $workOrder, 'production.workorders.issue');
+    }
+
+    public function complete(User $user, WorkOrder $workOrder): Response
+    {
+        return $this->guard($user, $workOrder, 'production.workorders.complete');
     }
 
     public function close(User $user, WorkOrder $workOrder): Response
     {
+        return $this->guard($user, $workOrder, 'production.workorders.close');
+    }
+
+    public function cancel(User $user, WorkOrder $workOrder): Response
+    {
+        return $this->guard($user, $workOrder, 'production.workorders.cancel');
+    }
+
+    protected function guard(User $user, WorkOrder $workOrder, string $permission): Response
+    {
         if (! $this->sameCompany($user, $workOrder)) {
-            return Response::deny(__('You cannot close work orders for another company.'));
+            return Response::deny(__('You cannot manage work orders for another company.'));
         }
 
-        if (! $this->hasPermission($user, 'production.workorder.close')) {
-            return Response::deny(__('You are not allowed to close work orders.'));
-        }
-
-        if ($workOrder->status === 'done') {
-            return Response::deny(__('The work order is already marked as done.'));
+        if (! $this->hasPermission($user, $permission)) {
+            return Response::deny(__('You are not allowed to perform this action.'));
         }
 
         return Response::allow();

@@ -148,6 +148,13 @@
                                     />
                                 </div>
                                 <div class="col-12 col-md-4">
+                                    <x-ui-input
+                                        name="sequencing[work_order_prefix]"
+                                        label="{{ __('İş Emri Prefix') }}"
+                                        value="{{ old('sequencing.work_order_prefix', $sequencing['work_order_prefix'] ?? 'WO') }}"
+                                    />
+                                </div>
+                                <div class="col-12 col-md-4">
                                     <x-ui-number
                                         name="sequencing[padding]"
                                         label="{{ __('Numara Uzunluğu') }}"
@@ -196,6 +203,22 @@
                                         label="{{ __('Varsayılan Fiyat Listesi ID') }}"
                                         value="{{ old('defaults.price_list_id', $defaults['price_list_id']) }}"
                                         help="{{ __('Tanımlı fiyat listesi kimliğini girin veya boş bırakın.') }}"
+                                    />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <x-ui-input
+                                        name="defaults[production_issue_warehouse_id]"
+                                        label="{{ __('Üretim Çıkış Deposu ID') }}"
+                                        value="{{ old('defaults.production_issue_warehouse_id', $defaults['production_issue_warehouse_id'] ?? '') }}"
+                                        help="{{ __('Malzeme çıkışı için varsayılan depo kimliği.') }}"
+                                    />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <x-ui-input
+                                        name="defaults[production_receipt_warehouse_id]"
+                                        label="{{ __('Üretim Giriş Deposu ID') }}"
+                                        value="{{ old('defaults.production_receipt_warehouse_id', $defaults['production_receipt_warehouse_id'] ?? '') }}"
+                                        help="{{ __('Üretim tamamlandığında kullanılacak depo kimliği.') }}"
                                     />
                                 </div>
                                 <div class="col-12 col-md-4 d-flex align-items-end">

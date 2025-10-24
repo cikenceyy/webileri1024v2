@@ -6,16 +6,17 @@ use App\Core\Orchestrations\Concerns\ResolvesTenant;
 use App\Core\Orchestrations\Contracts\Dto\MTOState;
 use App\Core\Orchestrations\Contracts\Dto\StepResult;
 use App\Core\Orchestrations\Contracts\OrchestrationContract;
-use App\Modules\Inventory\Domain\Models\Product;
-use App\Modules\Inventory\Domain\Models\ProductVariant;
-use App\Modules\Inventory\Domain\Models\Warehouse;
-use App\Modules\Inventory\Domain\Services\StockService;
-use App\Modules\Marketing\Domain\Models\Order;
-use App\Modules\Marketing\Domain\Models\OrderLine;
-use App\Modules\Production\Domain\Models\WoMaterialIssue;
-use App\Modules\Production\Domain\Models\WoReceipt;
+use App\Core\Contracts\SettingsReader;
+use App\Modules\Marketing\Domain\Models\Order as LegacyOrder;
+use App\Modules\Marketing\Domain\Models\OrderLine as LegacyOrderLine;
+use App\Modules\Marketing\Domain\Models\SalesOrder;
+use App\Modules\Marketing\Domain\Models\SalesOrderLine;
 use App\Modules\Production\Domain\Models\WorkOrder;
-use App\Modules\Production\Domain\Services\WoService;
+use App\Modules\Production\Domain\Services\BomExpander;
+use App\Modules\Production\Domain\Services\WorkOrderCompleter;
+use App\Modules\Production\Domain\Services\WorkOrderIssuer;
+use App\Modules\Production\Domain\Services\WorkOrderPlanner;
+use App\Modules\Settings\Domain\SettingsDTO;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -30,10 +31,10 @@ class MakeToOrderOrchestration implements OrchestrationContract
      * @var array<string, string>
      */
     private const STEP_PERMISSION_MAP = [
-        'wo.release' => 'production.wo.release',
-        'wo.issue.materials' => 'inventory.issue',
-        'wo.finish' => 'production.wo.finish',
-        'inv.receive.finished' => 'inventory.receive',
+        'wo.release' => 'production.workorders.release',
+        'wo.issue.materials' => 'production.workorders.issue',
+        'wo.finish' => 'production.workorders.complete',
+        'wo.close' => 'production.workorders.close',
     ];
 
     /**
@@ -42,8 +43,8 @@ class MakeToOrderOrchestration implements OrchestrationContract
     private const NEXT_STEP_MAP = [
         'wo.release' => 'wo.issue.materials',
         'wo.issue.materials' => 'wo.finish',
-        'wo.finish' => 'inv.receive.finished',
-        'inv.receive.finished' => null,
+        'wo.finish' => 'wo.close',
+        'wo.close' => null,
     ];
 
     public function preview(array $filters): array
@@ -56,8 +57,8 @@ class MakeToOrderOrchestration implements OrchestrationContract
         $kpis = [
             'draft' => (clone $workOrders)->where('status', 'draft')->count(),
             'in_progress' => (clone $workOrders)->whereIn('status', ['released', 'in_progress'])->count(),
-            'awaiting_qc' => (clone $workOrders)->where('status', 'awaiting_qc')->count(),
-            'completed' => (clone $workOrders)->where('status', 'done')->count(),
+            'completed' => (clone $workOrders)->where('status', 'completed')->count(),
+            'closed' => (clone $workOrders)->where('status', 'closed')->count(),
         ];
 
         $pipeline = [
@@ -74,29 +75,29 @@ class MakeToOrderOrchestration implements OrchestrationContract
             [
                 'label' => 'Malzeme İhtiyacı Olanlar',
                 'action' => 'wo.issue.materials',
-                'count' => (clone $workOrders)->whereIn('status', ['released'])->count(),
+                'count' => (clone $workOrders)->where('status', 'released')->count(),
                 'rows' => $this->formatWorkOrders((clone $workOrders)
-                    ->whereIn('status', ['released'])
+                    ->where('status', 'released')
                     ->orderBy('due_date')
                     ->limit(5)
                     ->get()),
             ],
             [
-                'label' => 'Tamamlanmaya Yakın İşler',
+                'label' => 'Tamamlanması Gerekenler',
                 'action' => 'wo.finish',
-                'count' => (clone $workOrders)->whereIn('status', ['in_progress'])->count(),
+                'count' => (clone $workOrders)->where('status', 'in_progress')->count(),
                 'rows' => $this->formatWorkOrders((clone $workOrders)
-                    ->whereIn('status', ['in_progress'])
+                    ->where('status', 'in_progress')
                     ->orderBy('due_date')
                     ->limit(5)
                     ->get()),
             ],
             [
-                'label' => 'Depoya Alınacak Ürünler',
-                'action' => 'inv.receive.finished',
-                'count' => (clone $workOrders)->whereIn('status', ['finished', 'done'])->count(),
+                'label' => 'Kapatılacak İş Emirleri',
+                'action' => 'wo.close',
+                'count' => (clone $workOrders)->where('status', 'completed')->count(),
                 'rows' => $this->formatWorkOrders((clone $workOrders)
-                    ->whereIn('status', ['finished', 'done'])
+                    ->where('status', 'completed')
                     ->orderByDesc('updated_at')
                     ->limit(5)
                     ->get()),
@@ -128,7 +129,7 @@ class MakeToOrderOrchestration implements OrchestrationContract
                     'wo.release' => $this->releaseWorkOrders($payload),
                     'wo.issue.materials' => $this->issueMaterials($payload),
                     'wo.finish' => $this->finishWorkOrder($payload),
-                    'inv.receive.finished' => $this->receiveFinishedGoods($payload),
+                    'wo.close' => $this->closeWorkOrder($payload),
                     default => StepResult::failure(__('Tanımsız adım: :step', ['step' => $step])),
                 };
             });
@@ -158,19 +159,36 @@ class MakeToOrderOrchestration implements OrchestrationContract
     {
         $companyId = $this->resolveCompanyId();
         $orderId = Arr::get($payload, 'order_id');
-        $order = Order::query()
-            ->where('company_id', $companyId)
-            ->with('lines')
-            ->find($orderId);
+        $created = [];
+        $released = [];
 
-        if ($order) {
-            if (class_exists(WoService::class)) {
-                /** @var WoService $service */
-                $service = app(WoService::class);
-                $service->proposeFromOrder($order);
-            } else {
+        if ($orderId) {
+            $order = SalesOrder::query()
+                ->where('company_id', $companyId)
+                ->with('lines')
+                ->find($orderId);
+
+            if (! $order) {
+                $order = LegacyOrder::query()
+                    ->where('company_id', $companyId)
+                    ->with('lines')
+                    ->find($orderId);
+            }
+
+            if ($order) {
                 foreach ($order->lines as $line) {
-                    $this->createDraftWorkOrder($line);
+                    $workOrder = $this->createDraftWorkOrder($line);
+                    if ($workOrder) {
+                        $created[] = $workOrder->getKey();
+
+                        if (in_array($workOrder->status, ['draft', 'cancelled'], true)) {
+                            $workOrder->forceFill([
+                                'status' => 'released',
+                            ])->save();
+
+                            $released[] = $workOrder->getKey();
+                        }
+                    }
                 }
             }
         }
@@ -181,182 +199,184 @@ class MakeToOrderOrchestration implements OrchestrationContract
                 ->where('company_id', $companyId)
                 ->findOrFail($workOrderId);
 
+            if (! in_array($workOrder->status, ['draft', 'cancelled'], true)) {
+                throw ValidationException::withMessages([
+                    'status' => __('Yalnızca taslak iş emirleri serbest bırakılabilir.'),
+                ]);
+            }
+
             $workOrder->forceFill([
                 'status' => 'released',
             ])->save();
+
+            $released[] = $workOrder->getKey();
         }
 
         return StepResult::success(
             __('İş emri serbest bırakıldı.'),
-            ['order_id' => $order?->getKey(), 'work_order_id' => $workOrderId],
+            [
+                'order_id' => $orderId,
+                'created_work_orders' => $created,
+                'work_order_id' => $workOrderId,
+                'released_work_orders' => array_values(array_unique($released)),
+            ],
             self::NEXT_STEP_MAP['wo.release']
         );
     }
 
     private function issueMaterials(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $workOrderId = Arr::get($payload, 'work_order_id');
+
         $workOrder = WorkOrder::query()
-            ->where('company_id', $this->resolveCompanyId())
+            ->where('company_id', $companyId)
+            ->with('bom.items')
             ->findOrFail($workOrderId);
 
-        $materials = Arr::get($payload, 'materials', []);
-        $issued = [];
-
-        if (class_exists(StockService::class)) {
-            /** @var StockService $stock */
-            $stock = app(StockService::class);
-            $warehouse = Warehouse::query()
-                ->where('company_id', $workOrder->company_id)
-                ->orderByDesc('is_default')
-                ->orderBy('id')
-                ->first();
-
-            foreach ($materials as $material) {
-                $product = Product::query()
-                    ->where('company_id', $workOrder->company_id)
-                    ->find($material['product_id'] ?? null);
-
-                if (! $product) {
-                    continue;
-                }
-
-                $variant = null;
-                if (! empty($material['variant_id'])) {
-                    $variant = ProductVariant::query()
-                        ->where('company_id', $workOrder->company_id)
-                        ->find($material['variant_id']);
-                }
-
-                $qty = (float) ($material['qty'] ?? 0);
-                if ($qty <= 0 || ! $warehouse) {
-                    continue;
-                }
-
-                $stock->issue($warehouse, $product, $variant, $qty, [
-                    'reason' => 'production',
-                    'ref_type' => WorkOrder::class,
-                    'ref_id' => $workOrder->getKey(),
-                ]);
-
-                $issue = WoMaterialIssue::create([
-                    'company_id' => $workOrder->company_id,
-                    'work_order_id' => $workOrder->getKey(),
-                    'product_id' => $product->getKey(),
-                    'variant_id' => $variant?->getKey(),
-                    'qty' => $qty,
-                    'unit' => $material['unit'] ?? $product->unit ?? 'adet',
-                    'issued_at' => now(),
-                    'notes' => $material['notes'] ?? null,
-                ]);
-
-                $issued[] = $issue->getKey();
-            }
+        if (! in_array($workOrder->status, ['released', 'in_progress'], true)) {
+            throw ValidationException::withMessages([
+                'status' => __('İş emri malzeme çıkışı için uygun değil.'),
+            ]);
         }
 
-        $workOrder->forceFill([
-            'status' => 'in_progress',
-        ])->save();
+        $settings = $this->resolveSettings($companyId);
+        $defaults = $settings->defaults;
+        $issueWarehouseId = Arr::get($payload, 'warehouse_id')
+            ?? Arr::get($defaults, 'production_issue_warehouse_id');
+        $precision = (int) Arr::get($settings->general, 'decimal_precision', 3);
+
+        $materials = Arr::get($payload, 'materials', []);
+
+        if (empty($materials)) {
+            $requirements = app(BomExpander::class)->expand($workOrder->bom, $workOrder->target_qty, $precision);
+            $materials = $requirements->map(static function (array $row) use ($issueWarehouseId) {
+                $item = $row['item'];
+
+                return [
+                    'component_product_id' => $item->component_product_id,
+                    'component_variant_id' => $item->component_variant_id,
+                    'warehouse_id' => $item->default_warehouse_id ?: $issueWarehouseId,
+                    'bin_id' => $item->default_bin_id,
+                    'qty' => $row['required_qty'],
+                ];
+            })->all();
+        }
+
+        $materials = array_values(array_filter(array_map(static function (array $line) use ($issueWarehouseId) {
+            $line['warehouse_id'] = $line['warehouse_id'] ?? $issueWarehouseId;
+
+            if (($line['qty'] ?? 0) <= 0) {
+                return null;
+            }
+
+            if (! ($line['component_product_id'] ?? null) || ! ($line['warehouse_id'] ?? null)) {
+                return null;
+            }
+
+            return [
+                'component_product_id' => (int) $line['component_product_id'],
+                'component_variant_id' => $line['component_variant_id'] ? (int) $line['component_variant_id'] : null,
+                'warehouse_id' => (int) $line['warehouse_id'],
+                'bin_id' => $line['bin_id'] ? (int) $line['bin_id'] : null,
+                'qty' => (float) $line['qty'],
+            ];
+        }, $materials)));
+
+        if (empty($materials)) {
+            throw ValidationException::withMessages([
+                'materials' => __('Çıkış yapılacak malzeme bulunamadı.'),
+            ]);
+        }
+
+        /** @var WorkOrderIssuer $issuer */
+        $issuer = app(WorkOrderIssuer::class);
+        $workOrder = $issuer->post($workOrder, $materials, Auth::id() ?? 0);
 
         return StepResult::success(
             __('Malzemeler iş emrine aktarıldı.'),
-            ['work_order_id' => $workOrder->getKey(), 'issues' => $issued],
+            [
+                'work_order_id' => $workOrder->getKey(),
+                'issues' => $workOrder->issues->pluck('id')->all(),
+            ],
             self::NEXT_STEP_MAP['wo.issue.materials']
         );
     }
 
     private function finishWorkOrder(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $workOrderId = Arr::get($payload, 'work_order_id');
+
         $workOrder = WorkOrder::query()
-            ->where('company_id', $this->resolveCompanyId())
+            ->where('company_id', $companyId)
             ->findOrFail($workOrderId);
 
-        if (class_exists(WoService::class)) {
-            /** @var WoService $service */
-            $service = app(WoService::class);
-            $service->close($workOrder);
-        } else {
-            $workOrder->forceFill([
-                'status' => 'done',
-                'closed_at' => now(),
-            ])->save();
+        $settings = $this->resolveSettings($companyId);
+        $defaults = $settings->defaults;
+
+        $qty = (float) ($payload['qty'] ?? $workOrder->target_qty);
+        if ($qty <= 0) {
+            throw ValidationException::withMessages([
+                'qty' => __('Tamamlanan miktar sıfırdan büyük olmalıdır.'),
+            ]);
         }
+
+        $warehouseId = Arr::get($payload, 'warehouse_id')
+            ?? Arr::get($defaults, 'production_receipt_warehouse_id');
+
+        if (! $warehouseId) {
+            throw ValidationException::withMessages([
+                'warehouse_id' => __('Ürünlerin alınacağı depo seçilmelidir.'),
+            ]);
+        }
+
+        $data = [
+            'qty' => $qty,
+            'warehouse_id' => (int) $warehouseId,
+            'bin_id' => Arr::get($payload, 'bin_id') ? (int) Arr::get($payload, 'bin_id') : null,
+        ];
+
+        /** @var WorkOrderCompleter $completer */
+        $completer = app(WorkOrderCompleter::class);
+        $workOrder = $completer->post($workOrder, $data, Auth::id() ?? 0);
 
         return StepResult::success(
             __('İş emri tamamlandı.'),
-            ['work_order_id' => $workOrder->getKey(), 'status' => $workOrder->status],
+            [
+                'work_order_id' => $workOrder->getKey(),
+                'receipt_ids' => $workOrder->receipts->pluck('id')->all(),
+            ],
             self::NEXT_STEP_MAP['wo.finish']
         );
     }
 
-    private function receiveFinishedGoods(array $payload): StepResult
+    private function closeWorkOrder(array $payload): StepResult
     {
+        $companyId = $this->resolveCompanyId();
         $workOrderId = Arr::get($payload, 'work_order_id');
+
         $workOrder = WorkOrder::query()
-            ->where('company_id', $this->resolveCompanyId())
+            ->where('company_id', $companyId)
             ->findOrFail($workOrderId);
 
-        $product = Product::query()
-            ->where('company_id', $workOrder->company_id)
-            ->find($workOrder->product_id);
-
-        if (! $product) {
+        if ($workOrder->status !== 'completed') {
             throw ValidationException::withMessages([
-                'product_id' => __('İş emrine bağlı ürün bulunamadı.'),
+                'status' => __('Kapatma için iş emri tamamlanmış olmalıdır.'),
             ]);
         }
-
-        $variant = null;
-        if ($workOrder->variant_id) {
-            $variant = ProductVariant::query()
-                ->where('company_id', $workOrder->company_id)
-                ->find($workOrder->variant_id);
-        }
-
-        $qty = (float) Arr::get($payload, 'qty', $workOrder->qty);
-        if ($qty <= 0) {
-            throw ValidationException::withMessages([
-                'qty' => __('Depoya alınacak miktar sıfırdan büyük olmalıdır.'),
-            ]);
-        }
-
-        $warehouse = Warehouse::query()
-            ->where('company_id', $workOrder->company_id)
-            ->orderByDesc('is_default')
-            ->orderBy('id')
-            ->first();
-
-        if ($warehouse && class_exists(StockService::class)) {
-            /** @var StockService $stock */
-            $stock = app(StockService::class);
-            $stock->receive($warehouse, $product, $variant, $qty, null, [
-                'reason' => 'production-finish',
-                'ref_type' => WorkOrder::class,
-                'ref_id' => $workOrder->getKey(),
-            ]);
-        }
-
-        $receipt = WoReceipt::create([
-            'company_id' => $workOrder->company_id,
-            'work_order_id' => $workOrder->getKey(),
-            'product_id' => $product->getKey(),
-            'variant_id' => $variant?->getKey(),
-            'qty' => $qty,
-            'unit' => $workOrder->unit,
-            'received_at' => now(),
-            'notes' => Arr::get($payload, 'notes'),
-        ]);
 
         $workOrder->forceFill([
-            'status' => 'done',
-            'closed_at' => $workOrder->closed_at ?: now(),
+            'status' => 'closed',
         ])->save();
 
         return StepResult::success(
-            __('Ürün depoya alındı.'),
-            ['work_order_id' => $workOrder->getKey(), 'receipt_id' => $receipt->getKey()],
-            self::NEXT_STEP_MAP['inv.receive.finished']
+            __('İş emri kapatıldı.'),
+            [
+                'work_order_id' => $workOrder->getKey(),
+                'status' => $workOrder->status,
+            ],
+            self::NEXT_STEP_MAP['wo.close']
         );
     }
 
@@ -368,32 +388,28 @@ class MakeToOrderOrchestration implements OrchestrationContract
         return $workOrders->map(static function (WorkOrder $workOrder): array {
             return [
                 'id' => $workOrder->getKey(),
-                'work_order_no' => $workOrder->work_order_no,
+                'doc_no' => $workOrder->doc_no,
                 'status' => $workOrder->status,
-                'qty' => (float) $workOrder->qty,
+                'qty' => (float) $workOrder->target_qty,
                 'product_id' => $workOrder->product_id,
                 'due_date' => optional($workOrder->due_date)->toDateString(),
             ];
         })->all();
     }
 
-    private function createDraftWorkOrder(OrderLine $line): void
+    private function createDraftWorkOrder(SalesOrderLine|LegacyOrderLine $line): ?WorkOrder
     {
-        WorkOrder::firstOrCreate(
-            [
-                'company_id' => $line->company_id,
-                'order_line_id' => $line->getKey(),
-            ],
-            [
-                'order_id' => $line->order_id,
-                'product_id' => $line->product_id,
-                'variant_id' => $line->variant_id,
-                'work_order_no' => WorkOrder::generateNo($line->company_id),
-                'qty' => $line->qty,
-                'unit' => $line->unit ?? 'adet',
-                'status' => 'draft',
-                'due_date' => optional($line->order)->due_date,
-            ]
-        );
+        /** @var WorkOrderPlanner $planner */
+        $planner = app(WorkOrderPlanner::class);
+
+        return $planner->createFromOrderLine($line);
+    }
+
+    private function resolveSettings(int $companyId): SettingsDTO
+    {
+        /** @var SettingsReader $reader */
+        $reader = app(SettingsReader::class);
+
+        return $reader->get($companyId);
     }
 }

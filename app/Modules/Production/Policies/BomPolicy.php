@@ -9,39 +9,39 @@ class BomPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $this->hasPermission($user, 'production.bom.view');
+        return $this->hasPermission($user, 'production.boms.view');
     }
 
     public function view(User $user, Bom $bom): bool
     {
-        if ($bom->product && (int) $bom->product->company_id !== (int) $user->company_id) {
+        if ($bom->company_id && (int) $bom->company_id !== (int) $user->company_id) {
             return false;
         }
 
-        return $this->hasPermission($user, 'production.bom.view');
+        return $this->hasPermission($user, 'production.boms.view');
     }
 
     public function create(User $user): bool
     {
-        return $this->hasPermission($user, 'production.bom.create');
+        return $this->hasPermission($user, 'production.boms.create');
     }
 
     public function update(User $user, Bom $bom): bool
     {
-        if ($bom->product && (int) $bom->product->company_id !== (int) $user->company_id) {
+        if ($bom->company_id && (int) $bom->company_id !== (int) $user->company_id) {
             return false;
         }
 
-        return $this->hasPermission($user, 'production.bom.update');
+        return $this->hasPermission($user, 'production.boms.update');
     }
 
     public function delete(User $user, Bom $bom): bool
     {
-        if ($bom->product && (int) $bom->product->company_id !== (int) $user->company_id) {
+        if ($bom->company_id && (int) $bom->company_id !== (int) $user->company_id) {
             return false;
         }
 
-        return $this->hasPermission($user, 'production.bom.delete');
+        return $this->hasPermission($user, 'production.boms.delete');
     }
 
     protected function hasPermission(User $user, string $permission): bool

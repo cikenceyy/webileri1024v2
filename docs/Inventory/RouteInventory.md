@@ -221,11 +221,11 @@ Bu doküman mevcut Laravel rotalarını derler ve Core / Modules / Consoles ayr�
 ### Production (app/Modules/Production/Routes/admin.php)
 | Method | URI | Name | Middleware | Controller | Tahmini Modül | Öneri |
 | --- | --- | --- | --- | --- | --- | --- |
-| GET | /admin/production/work-orders | admin.production.work-orders.index | tenant, auth, verified, web | `WorkOrderController@index` | Production | Layout unify.
-| POST | /admin/production/work-orders | admin.production.work-orders.store | tenant, auth, verified, web | `WorkOrderController@store` | Production | Domain orchestrasyonu.
-| GET | /admin/production/work-orders/{workOrder} | admin.production.work-orders.show | tenant, auth, verified, web | `WorkOrderController@show` | Production | Layout unify.
-| PUT/PATCH | /admin/production/work-orders/{workOrder} | admin.production.work-orders.update | tenant, auth, verified, web | `WorkOrderController@update` | Production | UseCase orchestrasyonu.
-| PATCH | /admin/production/work-orders/{workOrder}/close | admin.production.work-orders.close | tenant, auth, verified, web | `WorkOrderController@close` | Production | Close işlemi domain event'e taşınacak.
+| GET | /admin/production/workorders | admin.production.workorders.index | tenant, auth, verified, web | `WorkOrderController@index` | Production | Layout unify.
+| POST | /admin/production/workorders | admin.production.workorders.store | tenant, auth, verified, web | `WorkOrderController@store` | Production | Domain orchestrasyonu.
+| GET | /admin/production/workorders/{workOrder} | admin.production.workorders.show | tenant, auth, verified, web | `WorkOrderController@show` | Production | Layout unify.
+| PUT/PATCH | /admin/production/workorders/{workOrder} | admin.production.workorders.update | tenant, auth, verified, web | `WorkOrderController@update` | Production | UseCase orchestrasyonu.
+| POST | /admin/production/workorders/{workOrder}/close | admin.production.workorders.close | tenant, auth, verified, web | `WorkOrderController@close` | Production | Close işlemi domain event'e taşınacak.
 
 ### Drive (app/Modules/Drive/Routes/admin.php)
 | Method | URI | Name | Middleware | Controller | Tahmini Modül | Öneri |

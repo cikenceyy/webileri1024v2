@@ -18,6 +18,7 @@
         'invoice_prefix' => 'INV',      // A-Z0-9 ve -_/ karakterleri
         'order_prefix' => 'ORD',
         'shipment_prefix' => 'SHP',
+        'work_order_prefix' => 'WO',
         'padding' => 6,                 // 3-8 arası
         'reset_policy' => 'yearly',     // yearly | never
     ],
@@ -26,6 +27,8 @@
         'warehouse_id' => null,
         'price_list_id' => null,
         'tax_inclusive' => false,
+        'production_issue_warehouse_id' => null,
+        'production_receipt_warehouse_id' => null,
     ],
     'documents' => [
         'invoice_print_template' => null,

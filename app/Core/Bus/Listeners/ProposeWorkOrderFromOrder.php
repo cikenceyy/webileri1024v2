@@ -3,7 +3,7 @@
 namespace App\Core\Bus\Listeners;
 
 use App\Core\Bus\Events\OrderConfirmed;
-use App\Modules\Production\Domain\Services\WoService;
+use App\Modules\Production\Domain\Services\WorkOrderPlanner;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -15,22 +15,13 @@ class ProposeWorkOrderFromOrder implements ShouldQueue
 
     public function handle(OrderConfirmed $event): void
     {
-        if (! class_exists(WoService::class)) {
-            return;
+        $order = $event->order->loadMissing('lines');
+
+        /** @var WorkOrderPlanner $planner */
+        $planner = app(WorkOrderPlanner::class);
+
+        foreach ($order->lines as $line) {
+            $planner->createFromOrderLine($line);
         }
-
-        $service = app(WoService::class);
-
-        if (! method_exists($service, 'proposeFromOrder')) {
-            return;
-        }
-
-        $order = $event->order->fresh(['lines']);
-
-        if (! $order || $order->lines->isEmpty()) {
-            return;
-        }
-
-        $service->proposeFromOrder($order);
     }
 }
