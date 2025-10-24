@@ -1,8 +1,9 @@
 @use './core';
 
 .home-hero {
-    padding-block: clamp(3.5rem, 7vw, 6.5rem);
+    display: grid;
     gap: clamp(var(--space-24), 5vw, var(--space-40));
+    align-items: center;
     opacity: 0;
     transform: translateY(2rem);
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -25,12 +26,8 @@
     object-fit: cover;
 }
 
-.pattern-industries,
-.pattern-process,
-.pattern-stats,
-.pattern-catalog-grid,
-.pattern-partners {
-    padding-block: clamp(var(--space-40), 7vw, var(--space-64));
+.section-head p {
+    color: var(--color-gray-600);
 }
 
 .industry-grid {
@@ -49,11 +46,6 @@
 .industry-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-sm);
-}
-
-.pattern-process .section-head,
-.pattern-stats .section-head {
-    max-width: 48rem;
 }
 
 .process-steps {
@@ -109,6 +101,32 @@
     color: var(--color-gray-600);
 }
 
+.product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.product-card {
+    padding: clamp(var(--space-20), 4vw, var(--space-28));
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-sm);
+}
+
+.product-card__media {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
 .partner-rail {
     display: grid;
     gap: var(--space-16);
@@ -143,6 +161,19 @@
     color: var(--color-gray-500);
 }
 
+.feature-band {
+    padding: clamp(var(--space-24), 6vw, 4rem);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, rgba(45, 92, 255, 0.1), rgba(255, 122, 69, 0.1));
+    text-align: center;
+}
+
+@media (min-width: 48rem) {
+    .home-hero {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (min-width: 62rem) {
     .process-step {
         grid-template-columns: 6rem minmax(0, 1fr);
@@ -153,7 +184,7 @@
         text-align: right;
     }
 
-    .pattern-partners .partner-rail {
+    .partner-rail {
         grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
     }
 }
