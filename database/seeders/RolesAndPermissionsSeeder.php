@@ -149,19 +149,76 @@ class RolesAndPermissionsSeeder extends Seeder
             return preg_match('/\.(view|index|show)$/', $permission) === 1;
         }));
 
-        $finance = array_values(array_filter($permissions, static function (string $permission): bool {
-            return str_starts_with($permission, 'finance.');
-        }));
+        $roleDefinitions = Config::get('permissions.roles', []);
 
-        $cmsManage = in_array('cms.manage', $permissions, true) ? ['cms.manage'] : [];
+        if ($roleDefinitions === []) {
+            return [
+                'super_admin' => $permissions,
+                'owner' => $permissions,
+            ];
+        }
 
-        $full = $permissions;
+        $matrix = [];
 
-        return [
-            'biz' => $full,
-            'patron' => $full,
-            'muhasebeci' => array_values(array_unique(array_merge($finance, $readOnly, $cmsManage))),
-            'stajyer' => $readOnly,
-        ];
+        foreach ($roleDefinitions as $role => $definition) {
+            $definition = is_array($definition) ? $definition : ['include' => Arr::wrap($definition)];
+            $include = $this->expandRolePatterns($definition['include'] ?? [], $permissions, $readOnly);
+            $exclude = $this->expandRolePatterns($definition['exclude'] ?? [], $permissions, $readOnly);
+
+            $matrix[$role] = array_values(array_diff($include, $exclude));
+        }
+
+        return $matrix;
+    }
+
+    /**
+     * @param array<int, string>|string $patterns
+     * @param array<int, string> $permissions
+     * @param array<int, string> $readOnly
+     * @return array<int, string>
+     */
+    protected function expandRolePatterns(array|string $patterns, array $permissions, array $readOnly): array
+    {
+        $patterns = array_filter(array_map('trim', Arr::wrap($patterns)));
+
+        if ($patterns === []) {
+            return [];
+        }
+
+        $resolved = [];
+
+        foreach ($patterns as $pattern) {
+            if ($pattern === '*' || $pattern === '@all') {
+                $resolved = $permissions;
+                continue;
+            }
+
+            if ($pattern === '@view') {
+                $resolved = array_merge($resolved, $readOnly);
+                continue;
+            }
+
+            if (str_contains($pattern, '*')) {
+                foreach ($permissions as $permission) {
+                    if ($this->permissionMatchesPattern($permission, $pattern)) {
+                        $resolved[] = $permission;
+                    }
+                }
+                continue;
+            }
+
+            if (in_array($pattern, $permissions, true)) {
+                $resolved[] = $pattern;
+            }
+        }
+
+        return array_values(array_unique($resolved));
+    }
+
+    protected function permissionMatchesPattern(string $permission, string $pattern): bool
+    {
+        $regex = '/^' . str_replace(['.', '*'], ['\\.', '.*'], $pattern) . '$/';
+
+        return (bool) preg_match($regex, $permission);
     }
 }

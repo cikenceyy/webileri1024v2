@@ -2,6 +2,7 @@
 
 namespace App\Core\Providers;
 
+use App\Core\Console\Commands\AssignRole;
 use App\Core\Support\Console\Commands\AppDoctorCommand;
 use App\Core\Support\Console\Commands\CloudPostdeployCommand;
 use App\Core\Support\Console\Commands\CloudPredeployCommand;
@@ -18,6 +19,7 @@ class CoreServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 AppDoctorCommand::class,
+                AssignRole::class,
                 FlushTenantDomainCacheCommand::class,
                 SequenceSeedCommand::class,
                 SequenceAuditCommand::class,

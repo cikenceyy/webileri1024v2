@@ -7,7 +7,9 @@ use App\Modules\Inventory\Domain\Models\PriceList;
 use App\Modules\Marketing\Domain\Models\Customer;
 use App\Modules\Marketing\Http\Requests\Admin\StoreCustomerRequest;
 use App\Modules\Marketing\Http\Requests\Admin\UpdateCustomerRequest;
+use App\Modules\Marketing\Http\Resources\CustomerResource;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -15,7 +17,7 @@ use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
         $this->authorize('viewAny', Customer::class);
 
@@ -37,6 +39,10 @@ class CustomerController extends Controller
 
         /** @var LengthAwarePaginator $customers */
         $customers = $query->paginate()->withQueryString();
+
+        if ($request->wantsJson()) {
+            return CustomerResource::collection($customers);
+        }
 
         return view('marketing::admin.customers.index', [
             'customers' => $customers,
@@ -70,9 +76,13 @@ class CustomerController extends Controller
             ->with('status', __('Müşteri kaydı oluşturuldu.'));
     }
 
-    public function show(Customer $customer): View
+    public function show(Request $request, Customer $customer): View|JsonResponse
     {
         $this->authorize('view', $customer);
+
+        if ($request->wantsJson()) {
+            return CustomerResource::make($customer->load('priceList'));
+        }
 
         return view('marketing::admin.customers.show', [
             'customer' => $customer->load('priceList'),

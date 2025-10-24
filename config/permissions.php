@@ -144,4 +144,58 @@ return [
             'settings.company.update',
         ],
     ],
+    'roles' => [
+        'super_admin' => [
+            'include' => ['*'],
+        ],
+        'owner' => [
+            'include' => ['*'],
+        ],
+        'accountant' => [
+            'include' => [
+                'finance.*',
+                'logistics.*',
+                'inventory.*',
+                'production.*',
+                'drive.*',
+                'settings.*',
+                'marketing.orders.view',
+                'marketing.orders.update',
+                'marketing.orders.confirm',
+                'marketing.orders.cancel',
+                'marketing.pricelists.view',
+            ],
+            'exclude' => [
+                'marketing.customers.*',
+                'marketing.customer.*',
+            ],
+        ],
+        'operator' => [
+            'include' => [
+                'inventory.*',
+                'logistics.*',
+                'production.workorders.*',
+                'marketing.orders.view',
+                'marketing.orders.create',
+                'marketing.orders.update',
+                'marketing.orders.confirm',
+                'marketing.orders.cancel',
+                'marketing.pricelists.view',
+                'finance.invoices.view',
+                'finance.receipts.view',
+                'finance.cashbook.view',
+            ],
+            'exclude' => [
+                'marketing.customers.*',
+                'marketing.customer.*',
+            ],
+        ],
+        'intern' => [
+            'include' => ['@view'],
+            'exclude' => [
+                'marketing.customers.*',
+                'marketing.customer.*',
+            ],
+        ],
+    ],
 ];

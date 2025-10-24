@@ -49,9 +49,11 @@ class AccessServiceProvider extends ServiceProvider
         }
 
         Gate::before(static function ($user, $ability) {
-            return method_exists($user, 'hasRole') 
-            && ($user->hasRole('biz') || $user->hasRole('patron') || $user->hasRole('owner')) 
-            ? true : null;
+            if (! method_exists($user, 'hasRole')) {
+                return null;
+            }
+
+            return ($user->hasRole('super_admin') || $user->hasRole('owner')) ? true : null;
         });
     }
 

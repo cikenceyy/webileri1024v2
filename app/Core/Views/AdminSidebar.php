@@ -106,6 +106,16 @@ class AdminSidebar
                         ],
                     ],
                     [
+                        'label' => 'İK Yönetimi',
+                        'icon' => 'bi bi-people',
+                        'route' => 'admin.hr.employees.index',
+                        'pattern' => 'admin/hr*',
+                        'children' => [
+                            ['label' => 'Personel Dizini', 'route' => 'admin.hr.employees.index', 'pattern' => 'admin/hr/employees*'],
+                            ['label' => 'Personel Ayarları', 'route' => 'admin.hr.settings.departments.index', 'pattern' => 'admin/hr/settings*'],
+                        ],
+                    ],
+                    [
                         'label' => 'Lojistik',
                         'icon' => 'bi bi-truck',
                         'route' => 'admin.logistics.shipments.index',
