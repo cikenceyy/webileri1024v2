@@ -244,13 +244,17 @@ const renderMediaCard = (root, media) => {
     card.dataset.ui = 'card';
     card.setAttribute('data-drive-row', '');
     card.dataset.id = String(media.id);
-    card.dataset.search = normalizeTerm(`${media.original_name || ''} ${media.mime || ''} ${media.ext || ''}`);
+    const moduleSlug = (media.module || '').toString().trim();
+    const moduleLabel = normalizeTerm(media.module_label || moduleSlug);
+    card.dataset.search = normalizeTerm(`${media.original_name || ''} ${media.mime || ''} ${media.ext || ''} ${moduleSlug} ${moduleLabel}`);
     card.dataset.name = normalizeTerm(media.original_name);
     card.dataset.originalName = media.original_name || '';
     card.dataset.ext = normalizeExt(media.ext);
     card.dataset.mime = normalizeTerm(media.mime);
     card.dataset.size = String(media.size ?? 0);
     card.dataset.category = media.category || '';
+    card.dataset.module = moduleSlug;
+    card.dataset.moduleLabel = moduleLabel;
     card.dataset.important = media.is_important ? '1' : '0';
 
     const downloadTemplate = root.dataset.downloadUrlTemplate || '';
@@ -305,7 +309,11 @@ const renderMediaCard = (root, media) => {
     const relative = formatRelativeTime(media.uploaded_at);
     const detail = document.createElement('p');
     detail.className = 'drive-card__meta drive-card__meta--muted';
-    detail.textContent = `${uploaderName} · ${relative}`;
+    const detailParts = [uploaderName, relative];
+    if (media.module_label) {
+        detailParts.push(media.module_label);
+    }
+    detail.textContent = detailParts.filter(Boolean).join(' · ');
     info.appendChild(detail);
 
     const badge = document.createElement('span');
@@ -620,6 +628,26 @@ const bootDrive = () => {
     refreshTooltips(root);
     updateStorageMetrics(root);
 
+    root.querySelectorAll('[data-drive-tree-toggle]').forEach((toggle) => {
+        const targetId = toggle.getAttribute('aria-controls');
+        if (!targetId) return;
+        const panel = document.getElementById(targetId);
+        if (!panel) return;
+
+        toggle.addEventListener('click', () => {
+            const expanded = toggle.getAttribute('aria-expanded') !== 'false';
+            const nextExpanded = !expanded;
+            toggle.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+            if (nextExpanded) {
+                panel.removeAttribute('hidden');
+                panel.setAttribute('aria-hidden', 'false');
+            } else {
+                panel.setAttribute('hidden', '');
+                panel.setAttribute('aria-hidden', 'true');
+            }
+        });
+    });
+
     if (isPickerMode) {
         postToParent('picker:ready', {
             total: Number(root.dataset.driveTotal || 0),
@@ -782,9 +810,11 @@ const bootDrive = () => {
     const dropzone = root.querySelector('[data-drive-dropzone]');
     const fileInput = root.querySelector('[data-drive-file-input]');
     const categorySelect = root.querySelector('[data-drive-category-select] select, [data-drive-category-select]');
+    const moduleSelect = root.querySelector('[data-drive-module-select] select, [data-drive-module-select]');
     const categoryNote = root.querySelector('[data-drive-category-note]');
     const progressHost = root.querySelector('[data-drive-progress-items]');
     const progressWrapper = root.querySelector('[data-drive-progress]');
+    const moduleDefault = root.dataset.moduleActive || root.dataset.moduleDefault || 'cms';
 
     const limits = (() => {
         try {
@@ -813,6 +843,9 @@ const bootDrive = () => {
 
     applyCategoryNote();
     categorySelect?.addEventListener('change', applyCategoryNote);
+    moduleSelect?.addEventListener('change', () => {
+        root.dataset.moduleActive = moduleSelect.value || moduleDefault;
+    });
 
     const ensureProgress = () => {
         if (progressWrapper) {
@@ -845,7 +878,9 @@ const bootDrive = () => {
         try {
             const formData = new FormData();
             const categoryValue = categorySelect?.value ?? root.dataset.categoryDefault;
+            const moduleValue = moduleSelect?.value || moduleDefault;
             formData.append('category', categoryValue);
+            formData.append('module', moduleValue);
             formData.append('files[]', file);
 
             const { data } = await axios.post(root.dataset.uploadManyUrl, formData, {
@@ -985,6 +1020,15 @@ const bootDrive = () => {
         }
     };
 
+    replaceModal?.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-action]');
+        if (!button) return;
+        if (button.dataset.action === 'drive-submit-replace') {
+            event.preventDefault();
+            await submitReplace();
+        }
+    });
+
     let pendingDelete = null;
     const confirmModal = document.getElementById('driveDeleteConfirm');
     confirmModal?.addEventListener('click', async (event) => {
@@ -1046,11 +1090,6 @@ const bootDrive = () => {
             openReplace(id, name);
         }
 
-        if (action === 'drive-submit-replace') {
-            event.preventDefault();
-            await submitReplace();
-        }
-
         if (action === 'drive-picker-select') {
             if (!isPickerMode) {
                 return;
@@ -1074,6 +1113,7 @@ const bootDrive = () => {
                 url: button.dataset.url || row.dataset.downloadUrl || '',
                 download_url: button.dataset.url || row.dataset.downloadUrl || '',
                 category: row.dataset.category || '',
+                module: row.dataset.module || '',
             };
 
             postToParent('picker:selected', { file: payload });

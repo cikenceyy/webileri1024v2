@@ -21,9 +21,43 @@ class Media extends Model
     public const CATEGORY_MEDIA_CATALOGS = 'media_catalogs';
     public const CATEGORY_PAGES = 'pages';
 
+    public const TYPE_DOCUMENT = 'document';
+    public const TYPE_MEDIA = 'media';
+
+    public const MODULE_CMS = 'cms';
+    public const MODULE_MARKETING = 'marketing';
+    public const MODULE_FINANCE = 'finance';
+    public const MODULE_LOGISTICS = 'logistics';
+    public const MODULE_INVENTORY = 'inventory';
+    public const MODULE_PRODUCTION = 'production';
+    public const MODULE_HR = 'hr';
+
+    public const MODULE_DEFAULT = self::MODULE_CMS;
+
+    public const MODULE_LABELS = [
+        self::MODULE_CMS => 'CMS',
+        self::MODULE_MARKETING => 'Marketing',
+        self::MODULE_FINANCE => 'Finance',
+        self::MODULE_LOGISTICS => 'Logistics',
+        self::MODULE_INVENTORY => 'Inventory',
+        self::MODULE_PRODUCTION => 'Production',
+        self::MODULE_HR => 'HR',
+    ];
+
+    public const DOCUMENT_CATEGORIES = [
+        self::CATEGORY_DOCUMENTS,
+        self::CATEGORY_PAGES,
+    ];
+
+    public const MEDIA_CATEGORIES = [
+        self::CATEGORY_MEDIA_PRODUCTS,
+        self::CATEGORY_MEDIA_CATALOGS,
+    ];
+
     protected $fillable = [
         'company_id',
         'category',
+        'module',
         'disk',
         'path',
         'thumb_path',
@@ -44,6 +78,40 @@ class Media extends Model
         'width' => 'int',
         'height' => 'int',
     ];
+
+    public static function moduleOptions(): array
+    {
+        return self::MODULE_LABELS;
+    }
+
+    public static function moduleKeys(): array
+    {
+        return array_keys(self::MODULE_LABELS);
+    }
+
+    public static function moduleLabel(?string $module): string
+    {
+        $module = $module ?: self::MODULE_DEFAULT;
+
+        return self::MODULE_LABELS[$module] ?? Str::of($module)->headline();
+    }
+
+    public static function documentCategories(): array
+    {
+        return self::DOCUMENT_CATEGORIES;
+    }
+
+    public static function mediaCategories(): array
+    {
+        return self::MEDIA_CATEGORIES;
+    }
+
+    public static function categoryType(string $category): string
+    {
+        return in_array($category, self::DOCUMENT_CATEGORIES, true)
+            ? self::TYPE_DOCUMENT
+            : self::TYPE_MEDIA;
+    }
 
     protected static function booted(): void
     {
