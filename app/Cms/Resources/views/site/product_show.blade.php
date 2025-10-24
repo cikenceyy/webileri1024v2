@@ -29,7 +29,7 @@
                     </ul>
                     <a class="btn btn-primary" data-module="beacon" data-beacon-event="product-contact" data-beacon-payload="{{ $product['slug'] ?? 'product' }}" href="{{ $pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact') }}">{{ __('cms::site.product_show.cta') }}</a>
                 </div>
-                <div class="product-gallery" data-module="light-gallery">
+                <div class="product-gallery" data-module="gallery-core">
                     <div class="gallery-main ratio-16x9">
                         @php $cover = $product['cover_image'] ?? $placeholder('Product', 1280, 720); @endphp
                         <img src="{{ $cover }}" srcset="{{ $cover }} 1280w, {{ $cover }} 960w" sizes="(min-width: 62rem) 560px, 100vw" width="1280" height="720" alt="{{ $product['name'] }}" loading="eager">

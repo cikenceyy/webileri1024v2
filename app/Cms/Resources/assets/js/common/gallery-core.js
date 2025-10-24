@@ -1,4 +1,4 @@
-export function lightGallery(element) {
+export function galleryCore(element) {
     if (!element) {
         return;
     }

@@ -6,7 +6,9 @@ import { beacon } from './beacon';
 import { skeletons } from './skeletons';
 import { navToggle } from './nav-toggle';
 import { stickyHeader } from './sticky-header';
-import { lightGallery } from './light-gallery';
+import { galleryCore } from './gallery-core';
+import { timelineObserver } from './timeline-observer';
+import { tocObserver } from './toc-observer';
 
 const registry = {
     reveal: ioReveal,
@@ -17,7 +19,9 @@ const registry = {
     skeletons,
     'nav-toggle': navToggle,
     'sticky-header': stickyHeader,
-    'light-gallery': lightGallery,
+    'gallery-core': galleryCore,
+    'timeline-observer': timelineObserver,
+    'toc-observer': tocObserver,
 };
 
 export function initModules(root = document) {

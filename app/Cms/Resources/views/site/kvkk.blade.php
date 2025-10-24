@@ -34,7 +34,7 @@
     <section class="section" data-module="reveal">
         <div class="container container--wide">
             <div class="pattern-kvkk">
-                <aside class="kvkk-toc" data-module="toc-observer">
+                <aside class="kvkk-toc" data-module="toc-observer" data-toc-target="#kvkk-content">
                     <h2 class="kvkk-toc__title">{{ __('cms::site.kvkk.toc.title') }}</h2>
                     <ol>
                         <li><a href="#summary">{{ __('cms::site.kvkk.sections.summary') }}</a></li>
@@ -44,7 +44,7 @@
                         <li><a href="#contact">{{ __('cms::site.kvkk.sections.contact') }}</a></li>
                     </ol>
                 </aside>
-                <article class="kvkk-content stack-xl">
+                <article id="kvkk-content" class="kvkk-content stack-xl">
                     <section id="summary" class="stack-md">
                         <h2>{{ __('cms::site.kvkk.summary.heading') }}</h2>
                         <p>{{ $summary['intro'] ?? __('cms::site.kvkk.summary.text') }}</p>
