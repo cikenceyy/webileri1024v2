@@ -28,7 +28,7 @@ return [
             'padding' => 4,
             'reset_period' => 'monthly',
             'table' => 'work_orders',
-            'column' => 'work_order_no',
+            'column' => 'doc_no',
         ],
     ],
 ];

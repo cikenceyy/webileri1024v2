@@ -2,6 +2,7 @@
 
 namespace App\Core\Bus\Actions;
 
+use App\Core\Domain\Sequencing\Sequencer;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -10,12 +11,45 @@ use Throwable;
 
 class NextNumber
 {
+    public function __construct(private readonly Sequencer $sequencer)
+    {
+    }
+
     /**
      * Generate the next document number for a tenant-scoped sequence.
      *
      * @param  array{prefix?:string,padding?:int,reset_period?:string,scope?:string,date?:\DateTimeInterface,idempotency_key?:string,context?:mixed}  $options
      */
     public function __invoke(int $companyId, string $key, array $options = []): string
+    {
+        if (! config('features.sequencer.v2', true)) {
+            return $this->legacySequence($companyId, $key, $options);
+        }
+
+        $prefix = (string) Arr::get($options, 'prefix', Str::upper($key));
+        if ($prefix === '') {
+            $prefix = Str::upper($key);
+        }
+
+        $padding = $this->padding($options['padding'] ?? 6);
+        $reset = (string) ($options['reset_period'] ?? 'yearly');
+        $policy = in_array($reset, ['yearly', 'never'], true) ? $reset : 'yearly';
+        $sequenceKey = Str::of($options['scope'] ?? $key)->slug('_');
+
+        return $this->sequencer->next($companyId, $sequenceKey, $prefix, $padding, $policy);
+    }
+
+    protected function padding(mixed $value): int
+    {
+        $padding = (int) $value;
+
+        return max(3, min(8, $padding));
+    }
+
+    /**
+     * @param  array{prefix?:string,padding?:int,reset_period?:string,scope?:string,date?:\DateTimeInterface,idempotency_key?:string,context?:mixed}  $options
+     */
+    protected function legacySequence(int $companyId, string $key, array $options): string
     {
         $key = Str::upper($key);
         $date = Carbon::parse($options['date'] ?? now());

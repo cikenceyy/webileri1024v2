@@ -38,6 +38,7 @@ Bu doküman mevcut Laravel rotalarını derler ve Core / Modules / Consoles ayr�
 | CLI | inspire | N/A | console | Closure (Inspiring::quote) | Core/DevOps | Konsol komutları module provider’lara bölünebilir.
 
 ### Inventory Modülü (app/Modules/Inventory/Routes/admin.php)
+> **K2 Notu:** Fiyat listesi rotaları bu adımdan itibaren Marketing modülünde `admin.marketing.pricelists.*` adıyla yayımlanmaktadır.
 | Method | URI | Name | Middleware | Controller | Tahmini Modül | Öneri |
 | --- | --- | --- | --- | --- | --- | --- |
 | GET | /admin/inventory/categories | admin.inventory.categories.index | tenant, auth, verified, web | `CategoryController@index` | Inventory | Category listing Today Board filtrelerine bağlanmalı.
@@ -50,15 +51,6 @@ Bu doküman mevcut Laravel rotalarını derler ve Core / Modules / Consoles ayr�
 | GET | /admin/inventory/units | admin.inventory.units.index | tenant, auth, verified, web | `UnitController@index` | Inventory | Unit listesi token'lı formlara taşınacak.
 | GET | /admin/inventory/units/create | admin.inventory.units.create | tenant, auth, verified, web | `UnitController@create` | Inventory | Modal form varyantı hazırlanmalı.
 | POST | /admin/inventory/units | admin.inventory.units.store | tenant, auth, verified, web | `UnitController@store` | Inventory | Base unit sync bellek optimizasyonu gerektiriyor.
-| GET | /admin/inventory/pricelists | admin.inventory.pricelists.index | tenant, auth, verified, web | `PriceListController@index` | Inventory | Price list grid'i module scoped Vite entry ile ayrılmalı.
-| GET | /admin/inventory/pricelists/create | admin.inventory.pricelists.create | tenant, auth, verified, web | `PriceListController@create` | Inventory | Form wizard Today Board aksiyonlarıyla entegre edilebilir.
-| POST | /admin/inventory/pricelists | admin.inventory.pricelists.store | tenant, auth, verified, web | `PriceListController@store` | Inventory | CSV import pipeline planlanmalı.
-| GET | /admin/inventory/pricelists/{pricelist} | admin.inventory.pricelists.show | tenant, auth, verified, web | `PriceListController@show` | Inventory | Readonly view UI tokens'e geçirilmeli.
-| GET | /admin/inventory/pricelists/{pricelist}/edit | admin.inventory.pricelists.edit | tenant, auth, verified, web | `PriceListController@edit` | Inventory | Inline edit Vite parçası ayrıştırılmalı.
-| PUT/PATCH | /admin/inventory/pricelists/{pricelist} | admin.inventory.pricelists.update | tenant, auth, verified, web | `PriceListController@update` | Inventory | Fiyat güncellemesi queue=database ile senkronize edilmeli.
-| DELETE | /admin/inventory/pricelists/{pricelist} | admin.inventory.pricelists.destroy | tenant, auth, verified, web | `PriceListController@destroy` | Inventory | Hard delete audit log gerektiriyor.
-| POST | /admin/inventory/pricelists/{pricelist}/items | admin.inventory.pricelists.items.store | tenant, auth, verified, web | `PriceListController@storeItem` | Inventory | Bulk ekleme job'a taşınmalı.
-| DELETE | /admin/inventory/pricelists/{pricelist}/items/{item} | admin.inventory.pricelists.items.destroy | tenant, auth, verified, web | `PriceListController@destroyItem` | Inventory | Item silme UI toast ile desteklenmeli.
 | GET | /admin/inventory/warehouses | admin.inventory.warehouses.index | tenant, auth, verified, web | `WarehouseController@index` | Inventory | Warehouse haritası layout/partials ayrımı bekliyor.
 | GET | /admin/inventory/warehouses/create | admin.inventory.warehouses.create | tenant, auth, verified, web | `WarehouseController@create` | Inventory | Form Vite entry'sine ayrılmalı.
 | POST | /admin/inventory/warehouses | admin.inventory.warehouses.store | tenant, auth, verified, web | `WarehouseController@store` | Inventory | Coordinates için token tanımı yapılmalı.
@@ -229,11 +221,11 @@ Bu doküman mevcut Laravel rotalarını derler ve Core / Modules / Consoles ayr�
 ### Production (app/Modules/Production/Routes/admin.php)
 | Method | URI | Name | Middleware | Controller | Tahmini Modül | Öneri |
 | --- | --- | --- | --- | --- | --- | --- |
-| GET | /admin/production/work-orders | admin.production.work-orders.index | tenant, auth, verified, web | `WorkOrderController@index` | Production | Layout unify.
-| POST | /admin/production/work-orders | admin.production.work-orders.store | tenant, auth, verified, web | `WorkOrderController@store` | Production | Domain orchestrasyonu.
-| GET | /admin/production/work-orders/{workOrder} | admin.production.work-orders.show | tenant, auth, verified, web | `WorkOrderController@show` | Production | Layout unify.
-| PUT/PATCH | /admin/production/work-orders/{workOrder} | admin.production.work-orders.update | tenant, auth, verified, web | `WorkOrderController@update` | Production | UseCase orchestrasyonu.
-| PATCH | /admin/production/work-orders/{workOrder}/close | admin.production.work-orders.close | tenant, auth, verified, web | `WorkOrderController@close` | Production | Close işlemi domain event'e taşınacak.
+| GET | /admin/production/workorders | admin.production.workorders.index | tenant, auth, verified, web | `WorkOrderController@index` | Production | Layout unify.
+| POST | /admin/production/workorders | admin.production.workorders.store | tenant, auth, verified, web | `WorkOrderController@store` | Production | Domain orchestrasyonu.
+| GET | /admin/production/workorders/{workOrder} | admin.production.workorders.show | tenant, auth, verified, web | `WorkOrderController@show` | Production | Layout unify.
+| PUT/PATCH | /admin/production/workorders/{workOrder} | admin.production.workorders.update | tenant, auth, verified, web | `WorkOrderController@update` | Production | UseCase orchestrasyonu.
+| POST | /admin/production/workorders/{workOrder}/close | admin.production.workorders.close | tenant, auth, verified, web | `WorkOrderController@close` | Production | Close işlemi domain event'e taşınacak.
 
 ### Drive (app/Modules/Drive/Routes/admin.php)
 | Method | URI | Name | Middleware | Controller | Tahmini Modül | Öneri |

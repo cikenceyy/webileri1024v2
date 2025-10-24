@@ -7,7 +7,7 @@
 | Marketing (Satış Siparişleri) | `orders` | `order_no` | Rastgele `ORD-YYYYMM-####` üretiliyordu, çakışma için tekrar deneme yapılıyordu. | `next_number('SO')` ile tenant bazlı sıra, yıllık reset ve otomatik benzersiz indeks. |
 | Finance (Satış Faturaları) | `invoices` | `invoice_no` | Rastgele `INV-YYYYMM-####`. | `next_number('INV')` yıllık reset, idempotent üretim. |
 | Procurement (Satınalma Siparişleri) | `purchase_orders` | `po_number` | Numara alanı bulunmuyordu, benzersiz kimlik yoktu. | Yeni `po_number` kolonu, `next_number('PO')` ile üretim ve `company_id+po_number` benzersizliği. |
-| Production (İş Emirleri) | `work_orders` | `work_order_no` | Rastgele `WO-YYYYMM-####`. | `next_number('WO')` ile aylık reset, dinamik importlarda modül chunk'ı kullanımı. |
+| Production (İş Emirleri) | `work_orders` | `doc_no` | Rastgele `WO-YYYYMM-####`. | Settings v2 `sequencing.work_order_prefix` + `WorkOrderSequencer::next()` ile tenant bazlı sıra (3-8 padding). |
 
 ## Sequence Tasarımı
 
@@ -23,7 +23,7 @@
 | `INV` | `INV` | Yıllık | `invoices.invoice_no` |
 | `SO` | `SO` | Yıllık | `orders.order_no` |
 | `PO` | `PO` | Yıllık | `purchase_orders.po_number` |
-| `WO` | `WO` | Aylık | `work_orders.work_order_no` |
+| `WO` | `WO` | Aylık | `work_orders.doc_no` |
 
 Konfigürasyon `config/numbering.php` dosyasındadır; modüller kendi anahtarlarını buraya ekleyebilir.
 
@@ -43,9 +43,9 @@ Konfigürasyon `config/numbering.php` dosyasındadır; modüller kendi anahtarla
 ## Entegrasyon Noktaları
 
 * Marketing siparişleri: `Order::generateOrderNo()` helper üzerinden `SO` sekansını çağırır.
-* Finance faturaları: `Invoice::generateInvoiceNo()` `INV` sekansını kullanır; BillingService ve orchestratorlar aynı metodu çağırır.
+* Finance faturaları: `NumberSequencer::nextInvoiceNumber()` Settings v2 `invoice_prefix`+`padding` kombinasyonunu kullanır; tüm controller ve orkestrasyonlar bu servisi çağırır.
 * Procurement siparişleri: `PurchaseOrder::generateNumber()` `PO` sekansını kullanır; controller yeni kayıt oluştururken `po_number` alanını doldurur.
-* Production iş emirleri: `WorkOrder::generateNo()` `WO` sekansını kullanır; aylık reset ile modül bazlı iş yükü kontrol edilir.
+* Production iş emirleri: `WorkOrderSequencer::next()` Settings v2 prefix/padding değerlerini kullanır; benzersizlik Eloquent üzerinden doğrulanır.
 
 ## Operasyonel Notlar
 

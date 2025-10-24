@@ -1,4 +1,5 @@
 @php
+    $taxInclusiveDefault = $taxInclusiveDefault ?? false;
     $pricingService = app(\App\Modules\Marketing\Application\Services\PricingService::class);
     $calculation = $pricingService->calculate($lines);
     $displayLines = $calculation['lines'];
@@ -9,6 +10,7 @@
     data-crm-line-editor data-marketing-line-editor
     data-line-prefix="lines"
     data-default-tax="{{ (float) config('marketing.module.default_tax_rate', 20) }}"
+    data-tax-inclusive="{{ $taxInclusiveDefault ? '1' : '0' }}"
 >
     <div class="table-responsive">
         <table class="table align-middle" id="order-lines" data-crm-line-table data-marketing-line-table>

@@ -2,40 +2,48 @@
 
 namespace App\Consoles\Http\Controllers;
 
-use App\Consoles\Domain\Dto\MTOQuery;
-use App\Consoles\Http\Requests\MTOActionRequest;
-use App\Consoles\Http\Requests\MTOQueryRequest;
-use App\Core\Orchestrations\MakeToOrderOrchestration;
+use App\Consoles\Domain\MTOConsoleService;
+use App\Consoles\Http\Requests\MTOBulkActionRequest;
 use App\Http\Controllers\Controller;
-use App\Modules\Production\Domain\Models\WorkOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use LogicException;
 
 class MTOController extends Controller
 {
-    public function index(MTOQueryRequest $request, MakeToOrderOrchestration $orchestration): View
+    public function index(MTOConsoleService $service): View
     {
-        $this->authorize('viewAny', WorkOrder::class);
+        $this->authorize('viewMTOConsole');
 
-        $query = MTOQuery::fromArray($request->validated());
-        $state = $orchestration->preview($query->toArray());
+        $companyId = currentCompanyId();
+        $state = $service->summary($companyId);
 
-        return view('consoles::mto', [
+        return view('consoles::admin.mto.index', [
             'state' => $state,
-            'filters' => $query->toArray(),
-            'module' => 'Consoles',
-            'page' => 'mto',
         ]);
     }
 
-    public function execute(MTOActionRequest $request, string $step, MakeToOrderOrchestration $orchestration): RedirectResponse
+    public function action(MTOBulkActionRequest $request, MTOConsoleService $service): RedirectResponse
     {
-        $result = $orchestration->executeStep(
-            $step,
-            $request->validated(),
-            $request->header('X-Idempotency-Key')
-        );
+        $this->authorize('viewMTOConsole');
 
-        return back()->with($result->success ? 'success' : 'error', $result->message);
+        $companyId = currentCompanyId();
+        $action = $request->validated('action');
+        $ids = array_filter($request->validated('ids', []));
+        $qty = $request->validated('qty');
+
+        try {
+            match ($action) {
+                'plan' => $service->planFromSalesLines($companyId, $ids),
+                'issue' => $service->issueAllMaterials($companyId, $ids),
+                'complete' => $service->completeOrders($companyId, $ids, $qty),
+                'close' => $service->closeOrders($companyId, $ids),
+                default => null,
+            };
+        } catch (LogicException $e) {
+            return back()->withErrors(['action' => $e->getMessage()]);
+        }
+
+        return back()->with('status', __('İşlem tamamlandı.'));
     }
 }

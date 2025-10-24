@@ -12,6 +12,13 @@ class StoreWarehouseRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->attributes->has('company_id') && auth()->check()) {
+            $this->attributes->set('company_id', auth()->user()->company_id);
+        }
+    }
+
     public function rules(): array
     {
         $companyId = $this->attributes->get('company_id') ?? (app()->bound('company') ? app('company')->id : null);
@@ -26,6 +33,7 @@ class StoreWarehouseRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'is_default' => ['sometimes', 'boolean'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
+            'is_active' => ['sometimes', 'boolean'],
         ];
     }
 }

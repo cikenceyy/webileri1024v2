@@ -2,27 +2,28 @@
 
 namespace App\Modules\Finance\Providers;
 
-use App\Modules\Finance\Console\Commands\RebuildAccountsReceivable;
-use App\Modules\Finance\Domain\Models\Allocation;
-use App\Modules\Finance\Domain\Models\BankAccount;
+use App\Modules\Finance\Domain\Models\CashbookEntry;
 use App\Modules\Finance\Domain\Models\Invoice;
 use App\Modules\Finance\Domain\Models\Receipt;
-use App\Modules\Finance\Policies\AllocationPolicy;
-use App\Modules\Finance\Policies\BankAccountPolicy;
-use App\Modules\Finance\Policies\ArInvoicePolicy;
+use App\Modules\Finance\Policies\CashbookPolicy;
+use App\Modules\Finance\Policies\InvoicePolicy;
 use App\Modules\Finance\Policies\ReceiptPolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class FinanceServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../Config/finance.php', 'finance');
-        $this->mergeConfigFrom(__DIR__ . '/../Config/permissions.php', 'finance-permissions');
+        $configPath = __DIR__ . '/../Config';
 
-        if ($this->app->runningInConsole()) {
-            $this->commands([RebuildAccountsReceivable::class]);
+        if (is_dir($configPath)) {
+            foreach (glob($configPath . '/*.php') ?: [] as $configFile) {
+                $name = pathinfo($configFile, PATHINFO_FILENAME);
+                $this->mergeConfigFrom($configFile, 'finance.' . $name);
+            }
         }
     }
 
@@ -32,9 +33,27 @@ class FinanceServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'finance');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/migrations');
 
-        Gate::policy(Invoice::class, ArInvoicePolicy::class);
+        $this->registerPolicies();
+        $this->registerViewNamespaces();
+    }
+
+    protected function registerPolicies(): void
+    {
+        Gate::policy(Invoice::class, InvoicePolicy::class);
         Gate::policy(Receipt::class, ReceiptPolicy::class);
-        Gate::policy(Allocation::class, AllocationPolicy::class);
-        Gate::policy(BankAccount::class, BankAccountPolicy::class);
+        Gate::policy(CashbookEntry::class, CashbookPolicy::class);
+    }
+
+    protected function registerViewNamespaces(): void
+    {
+        $viewsPath = __DIR__ . '/../Resources/views';
+        if (is_dir($viewsPath)) {
+            View::addNamespace('finance', $viewsPath);
+        }
+
+        $langPath = __DIR__ . '/../Resources/lang';
+        if (is_dir($langPath)) {
+            Lang::addNamespace('finance', $langPath);
+        }
     }
 }

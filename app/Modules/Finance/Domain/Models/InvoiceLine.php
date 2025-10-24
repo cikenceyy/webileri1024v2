@@ -19,20 +19,24 @@ class InvoiceLine extends Model
         'variant_id',
         'description',
         'qty',
-        'unit',
+        'uom',
         'unit_price',
-        'discount_rate',
+        'discount_pct',
         'tax_rate',
+        'line_subtotal',
+        'line_tax',
         'line_total',
-        'sort_order',
+        'sort',
     ];
 
     protected $casts = [
-        'qty' => 'float',
-        'unit_price' => 'float',
-        'discount_rate' => 'float',
-        'tax_rate' => 'float',
-        'line_total' => 'float',
+        'qty' => 'decimal:3',
+        'unit_price' => 'decimal:4',
+        'discount_pct' => 'decimal:2',
+        'tax_rate' => 'decimal:2',
+        'line_subtotal' => 'decimal:2',
+        'line_tax' => 'decimal:2',
+        'line_total' => 'decimal:2',
     ];
 
     public function invoice(): BelongsTo
@@ -47,6 +51,6 @@ class InvoiceLine extends Model
 
     public function variant(): BelongsTo
     {
-        return $this->belongsTo(ProductVariant::class);
+        return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
 }

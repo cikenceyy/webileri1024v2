@@ -1,4 +1,11 @@
-@php($lines = $order->lines->map(fn($line) => [
+@php
+    $settingsDefaults = $settingsDefaults ?? [
+        'payment_terms_days' => 0,
+        'price_list_id' => null,
+        'tax_inclusive' => false,
+    ];
+
+    $lines = $order->lines->map(fn($line) => [
     'description' => $line->description,
     'qty' => (float) $line->qty,
     'unit_price' => (float) $line->unit_price,
@@ -13,6 +20,13 @@
     'tax_rate' => config('marketing.module.default_tax_rate'),
     'line_total' => 0,
 ]])
+    ;
+
+    $defaultDueDate = old(
+        'due_date',
+        optional($order->due_date)->format('Y-m-d')
+            ?? now()->addDays((int) ($settingsDefaults['payment_terms_days'] ?? 0))->format('Y-m-d')
+    );
 @endphp
 
 <div class="row g-4">
@@ -38,7 +52,7 @@
         <x-ui-input name="order_date" type="date" :label="__('Order Date')" :value="old('order_date', optional($order->order_date)->format('Y-m-d') ?? now()->format('Y-m-d'))" required />
     </div>
     <div class="col-md-4">
-        <x-ui-input name="due_date" type="date" :label="__('Due Date')" :value="old('due_date', optional($order->due_date)->format('Y-m-d'))" />
+        <x-ui-input name="due_date" type="date" :label="__('Due Date')" :value="$defaultDueDate" />
     </div>
     <div class="col-md-4">
         <x-ui-select name="currency" :label="__('Currency')" :value="old('currency', $order->currency ?? config('inventory.default_currency', 'TRY'))">
@@ -58,6 +72,6 @@
         <x-ui-textarea name="notes" :label="__('Notes')" :value="old('notes', $order->notes)" rows="3" />
     </div>
     <div class="col-12">
-        @include('marketing::orders._lines', ['lines' => $lines])
+        @include('marketing::orders._lines', ['lines' => $lines, 'taxInclusiveDefault' => (bool) ($settingsDefaults['tax_inclusive'] ?? false)])
     </div>
 </div>

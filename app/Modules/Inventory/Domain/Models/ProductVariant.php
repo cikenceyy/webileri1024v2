@@ -3,9 +3,11 @@
 namespace App\Modules\Inventory\Domain\Models;
 
 use App\Core\Tenancy\Traits\BelongsToCompany;
+use App\Modules\Inventory\Domain\Models\ProductVariantValue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductVariant extends Model
@@ -29,6 +31,11 @@ class ProductVariant extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function values(): HasMany
+    {
+        return $this->hasMany(ProductVariantValue::class, 'product_variant_id');
     }
 
     public function scopeSearch(Builder $query, ?string $term): Builder

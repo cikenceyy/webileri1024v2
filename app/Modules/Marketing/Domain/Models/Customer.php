@@ -22,14 +22,21 @@ class Customer extends Model
         'email',
         'phone',
         'tax_no',
-        'address',
+        'billing_address',
+        'shipping_address',
         'status',
-        'payment_terms',
+        'is_active',
+        'payment_terms_days',
+        'default_price_list_id',
         'credit_limit',
         'balance',
     ];
 
     protected $casts = [
+        'billing_address' => 'array',
+        'shipping_address' => 'array',
+        'is_active' => 'bool',
+        'payment_terms_days' => 'int',
         'credit_limit' => 'decimal:2',
         'balance' => 'decimal:2',
     ];
@@ -44,6 +51,11 @@ class Customer extends Model
         return $this->hasMany(CustomerContact::class);
     }
 
+    public function priceList(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Inventory\Domain\Models\PriceList::class, 'default_price_list_id');
+    }
+
     public function addresses(): HasMany
     {
         return $this->hasMany(CustomerAddress::class);
@@ -51,7 +63,7 @@ class Customer extends Model
 
     public function orders(): HasMany
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(SalesOrder::class);
     }
 
     public function quotes(): HasMany
