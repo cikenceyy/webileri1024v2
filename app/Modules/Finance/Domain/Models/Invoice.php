@@ -4,43 +4,70 @@ namespace App\Modules\Finance\Domain\Models;
 
 use App\Core\Tenancy\Traits\BelongsToCompany;
 use App\Modules\Marketing\Domain\Models\Customer;
-use App\Modules\Marketing\Domain\Models\Order;
+use App\Modules\Marketing\Domain\Models\SalesOrder;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
     use BelongsToCompany;
-    use SoftDeletes;
 
     protected $fillable = [
         'company_id',
         'customer_id',
         'order_id',
-        'invoice_no',
-        'issue_date',
-        'due_date',
-        'currency',
+        'doc_no',
         'status',
-        'collection_lane',
+        'currency',
+        'tax_inclusive',
         'subtotal',
-        'discount_total',
         'tax_total',
         'grand_total',
-        'balance_due',
-        'shipping_total',
+        'paid_amount',
+        'payment_terms_days',
+        'due_date',
+        'issued_at',
+        'cancelled_at',
         'notes',
-        'created_by',
-        'updated_by',
     ];
 
     protected $casts = [
-        'issue_date' => 'date',
+        'tax_inclusive' => 'bool',
+        'subtotal' => 'decimal:2',
+        'tax_total' => 'decimal:2',
+        'grand_total' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'balance' => 'decimal:2',
+        'balance_due' => 'decimal:2',
+        'issued_at' => 'datetime',
+        'cancelled_at' => 'datetime',
         'due_date' => 'date',
-        'shipping_total' => 'decimal:2',
     ];
+
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_ISSUED = 'issued';
+    public const STATUS_PARTIALLY_PAID = 'partially_paid';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_DRAFT,
+            self::STATUS_ISSUED,
+            self::STATUS_PARTIALLY_PAID,
+            self::STATUS_PAID,
+            self::STATUS_CANCELLED,
+        ];
+    }
+
+    public function scopeOpen(Builder $builder): Builder
+    {
+        return $builder->whereIn('status', [self::STATUS_ISSUED, self::STATUS_PARTIALLY_PAID]);
+    }
 
     public function customer(): BelongsTo
     {
@@ -49,55 +76,90 @@ class Invoice extends Model
 
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(SalesOrder::class, 'order_id');
     }
 
     public function lines(): HasMany
     {
-        return $this->hasMany(InvoiceLine::class)->orderBy('sort_order');
+        return $this->hasMany(InvoiceLine::class)->orderBy('sort');
     }
 
-    public function allocations(): HasMany
+    public function applications(): HasMany
     {
-        return $this->hasMany(Allocation::class);
+        return $this->hasMany(ReceiptApplication::class);
     }
 
-    public static function generateInvoiceNo(int $companyId): string
+    public function markIssued(string $docNo, \DateTimeInterface $issuedAt, int $terms): void
     {
-        return next_number('INV', [
-            'prefix' => 'INV',
-        ], $companyId);
+        $issued = CarbonImmutable::instance($issuedAt);
+        $dueDate = $terms > 0 ? $issued->addDays($terms) : $issued;
+
+        $this->forceFill([
+            'doc_no' => $docNo,
+            'status' => self::STATUS_ISSUED,
+            'issued_at' => $issued,
+            'payment_terms_days' => $terms,
+            'due_date' => $dueDate,
+        ])->save();
     }
 
-    public function refreshTotals(): void
+    public function syncPaymentStatus(): void
     {
-        $subtotal = 0;
-        $discount = 0;
-        $tax = 0;
-        $grand = 0;
+        $balance = (float) $this->grand_total - (float) $this->paid_amount;
 
-        foreach ($this->lines as $line) {
-            $lineBase = $line->qty * $line->unit_price;
-            $lineDiscount = $lineBase * ($line->discount_rate / 100);
-            $lineNet = $lineBase - $lineDiscount;
-            $lineTax = $lineNet * ($line->tax_rate / 100);
-
-            $subtotal += $lineBase;
-            $discount += $lineDiscount;
-            $tax += $lineTax;
-            $grand += $lineNet + $lineTax;
+        if ($balance <= 0.0001) {
+            $this->status = self::STATUS_PAID;
+        } elseif ($this->paid_amount > 0) {
+            $this->status = self::STATUS_PARTIALLY_PAID;
+        } elseif ($this->status === self::STATUS_PAID || $this->status === self::STATUS_PARTIALLY_PAID) {
+            $this->status = self::STATUS_ISSUED;
         }
 
-        $allocated = $this->allocations()->sum('amount');
+        $this->save();
+    }
 
-        $grand += (float) $this->shipping_total;
+    public function applyPayment(float $amount): void
+    {
+        $this->paid_amount = round(((float) $this->paid_amount) + $amount, 2);
+        $this->syncPaymentStatus();
+    }
 
-        $this->fill([
-            'subtotal' => round($subtotal, 2),
-            'discount_total' => round($discount, 2),
-            'tax_total' => round($tax, 2),
-            'grand_total' => round($grand, 2),
-            'balance_due' => round($grand - $allocated, 2),
-        ]);
+    public function revertPayment(float $amount): void
+    {
+        $this->paid_amount = round(max(0, ((float) $this->paid_amount) - $amount), 2);
+        $this->syncPaymentStatus();
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function isIssued(): bool
+    {
+        return $this->status === self::STATUS_ISSUED || $this->status === self::STATUS_PARTIALLY_PAID;
+    }
+
+    public function isSettled(): bool
+    {
+        return in_array($this->status, [self::STATUS_PAID, self::STATUS_CANCELLED], true);
+    }
+
+    public function getBalanceDueAttribute(mixed $value): float
+    {
+        if ($value !== null) {
+            return (float) $value;
+        }
+
+        return round((float) $this->grand_total - (float) $this->paid_amount, 2);
+    }
+
+    public function getBalanceAttribute(mixed $value): float
+    {
+        if ($value !== null) {
+            return (float) $value;
+        }
+
+        return $this->getBalanceDueAttribute(null);
     }
 }

@@ -7,28 +7,25 @@ use App\Modules\Marketing\Domain\Models\Customer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Receipt extends Model
 {
     use BelongsToCompany;
-    use SoftDeletes;
 
     protected $fillable = [
         'company_id',
         'customer_id',
-        'receipt_no',
-        'receipt_date',
-        'currency',
+        'doc_no',
+        'received_at',
         'amount',
-        'bank_account_id',
-        'allocated_total',
+        'method',
+        'reference',
         'notes',
-        'created_by',
     ];
 
     protected $casts = [
-        'receipt_date' => 'date',
+        'received_at' => 'date',
+        'amount' => 'decimal:2',
     ];
 
     public function customer(): BelongsTo
@@ -36,19 +33,18 @@ class Receipt extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function bankAccount(): BelongsTo
+    public function applications(): HasMany
     {
-        return $this->belongsTo(BankAccount::class);
+        return $this->hasMany(ReceiptApplication::class);
     }
 
-    public function allocations(): HasMany
+    public function appliedTotal(): float
     {
-        return $this->hasMany(Allocation::class);
+        return (float) $this->applications()->sum('amount');
     }
 
-    public function refreshAllocatedTotal(): void
+    public function availableAmount(): float
     {
-        $allocated = $this->allocations()->sum('amount');
-        $this->forceFill(['allocated_total' => round($allocated, 2)])->save();
+        return max(0.0, (float) $this->amount - $this->appliedTotal());
     }
 }

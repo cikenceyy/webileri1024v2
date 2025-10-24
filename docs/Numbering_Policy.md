@@ -43,7 +43,7 @@ Konfigürasyon `config/numbering.php` dosyasındadır; modüller kendi anahtarla
 ## Entegrasyon Noktaları
 
 * Marketing siparişleri: `Order::generateOrderNo()` helper üzerinden `SO` sekansını çağırır.
-* Finance faturaları: `Invoice::generateInvoiceNo()` `INV` sekansını kullanır; BillingService ve orchestratorlar aynı metodu çağırır.
+* Finance faturaları: `NumberSequencer::nextInvoiceNumber()` Settings v2 `invoice_prefix`+`padding` kombinasyonunu kullanır; tüm controller ve orkestrasyonlar bu servisi çağırır.
 * Procurement siparişleri: `PurchaseOrder::generateNumber()` `PO` sekansını kullanır; controller yeni kayıt oluştururken `po_number` alanını doldurur.
 * Production iş emirleri: `WorkOrder::generateNo()` `WO` sekansını kullanır; aylık reset ile modül bazlı iş yükü kontrol edilir.
 

@@ -18,7 +18,7 @@
 - Sidebar for **Finans & Muhasebe** now links to invoices and only exposes:
   - `Faturalar` (`admin.finance.invoices.index`)
   - `Tahsilatlar` (`admin.finance.receipts.index`)
-  - `Cashbook (Lite)` (`admin.finance.cash-panel.index`)
+  - `Cashbook (Lite)` (`admin.finance.cashbook.index`)
 - Heavy console routes (`collections`) are wrapped by `config('features.finance.collections_console')` (default `false`).
 - Buttons and links to Tahsilat Konsolu render only when the feature flag is enabled.
 

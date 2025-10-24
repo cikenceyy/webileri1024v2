@@ -19,7 +19,8 @@ Bu doküman, O2C/P2P/MTO konsollarının gerektirdiği servis ve veri kaynaklar�
 - `App/Modules/Logistics/Domain/Services/ShipmentService.php`: picking/packing/ship/deliver adımlarını doğrulama ve stok düşümüyle gerçekleştirir.
 
 ### Finance
-- `App/Modules/Finance/Domain/Services/BillingService.php`: siparişi faturaya dönüştürüp satır ve toplamları hesaplar.
+- `App/Modules/Finance/Domain/Services/InvoiceCalculator.php`: siparişi faturaya dönüştürmek için satır hesaplamalarını yapar.
+- `App/Modules/Finance/Domain/Services/NumberSequencer.php`: Settings tabanlı numaralandırma sağlar.
 - `App/Modules/Finance/Domain/Models/Invoice.php` ve `Receipt.php`: AR tarafında bakiye takibi ve tahsilatların kayıt altına alınması.
 - `App/Modules/Finance/Domain/Models/ApInvoice.php` ve `ApPayment.php`: AP faturaları ve ödemeleri için yapılandırılmış modeller.
 
@@ -37,8 +38,8 @@ Bu doküman, O2C/P2P/MTO konsollarının gerektirdiği servis ve veri kaynaklar�
 | --- | --- | --- | --- |
 | O2C | `so.confirm` | Marketing Order + Inventory StockService | Sipariş onayı sonrası stok rezervasyonu yapılır.
 | O2C | `ship.dispatch` | Logistics ShipmentService | Sevkiyat `ship()` ile stok düşer, durum güncellenir.
-| O2C | `ar.invoice.post` | Finance BillingService / Invoice | Siparişten fatura üretimi ve bakiye güncellemesi.
-| O2C | `ar.payment.register` | Finance Receipt + Allocation | Tahsilat kaydı, bakiye sıfırlama.
+| O2C | `ar.invoice.post` | Finance NumberSequencer + InvoiceCalculator | Siparişten fatura üretimi ve bakiye güncellemesi.
+| O2C | `ar.payment.register` | Finance Receipt + ReceiptAllocator | Tahsilat kaydı, bakiye sıfırlama.
 | P2P | `po.approve` | Procurement PurchaseOrder | Onay tarihi ve statü güncellemesi.
 | P2P | `grn.receive` | Procurement Grn + Inventory StockService | Mal kabul kaydı ve stok girişi.
 | P2P | `ap.invoice.post` | Finance ApInvoice + ApInvoiceLine | PO satırlarından AP faturası üretimi.

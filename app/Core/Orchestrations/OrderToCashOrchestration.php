@@ -6,10 +6,12 @@ use App\Core\Orchestrations\Concerns\ResolvesTenant;
 use App\Core\Orchestrations\Contracts\Dto\O2CState;
 use App\Core\Orchestrations\Contracts\Dto\StepResult;
 use App\Core\Orchestrations\Contracts\OrchestrationContract;
-use App\Modules\Finance\Domain\Models\Allocation;
 use App\Modules\Finance\Domain\Models\Invoice;
 use App\Modules\Finance\Domain\Models\Receipt;
-use App\Modules\Finance\Domain\Services\BillingService;
+use App\Modules\Finance\Domain\Services\InvoiceCalculator;
+use App\Modules\Finance\Domain\Services\NumberSequencer;
+use App\Modules\Finance\Domain\Services\ReceiptAllocator;
+use App\Core\Contracts\SettingsReader;
 use App\Modules\Inventory\Domain\Services\StockService;
 use App\Modules\Logistics\Domain\Models\Shipment;
 use App\Modules\Logistics\Domain\Services\ShipmentService;
@@ -32,8 +34,8 @@ class OrderToCashOrchestration implements OrchestrationContract
         'so.confirm' => 'marketing.orders.confirm',
         'inv.allocate' => 'inventory.stock.allocate',
         'ship.dispatch' => 'logistics.shipment.dispatch',
-        'ar.invoice.post' => 'finance.invoice.post',
-        'ar.payment.register' => 'finance.payment.register',
+        'ar.invoice.post' => 'finance.invoices.issue',
+        'ar.payment.register' => 'finance.receipts.apply',
     ];
 
     /**
@@ -67,7 +69,7 @@ class OrderToCashOrchestration implements OrchestrationContract
             'awaiting_fulfilment' => (clone $orders)->whereIn('status', ['confirmed', 'ready_to_ship'])->count(),
             'shipments_in_progress' => (clone $shipments)->whereNotIn('status', ['delivered', 'returned'])->count(),
             'invoices_due' => (clone $invoices)
-                ->whereIn('status', ['draft', 'sent', 'partial'])
+                ->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID])
                 ->whereDate('due_date', '<=', Carbon::now()->addDays(7))
                 ->count(),
         ];
@@ -106,12 +108,14 @@ class OrderToCashOrchestration implements OrchestrationContract
             [
                 'label' => 'Tahsilat Bekleyen Faturalar',
                 'action' => 'ar.payment.register',
-                'count' => (clone $invoices)->whereNotIn('status', ['paid', 'void'])
+                'count' => (clone $invoices)
+                    ->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID])
                     ->where(function ($q): void {
-                        $q->whereNull('balance_due')->orWhere('balance_due', '>', 0);
-                    })->count(),
+                        $q->whereRaw('(grand_total - paid_amount) > 0');
+                    })
+                    ->count(),
                 'rows' => $this->formatInvoices((clone $invoices)
-                    ->whereNotIn('status', ['paid', 'void'])
+                    ->whereIn('status', [Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID])
                     ->orderBy('due_date')
                     ->limit(5)
                     ->get()),
@@ -236,10 +240,10 @@ class OrderToCashOrchestration implements OrchestrationContract
         return $invoices->map(static function (Invoice $invoice): array {
             return [
                 'id' => $invoice->getKey(),
-                'invoice_no' => $invoice->invoice_no,
+                'doc_no' => $invoice->doc_no,
                 'status' => $invoice->status,
                 'due_date' => optional($invoice->due_date)->toDateString(),
-                'balance_due' => (float) $invoice->balance_due,
+                'balance' => (float) $invoice->grand_total - (float) $invoice->paid_amount,
             ];
         })->all();
     }
@@ -340,32 +344,48 @@ class OrderToCashOrchestration implements OrchestrationContract
             ->where('company_id', $companyId)
             ->findOrFail($orderId);
 
-        $invoice = null;
+        $order->load('lines');
+        $settings = app(SettingsReader::class)->get($companyId);
+        /** @var InvoiceCalculator $calculator */
+        $calculator = app(InvoiceCalculator::class);
+        /** @var NumberSequencer $sequencer */
+        $sequencer = app(NumberSequencer::class);
 
-        if (class_exists(BillingService::class)) {
-            /** @var BillingService $service */
-            $service = app(BillingService::class);
-            $invoice = $service->fromOrder($order->fresh('lines'));
-        } else {
-            $invoice = Invoice::create([
-                'company_id' => $order->company_id,
-                'customer_id' => $order->customer_id,
-                'order_id' => $order->getKey(),
-                'invoice_no' => Invoice::generateInvoiceNo($order->company_id),
-                'issue_date' => now()->toDateString(),
-                'due_date' => $order->due_date ?? now()->addDays(14)->toDateString(),
-                'currency' => $order->currency,
-                'status' => 'sent',
-                'subtotal' => $order->subtotal,
-                'tax_total' => $order->tax_total,
-                'grand_total' => $order->total_amount,
-                'balance_due' => $order->total_amount,
-            ]);
+        $lines = $order->lines->map(function ($line): array {
+            return [
+                'product_id' => $line->product_id,
+                'variant_id' => $line->variant_id,
+                'description' => $line->product?->name ?? __('Order Line'),
+                'qty' => $line->qty,
+                'uom' => $line->uom,
+                'unit_price' => $line->unit_price,
+                'discount_pct' => $line->discount_pct,
+                'tax_rate' => $line->tax_rate,
+            ];
+        })->toArray();
+
+        $calculation = $calculator->calculate($lines, (bool) $order->tax_inclusive);
+        $terms = $order->payment_terms_days ?? $settings->defaults['payment_terms_days'];
+
+        $invoice = Invoice::create([
+            'company_id' => $order->company_id,
+            'customer_id' => $order->customer_id,
+            'order_id' => $order->getKey(),
+            'currency' => $order->currency ?? $settings->money['base_currency'],
+            'tax_inclusive' => (bool) $order->tax_inclusive,
+            'payment_terms_days' => $terms,
+            'notes' => $order->notes,
+            'subtotal' => $calculation['totals']['subtotal'],
+            'tax_total' => $calculation['totals']['tax'],
+            'grand_total' => $calculation['totals']['grand'],
+            'status' => Invoice::STATUS_DRAFT,
+        ]);
+
+        foreach ($calculation['lines'] as $line) {
+            $invoice->lines()->create(array_merge($line, ['company_id' => $invoice->company_id]));
         }
 
-        $invoice->refreshTotals();
-        $invoice->status = $invoice->balance_due > 0 ? 'sent' : 'paid';
-        $invoice->save();
+        $invoice->markIssued($sequencer->nextInvoiceNumber($companyId), now(), $terms);
 
         return StepResult::success(
             __('Fatura oluşturuldu.'),
@@ -384,8 +404,10 @@ class OrderToCashOrchestration implements OrchestrationContract
             ->where('company_id', $companyId)
             ->findOrFail($invoiceId);
 
+        $balance = max(0.0, (float) $invoice->grand_total - (float) $invoice->paid_amount);
+
         if ($amount <= 0) {
-            $amount = (float) $invoice->balance_due;
+            $amount = $balance;
         }
 
         if ($amount <= 0) {
@@ -394,32 +416,26 @@ class OrderToCashOrchestration implements OrchestrationContract
             ]);
         }
 
+        $amount = min($amount, $balance);
+
+        /** @var NumberSequencer $sequencer */
+        $sequencer = app(NumberSequencer::class);
         $receipt = Receipt::create([
             'company_id' => $invoice->company_id,
             'customer_id' => $invoice->customer_id,
-            'receipt_no' => 'RC-' . now()->format('Ymd-His'),
-            'receipt_date' => Arr::get($payload, 'receipt_date', now()->toDateString()),
-            'currency' => $invoice->currency,
+            'doc_no' => $sequencer->nextReceiptNumber($companyId),
+            'received_at' => Arr::get($payload, 'received_at', now()->toDateString()),
             'amount' => $amount,
-            'allocated_total' => 0,
             'notes' => Arr::get($payload, 'notes'),
-            'bank_account_id' => Arr::get($payload, 'bank_account_id'),
-            'created_by' => optional(Auth::user())->getKey(),
         ]);
 
-        Allocation::create([
-            'company_id' => $invoice->company_id,
-            'invoice_id' => $invoice->getKey(),
-            'receipt_id' => $receipt->getKey(),
-            'amount' => $amount,
-            'allocated_at' => now(),
-            'allocated_by' => optional(Auth::user())->getKey(),
+        /** @var ReceiptAllocator $allocator */
+        $allocator = app(ReceiptAllocator::class);
+        $allocator->apply($receipt, [
+            ['invoice_id' => $invoice->getKey(), 'amount' => $amount],
         ]);
 
-        $receipt->refreshAllocatedTotal();
-        $invoice->refreshTotals();
-        $invoice->status = $invoice->balance_due > 0 ? 'partial' : 'paid';
-        $invoice->save();
+        $invoice->refresh();
 
         return StepResult::success(
             __('Tahsilat kaydedildi.'),

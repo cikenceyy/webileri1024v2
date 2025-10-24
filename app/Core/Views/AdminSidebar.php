@@ -123,7 +123,7 @@ class AdminSidebar
                         'children' => [
                             ['label' => 'Faturalar', 'route' => 'admin.finance.invoices.index', 'pattern' => 'admin/finance/invoices*'],
                             ['label' => 'Tahsilatlar', 'route' => 'admin.finance.receipts.index', 'pattern' => 'admin/finance/receipts*'],
-                            ['label' => 'Cashbook (Lite)', 'route' => 'admin.finance.cash-panel.index', 'pattern' => 'admin/finance/cash-panel*'],
+                            ['label' => 'Cashbook (Lite)', 'route' => 'admin.finance.cashbook.index', 'pattern' => 'admin/finance/cashbook*'],
                         ],
                     ],
                     [

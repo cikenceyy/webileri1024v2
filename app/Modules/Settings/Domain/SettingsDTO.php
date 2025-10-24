@@ -12,6 +12,7 @@ class SettingsDTO implements Arrayable
      * @param array{default_vat_rate:float|int,withholding_enabled:bool} $tax
      * @param array{
      *     invoice_prefix:string,
+     *     receipt_prefix:string,
      *     order_prefix:string,
      *     shipment_prefix:string,
      *     padding:int,
@@ -56,6 +57,7 @@ class SettingsDTO implements Arrayable
             ],
             sequencing: [
                 'invoice_prefix' => 'INV',
+                'receipt_prefix' => 'RCPT',
                 'order_prefix' => 'ORD',
                 'shipment_prefix' => 'SHP',
                 'padding' => 6,
@@ -156,6 +158,7 @@ class SettingsDTO implements Arrayable
      * @param array<string, mixed> $data
      * @return array{
      *     invoice_prefix:string,
+     *     receipt_prefix:string,
      *     order_prefix:string,
      *     shipment_prefix:string,
      *     padding:int,
@@ -166,6 +169,7 @@ class SettingsDTO implements Arrayable
     {
         return [
             'invoice_prefix' => (string) ($data['invoice_prefix'] ?? 'INV'),
+            'receipt_prefix' => (string) ($data['receipt_prefix'] ?? 'RCPT'),
             'order_prefix' => (string) ($data['order_prefix'] ?? 'ORD'),
             'shipment_prefix' => (string) ($data['shipment_prefix'] ?? 'SHP'),
             'padding' => (int) ($data['padding'] ?? 6),

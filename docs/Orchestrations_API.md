@@ -26,7 +26,7 @@ StepResult::failure(string $message, array $errors = [])
 | `so.confirm` | `order_id` | Siparişi `confirmed` durumuna geçirir, varsa stok rezervasyonu açar. |
 | `inv.allocate` | `order_id` | `StockService::reserveForOrder` ile rezervasyon tekrar çalıştırılır. |
 | `ship.dispatch` | `shipment_id` | `ShipmentService::ship` çağrılır, aksi halde status=`shipped`. |
-| `ar.invoice.post` | `order_id` | `BillingService::fromOrder` veya fallback ile fatura üretir. |
+| `ar.invoice.post` | `order_id` | Settings bazlı numaralandırma ile fatura oluşturur, satırları InvoiceCalculator hesaplar. |
 | `ar.payment.register` | `invoice_id`, `amount?`, `receipt_date?`, `bank_account_id?`, `notes?` | Tahsilat (`Receipt` + `Allocation`) kaydı yapar, bakiye güncellenir. |
 
 ### Procure-to-Pay (`ProcureToPayOrchestration`)
