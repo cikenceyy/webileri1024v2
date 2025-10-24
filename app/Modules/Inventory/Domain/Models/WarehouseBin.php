@@ -5,31 +5,22 @@ namespace App\Modules\Inventory\Domain\Models;
 use App\Core\Tenancy\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Warehouse extends Model
+class WarehouseBin extends Model
 {
     use BelongsToCompany;
-    use SoftDeletes;
 
     protected $fillable = [
         'company_id',
+        'warehouse_id',
         'code',
         'name',
-        'is_default',
-        'status',
-        'is_active',
     ];
 
-    protected $casts = [
-        'is_default' => 'bool',
-        'is_active' => 'bool',
-    ];
-
-    public function bins(): HasMany
+    public function warehouse(): BelongsTo
     {
-        return $this->hasMany(WarehouseBin::class);
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function scopeSearch(Builder $query, ?string $term): Builder

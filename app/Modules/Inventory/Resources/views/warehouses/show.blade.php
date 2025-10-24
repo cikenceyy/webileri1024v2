@@ -3,63 +3,106 @@
 @section('title', $warehouse->name)
 @section('module', 'Inventory')
 
-@push('page-styles')
-    @vite('app/Modules/Inventory/Resources/scss/warehouses.scss')
-@endpush
-
-@push('page-scripts')
-    @vite('app/Modules/Inventory/Resources/js/warehouses.js')
-@endpush
-
 @section('content')
-    <section class="inv-warehouse" data-warehouse="{{ $warehouse->id }}">
-        <header class="inv-warehouse__header">
-            <h1 class="inv-warehouse__title">{{ $warehouse->name }}</h1>
-            <p class="inv-warehouse__subtitle">Kod: {{ $warehouse->code ?? '—' }}</p>
-        </header>
-
-        <div class="inv-warehouse__layout">
-            <div class="inv-warehouse__grid" data-heatmap>
-                @foreach ($stockItems as $index => $item)
-                    @php
-                        $threshold = (float) ($item->reorder_point ?? $item->product?->reorder_point ?? 0);
-                        $ratio = $threshold > 0 ? min(1, max(0, $item->qty / $threshold)) : 1;
-                        $level = (int) ceil($ratio * 5);
-                        $payload = [[
-                            'id' => $item->product?->id,
-                            'name' => $item->product?->name,
-                            'sku' => $item->product?->sku,
-                            'qty' => round($item->qty, 2),
-                            'reserved' => round($item->reserved_qty ?? 0, 2),
-                        ]];
-                    @endphp
-                    <button type="button"
-                            class="inv-heat__cell inv-warehouse__cell"
-                            data-action="select-cell"
-                            data-rack="R{{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}"
-                            data-level="{{ $level }}"
-                            data-items='@json($payload)'>
-                        <span class="inv-warehouse__cell-label">{{ $item->product?->sku ?? 'SKU' }}</span>
-                        <span class="inv-warehouse__cell-qty">{{ number_format($item->qty, 2) }}</span>
-                    </button>
-                @endforeach
+    <section class="inv-card">
+        <header class="inv-card__header d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="inv-card__title">{{ $warehouse->name }}</h1>
+                <p class="text-muted">Kod: {{ $warehouse->code }}</p>
             </div>
-
-            <aside class="inv-warehouse__panel" data-panel-region>
-                <h2 class="inv-warehouse__panel-title">Seçili Raf</h2>
-                <div class="inv-warehouse__panel-body" data-panel-body>
-                    <p class="text-muted">Bir hücre seçerek ürün detaylarını görüntüleyin.</p>
-                </div>
-                <div class="inv-warehouse__actions">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-action="transfer">Transfer</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-action="adjust">Düzeltme</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-action="label">Etiket Yazdır</button>
-                </div>
-            </aside>
+            <div class="d-flex gap-2">
+                @can('update', $warehouse)
+                    <a href="{{ route('admin.inventory.warehouses.edit', $warehouse) }}" class="btn btn-outline-secondary btn-sm">Düzenle</a>
+                @endcan
+                <a href="{{ route('admin.inventory.warehouses.index') }}" class="btn btn-link btn-sm">← Depo listesi</a>
+            </div>
+        </header>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <h2 class="h6 mb-3">Raflar</h2>
+                <ul class="list-group mb-3">
+                    @forelse ($bins as $bin)
+                        <li class="list-group-item">
+                            @can('update', $warehouse)
+                                <form method="post" action="{{ route('admin.inventory.warehouses.bins.update', [$warehouse, $bin]) }}" class="row g-2 align-items-center mb-2">
+                                    @csrf
+                                    @method('put')
+                                    <div class="col-4">
+                                        <input type="text" name="code" value="{{ old('code', $bin->code) }}" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="col-5">
+                                        <input type="text" name="name" value="{{ old('name', $bin->name) }}" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="col-3 d-flex gap-1">
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Kaydet</button>
+                                    </div>
+                                </form>
+                                <form method="post" action="{{ route('admin.inventory.warehouses.bins.destroy', [$warehouse, $bin]) }}" onsubmit="return confirm('Raf silinsin mi?')">
+                                    @csrf
+                                    @method('delete')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Sil</button>
+                                </form>
+                            @else
+                                <div>
+                                    <strong>{{ $bin->code }}</strong>
+                                    <div class="text-muted small">{{ $bin->name }}</div>
+                                </div>
+                            @endcan
+                        </li>
+                    @empty
+                        <li class="list-group-item text-muted">Henüz raf tanımı yapılmadı.</li>
+                    @endforelse
+                </ul>
+                @can('update', $warehouse)
+                    <form method="post" action="{{ route('admin.inventory.warehouses.bins.store', $warehouse) }}" class="card card-body">
+                        @csrf
+                        <h3 class="h6">Yeni Raf</h3>
+                        <div class="mb-2">
+                            <label class="form-label">Kod</label>
+                            <input type="text" name="code" class="form-control" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Ad</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Ekle</button>
+                    </form>
+                @endcan
+            </div>
+            <div class="col-md-8">
+                <h2 class="h6 mb-3">Stok Özeti</h2>
+                <form method="get" class="mb-3">
+                    <input type="search" name="search" value="{{ $search }}" class="form-control" placeholder="Ürün ara">
+                </form>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Ürün</th>
+                            <th>Raf</th>
+                            <th class="text-end">Miktar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($stockItems as $row)
+                            <tr>
+                                <td>{{ $row['product']?->name ?? '—' }}<br><span class="text-muted">{{ $row['product']?->sku ?? '' }}</span></td>
+                                <td>
+                                    @if ($row['bin'])
+                                        {{ $row['bin']->code }} — {{ $row['bin']->name }}
+                                    @else
+                                        Genel stok
+                                    @endif
+                                </td>
+                                <td class="text-end">{{ number_format($row['qty'], 2) }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Stok kaydı bulunamadı.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
-
-        <footer class="inv-warehouse__pagination">
-            {{ $stockItems->links() }}
-        </footer>
     </section>
 @endsection
