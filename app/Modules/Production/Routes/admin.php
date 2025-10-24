@@ -20,8 +20,12 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
 
         Route::post('workorders/{workOrder}/release', [WorkOrderController::class, 'release'])->name('workorders.release');
         Route::post('workorders/{workOrder}/start', [WorkOrderController::class, 'start'])->name('workorders.start');
-        Route::post('workorders/{workOrder}/issue', [WorkOrderController::class, 'issue'])->name('workorders.issue');
-        Route::post('workorders/{workOrder}/complete', [WorkOrderController::class, 'complete'])->name('workorders.complete');
+        Route::post('workorders/{workOrder}/issue', [WorkOrderController::class, 'issue'])
+            ->middleware('idempotency')
+            ->name('workorders.issue');
+        Route::post('workorders/{workOrder}/complete', [WorkOrderController::class, 'complete'])
+            ->middleware('idempotency')
+            ->name('workorders.complete');
         Route::post('workorders/{workOrder}/close', [WorkOrderController::class, 'close'])->name('workorders.close');
         Route::post('workorders/{workOrder}/cancel', [WorkOrderController::class, 'cancel'])->name('workorders.cancel');
     });

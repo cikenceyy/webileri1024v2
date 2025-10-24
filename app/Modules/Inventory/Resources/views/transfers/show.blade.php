@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Str; @endphp
 @extends('layouts.admin')
 
 @section('title', $transfer->doc_no)
@@ -46,6 +47,7 @@
         @if ($transfer->status === 'draft')
             <form method="post" action="{{ route('admin.inventory.transfers.post', $transfer) }}" onsubmit="return confirm('Transferi göndermek istediğinize emin misiniz?')">
                 @csrf
+                <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
                 <button type="submit" class="btn btn-success">Transferi Gönder</button>
             </form>
         @endif

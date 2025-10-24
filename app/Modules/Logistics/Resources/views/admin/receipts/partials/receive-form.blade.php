@@ -1,7 +1,9 @@
 @php($varianceEnabled = config('features.logistics.variance_reason_codes', true))
+@php use Illuminate\Support\Str; @endphp
 
 <form method="post" action="{{ route('admin.logistics.receipts.receive', $receipt) }}" class="card mb-4">
     @csrf
+    <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold">Mal Kabul</span>
         <div class="d-flex gap-2">

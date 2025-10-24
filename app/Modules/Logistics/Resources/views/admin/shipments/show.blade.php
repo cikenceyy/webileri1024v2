@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Str; @endphp
 @extends('layouts.admin')
 
 @section('title', 'Sevkiyat Detayı')
@@ -98,6 +99,7 @@
         @if ($shipment->status === 'packed')
             <form method="post" action="{{ route('admin.logistics.shipments.ship', $shipment) }}">
                 @csrf
+                <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
                 <button class="btn btn-success">Sevk Et</button>
             </form>
         @endif

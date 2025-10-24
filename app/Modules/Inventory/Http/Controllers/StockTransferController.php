@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\StockLedgerEntry;
 use App\Modules\Inventory\Domain\Models\StockTransfer;
 use App\Modules\Inventory\Domain\Models\Warehouse;
+use App\Modules\Inventory\Domain\Services\InventorySequencer;
 use App\Modules\Inventory\Http\Requests\SaveStockTransferRequest;
 use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
@@ -19,6 +20,7 @@ class StockTransferController extends Controller
     public function __construct(
         protected SettingsReader $settingsReader,
         protected DatabaseManager $database,
+        protected InventorySequencer $sequencer,
     ) {
     }
 
@@ -44,9 +46,7 @@ class StockTransferController extends Controller
         $companyId = Auth::user()->company_id;
         $settings = $this->settingsReader->get($companyId);
         $defaults = $settings->defaults;
-        $sequencing = $settings->sequencing;
-
-        $nextDoc = $this->formatDocumentNumber($sequencing['shipment_prefix'] ?? 'TRF', $sequencing['padding'] ?? 6);
+        $nextDoc = $this->sequencer->nextTransferNumber($companyId);
 
         $warehouses = Warehouse::query()
             ->with('bins')
@@ -69,7 +69,7 @@ class StockTransferController extends Controller
 
         $transfer = new StockTransfer([
             'company_id' => $companyId,
-            'doc_no' => $request->input('doc_no') ?: $this->generateDocumentNumber($companyId),
+            'doc_no' => $request->input('doc_no') ?: $this->sequencer->nextTransferNumber($companyId),
             'from_warehouse_id' => $request->integer('from_warehouse_id'),
             'from_bin_id' => $request->input('from_bin_id'),
             'to_warehouse_id' => $request->integer('to_warehouse_id'),
@@ -161,25 +161,4 @@ class StockTransferController extends Controller
             ->with('status', 'Transfer gönderildi');
     }
 
-    protected function formatDocumentNumber(string $prefix, int $padding): string
-    {
-        $sequence = now()->format('ymd');
-
-        return sprintf('%s-%s', $prefix, str_pad($sequence, $padding, '0', STR_PAD_LEFT));
-    }
-
-    protected function generateDocumentNumber(int $companyId): string
-    {
-        $settings = $this->settingsReader->get($companyId);
-        $prefix = $settings->sequencing['shipment_prefix'] ?? 'TRF';
-        $padding = $settings->sequencing['padding'] ?? 6;
-
-        $base = $prefix . '-' . now()->format('ym');
-        $counter = StockTransfer::query()
-            ->where('company_id', $companyId)
-            ->where('doc_no', 'like', $base . '%')
-            ->count() + 1;
-
-        return sprintf('%s%s', $base, str_pad((string) $counter, $padding, '0', STR_PAD_LEFT));
-    }
 }

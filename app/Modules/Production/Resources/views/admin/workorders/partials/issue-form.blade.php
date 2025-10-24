@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Str; @endphp
 @if(($workOrder->status === 'released' || $workOrder->status === 'in_progress') && auth()->user()?->can('issue', $workOrder))
     <div class="card mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -6,6 +7,7 @@
         <div class="card-body">
             <form action="{{ route('admin.production.workorders.issue', $workOrder) }}" method="post">
                 @csrf
+                <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <thead>

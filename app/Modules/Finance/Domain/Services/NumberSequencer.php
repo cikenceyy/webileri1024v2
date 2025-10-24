@@ -3,6 +3,7 @@
 namespace App\Modules\Finance\Domain\Services;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Domain\Sequencing\Sequencer;
 use App\Modules\Finance\Domain\Models\Invoice;
 use App\Modules\Finance\Domain\Models\Receipt;
 use Illuminate\Support\Arr;
@@ -10,7 +11,10 @@ use Illuminate\Support\Str;
 
 class NumberSequencer
 {
-    public function __construct(private readonly SettingsReader $settingsReader)
+    public function __construct(
+        private readonly SettingsReader $settingsReader,
+        private readonly Sequencer $sequencer,
+    )
     {
     }
 
@@ -20,7 +24,17 @@ class NumberSequencer
         $prefix = (string) Arr::get($settings->sequencing, 'invoice_prefix', 'INV');
         $padding = $this->padding(Arr::get($settings->sequencing, 'padding', 6));
 
-        return $this->nextForModel($companyId, Invoice::class, 'doc_no', $prefix, $padding);
+        if ($this->useLegacySequencer()) {
+            return $this->nextForModel($companyId, Invoice::class, 'doc_no', $prefix, $padding);
+        }
+
+        return $this->sequencer->next(
+            $companyId,
+            'invoice',
+            $prefix,
+            $padding,
+            $this->resetPolicy($settings->sequencing)
+        );
     }
 
     public function nextReceiptNumber(int $companyId): string
@@ -29,7 +43,17 @@ class NumberSequencer
         $prefix = (string) Arr::get($settings->sequencing, 'receipt_prefix', 'RCPT');
         $padding = $this->padding(Arr::get($settings->sequencing, 'padding', 6));
 
-        return $this->nextForModel($companyId, Receipt::class, 'doc_no', $prefix, $padding);
+        if ($this->useLegacySequencer()) {
+            return $this->nextForModel($companyId, Receipt::class, 'doc_no', $prefix, $padding);
+        }
+
+        return $this->sequencer->next(
+            $companyId,
+            'receipt',
+            $prefix,
+            $padding,
+            $this->resetPolicy($settings->sequencing)
+        );
     }
 
     /**
@@ -65,5 +89,17 @@ class NumberSequencer
     {
         $padding = (int) $value;
         return max(3, min(8, $padding));
+    }
+
+    protected function resetPolicy(array $sequencing): string
+    {
+        $policy = (string) ($sequencing['reset_policy'] ?? 'yearly');
+
+        return in_array($policy, ['yearly', 'never'], true) ? $policy : 'yearly';
+    }
+
+    protected function useLegacySequencer(): bool
+    {
+        return ! config('features.sequencer.v2', true);
     }
 }

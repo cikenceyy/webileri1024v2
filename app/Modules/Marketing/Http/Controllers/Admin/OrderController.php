@@ -3,6 +3,7 @@
 namespace App\Modules\Marketing\Http\Controllers\Admin;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Domain\Sequencing\Sequencer;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\PriceList;
 use App\Modules\Inventory\Domain\Models\Product;
@@ -22,7 +23,11 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly SettingsReader $settings, private readonly StockSignal $signal)
+    public function __construct(
+        private readonly SettingsReader $settings,
+        private readonly StockSignal $signal,
+        private readonly Sequencer $sequencer,
+    )
     {
     }
 
@@ -274,11 +279,45 @@ class OrderController extends Controller
 
     protected function nextDocNo(int $companyId, array $sequencing): string
     {
-        $prefix = $sequencing['order_prefix'] ?? 'SO';
-        $padding = (int) ($sequencing['padding'] ?? 6);
+        $prefix = (string) ($sequencing['order_prefix'] ?? 'SO');
+        if ($prefix === '') {
+            $prefix = 'SO';
+        }
+
+        $padding = $this->padding($sequencing['padding'] ?? 6);
+
+        if (! config('features.sequencer.v2', true)) {
+            return $this->legacyDocNo($companyId, $prefix, $padding);
+        }
+
+        return $this->sequencer->next(
+            $companyId,
+            'sales_order',
+            $prefix,
+            $padding,
+            $this->resetPolicy($sequencing)
+        );
+    }
+
+    protected function legacyDocNo(int $companyId, string $prefix, int $padding): string
+    {
         $nextNumber = (int) (SalesOrder::where('company_id', $companyId)->max('id') ?? 0) + 1;
 
         return $prefix . str_pad((string) $nextNumber, $padding, '0', STR_PAD_LEFT);
+    }
+
+    protected function padding(mixed $value): int
+    {
+        $padding = (int) $value;
+
+        return max(3, min(8, $padding));
+    }
+
+    protected function resetPolicy(array $sequencing): string
+    {
+        $policy = (string) ($sequencing['reset_policy'] ?? 'yearly');
+
+        return in_array($policy, ['yearly', 'never'], true) ? $policy : 'yearly';
     }
 
     protected function priceLists()

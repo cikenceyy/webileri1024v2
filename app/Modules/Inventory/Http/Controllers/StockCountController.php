@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\StockCount;
 use App\Modules\Inventory\Domain\Models\StockLedgerEntry;
 use App\Modules\Inventory\Domain\Models\Warehouse;
+use App\Modules\Inventory\Domain\Services\InventorySequencer;
 use App\Modules\Inventory\Http\Requests\SaveStockCountRequest;
 use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
@@ -19,6 +20,7 @@ class StockCountController extends Controller
     public function __construct(
         protected SettingsReader $settingsReader,
         protected DatabaseManager $database,
+        protected InventorySequencer $sequencer,
     ) {
     }
 
@@ -44,9 +46,7 @@ class StockCountController extends Controller
         $companyId = Auth::user()->company_id;
         $settings = $this->settingsReader->get($companyId);
         $defaults = $settings->defaults;
-        $sequencing = $settings->sequencing;
-
-        $nextDoc = $this->formatDocumentNumber($sequencing['shipment_prefix'] ?? 'CNT', $sequencing['padding'] ?? 6);
+        $nextDoc = $this->sequencer->nextStockCountNumber($companyId);
 
         $warehouses = Warehouse::query()
             ->with('bins')
@@ -69,7 +69,7 @@ class StockCountController extends Controller
 
         $count = new StockCount([
             'company_id' => $companyId,
-            'doc_no' => $request->input('doc_no') ?: $this->generateDocumentNumber($companyId),
+            'doc_no' => $request->input('doc_no') ?: $this->sequencer->nextStockCountNumber($companyId),
             'warehouse_id' => $request->integer('warehouse_id'),
             'bin_id' => $request->input('bin_id'),
             'status' => 'draft',
@@ -170,25 +170,4 @@ class StockCountController extends Controller
             ->with('status', 'Sayım mutabıklandı');
     }
 
-    protected function formatDocumentNumber(string $prefix, int $padding): string
-    {
-        $sequence = now()->format('ymd');
-
-        return sprintf('%s-%s', $prefix, str_pad($sequence, $padding, '0', STR_PAD_LEFT));
-    }
-
-    protected function generateDocumentNumber(int $companyId): string
-    {
-        $settings = $this->settingsReader->get($companyId);
-        $prefix = $settings->sequencing['shipment_prefix'] ?? 'CNT';
-        $padding = $settings->sequencing['padding'] ?? 6;
-
-        $base = $prefix . '-CNT-' . now()->format('ym');
-        $counter = StockCount::query()
-            ->where('company_id', $companyId)
-            ->where('doc_no', 'like', $base . '%')
-            ->count() + 1;
-
-        return sprintf('%s%s', $base, str_pad((string) $counter, $padding, '0', STR_PAD_LEFT));
-    }
 }

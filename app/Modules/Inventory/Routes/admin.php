@@ -44,14 +44,18 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
         Route::get('transfers/create', [StockTransferController::class, 'create'])->name('transfers.create');
         Route::post('transfers', [StockTransferController::class, 'store'])->name('transfers.store');
         Route::get('transfers/{transfer}', [StockTransferController::class, 'show'])->name('transfers.show');
-        Route::post('transfers/{transfer}/post', [StockTransferController::class, 'post'])->name('transfers.post');
+        Route::post('transfers/{transfer}/post', [StockTransferController::class, 'post'])
+            ->middleware('idempotency')
+            ->name('transfers.post');
 
         Route::get('counts', [StockCountController::class, 'index'])->name('counts.index');
         Route::get('counts/create', [StockCountController::class, 'create'])->name('counts.create');
         Route::post('counts', [StockCountController::class, 'store'])->name('counts.store');
         Route::get('counts/{count}', [StockCountController::class, 'show'])->name('counts.show');
         Route::patch('counts/{count}/mark-counted', [StockCountController::class, 'markCounted'])->name('counts.mark-counted');
-        Route::patch('counts/{count}/reconcile', [StockCountController::class, 'reconcile'])->name('counts.reconcile');
+        Route::patch('counts/{count}/reconcile', [StockCountController::class, 'reconcile'])
+            ->middleware('idempotency')
+            ->name('counts.reconcile');
 
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');

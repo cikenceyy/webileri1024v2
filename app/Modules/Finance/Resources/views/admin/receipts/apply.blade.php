@@ -14,6 +14,7 @@
 
     <form method="post" action="{{ route('admin.finance.receipts.apply', $receipt) }}" class="card shadow-sm">
         @csrf
+        <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table align-middle">

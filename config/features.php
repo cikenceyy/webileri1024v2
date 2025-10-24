@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'sequencer' => [
+        'v2' => env('SEQUENCER_V2', true),
+    ],
+    'idempotency' => [
+        'enforced' => env('POST_IDEMPOTENCY', true),
+    ],
     'legacy_routing' => [
         'inventory_pricelists' => true,
         'inventory_bom' => true,

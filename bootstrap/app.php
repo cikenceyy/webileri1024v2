@@ -7,6 +7,7 @@ use App\Core\Providers\CoreServiceProvider;
 use App\Core\Providers\OrchestrationServiceProvider;
 use App\Core\Providers\TenancyServiceProvider;
 use App\Modules\ModuleLoaderServiceProvider;
+use App\Core\Http\Middleware\EnsureIdempotency;
 use App\Http\Middleware\HttpCacheHeaders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'http.cache' => HttpCacheHeaders::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'idempotency' => EnsureIdempotency::class,
         ]);
     })
     ->withProviders([

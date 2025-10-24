@@ -2,6 +2,8 @@
 
 namespace App\Modules\Marketing\Domain\Models;
 
+use App\Core\Contracts\SettingsReader;
+use App\Core\Domain\Sequencing\Sequencer;
 use App\Core\Tenancy\Traits\BelongsToCompany;
 use App\Modules\Production\Domain\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Model;
@@ -61,9 +63,29 @@ class Order extends Model
 
     public static function generateOrderNo(int $companyId): string
     {
-        return next_number('SO', [
-            'prefix' => 'SO',
-        ], $companyId);
+        /** @var SettingsReader $settings */
+        $settings = app(SettingsReader::class);
+        /** @var Sequencer $sequencer */
+        $sequencer = app(Sequencer::class);
+
+        $config = $settings->get($companyId)->sequencing;
+        $prefix = (string) ($config['order_prefix'] ?? 'SO');
+        if ($prefix === '') {
+            $prefix = 'SO';
+        }
+
+        $padding = max(3, min(8, (int) ($config['padding'] ?? 6)));
+        $policy = in_array($config['reset_policy'] ?? 'yearly', ['yearly', 'never'], true)
+            ? $config['reset_policy']
+            : 'yearly';
+
+        if (! config('features.sequencer.v2', true)) {
+            $nextNumber = (int) (static::query()->where('company_id', $companyId)->max('id') ?? 0) + 1;
+
+            return $prefix . str_pad((string) $nextNumber, $padding, '0', STR_PAD_LEFT);
+        }
+
+        return $sequencer->next($companyId, 'sales_order', $prefix, $padding, $policy);
     }
 
     public function scopeSearch($query, ?string $term)

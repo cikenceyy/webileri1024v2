@@ -24,6 +24,7 @@
                 @can('issue', $invoice)
                     <form method="post" action="{{ route('admin.finance.invoices.issue', $invoice) }}" class="d-inline">
                         @csrf
+                        <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
                         <button type="submit" class="btn btn-primary" onclick="return confirm('{{ __('Issue this invoice?') }}');">{{ __('Issue Invoice') }}</button>
                     </form>
                 @endcan

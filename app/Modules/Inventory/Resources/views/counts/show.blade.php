@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Str; @endphp
 @extends('layouts.admin')
 
 @section('title', $count->doc_no)
@@ -61,6 +62,7 @@
                 <form method="post" action="{{ route('admin.inventory.counts.reconcile', $count) }}" onsubmit="return confirm('Sayımı mutabık etmek istediğinize emin misiniz?')">
                     @csrf
                     @method('patch')
+                    <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
                     <button type="submit" class="btn btn-success">Mutabık Et</button>
                 </form>
             @endif
