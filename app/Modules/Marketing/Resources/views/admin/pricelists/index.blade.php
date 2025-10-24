@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', 'Fiyat Listeleri')
-@section('module', 'Inventory')
+@section('module', 'Marketing')
 
 @push('page-styles')
-    @vite('app/Modules/Inventory/Resources/scss/pricelists.scss')
+    @vite('app/Modules/Marketing/Resources/scss/pricelists.scss')
 @endpush
 
 @push('page-scripts')
-    @vite('app/Modules/Inventory/Resources/js/pricelists.js')
+    @vite('app/Modules/Marketing/Resources/js/pricelists.js')
 @endpush
 
 @section('content')
@@ -25,7 +25,7 @@
                     </header>
                     <p class="inv-card__body">{{ $list->items_count }} kalem • {{ $list->active ? 'Aktif' : 'Pasif' }}</p>
                     <footer class="inv-card__footer">
-                        <a href="{{ route('admin.inventory.pricelists.show', $list) }}" class="btn btn-sm btn-outline-primary">Detaya git</a>
+                        <a href="{{ route('admin.marketing.pricelists.show', $list) }}" class="btn btn-sm btn-outline-primary">Detaya git</a>
                     </footer>
                 </article>
             @endforeach

@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', 'Ürün Reçeteleri')
-@section('module', 'Inventory')
+@section('module', 'Production')
 
 @push('page-styles')
-    @vite('app/Modules/Inventory/Resources/scss/bom.scss')
+    @vite('app/Modules/Production/Resources/scss/bom.scss')
 @endpush
 
 @push('page-scripts')
-    @vite('app/Modules/Inventory/Resources/js/bom.js')
+    @vite('app/Modules/Production/Resources/js/bom.js')
 @endpush
 
 @section('content')
@@ -25,7 +25,7 @@
                     </header>
                     <p class="inv-card__body">Reçete revizyonu: v1</p>
                     <footer class="inv-card__footer">
-                        <a href="{{ route('admin.inventory.bom.show', $product) }}" class="btn btn-sm btn-outline-primary">Detaya git</a>
+                        <a href="{{ route('admin.production.bom.show', $product) }}" class="btn btn-sm btn-outline-primary">Detaya git</a>
                     </footer>
                 </article>
             @endforeach

@@ -48,6 +48,12 @@ return [
         'marketing.order.approve',
         'marketing.order.print',
     ],
+    'marketing.pricelists' => [
+        'marketing.pricelist.view',
+        'marketing.pricelist.create',
+        'marketing.pricelist.update',
+        'marketing.pricelist.delete',
+    ],
     'marketing.activities' => [
         'marketing.activity.view',
         'marketing.activity.create',

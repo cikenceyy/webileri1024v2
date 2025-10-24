@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', $pricelist->name)
-@section('module', 'Inventory')
+@section('module', 'Marketing')
 
 @push('page-styles')
-    @vite('app/Modules/Inventory/Resources/scss/pricelists.scss')
+    @vite('app/Modules/Marketing/Resources/scss/pricelists.scss')
 @endpush
 
 @push('page-scripts')
-    @vite('app/Modules/Inventory/Resources/js/pricelists.js')
+    @vite('app/Modules/Marketing/Resources/js/pricelists.js')
 @endpush
 
 @section('content')

@@ -2,9 +2,7 @@
 
 namespace App\Modules\Inventory\Providers;
 
-use App\Core\Views\AdminSidebar;
 use App\Modules\Inventory\Console\Commands\RebuildOnHand;
-use App\Modules\Inventory\Domain\Models\PriceList;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\ProductCategory;
 use App\Modules\Inventory\Domain\Models\ProductVariant;
@@ -12,7 +10,6 @@ use App\Modules\Inventory\Domain\Models\StockMovement;
 use App\Modules\Inventory\Domain\Models\Unit;
 use App\Modules\Inventory\Domain\Models\Warehouse;
 use App\Modules\Inventory\Policies\CategoryPolicy;
-use App\Modules\Inventory\Policies\PriceListPolicy;
 use App\Modules\Inventory\Policies\ProductPolicy;
 use App\Modules\Inventory\Policies\StockPolicy;
 use App\Modules\Inventory\Policies\UnitPolicy;
@@ -42,7 +39,6 @@ class InventoryServiceProvider extends ServiceProvider
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(ProductCategory::class, CategoryPolicy::class);
         Gate::policy(Unit::class, UnitPolicy::class);
-        Gate::policy(PriceList::class, PriceListPolicy::class);
         Gate::policy(Warehouse::class, WarehousePolicy::class);
         Gate::policy(ProductVariant::class, VariantPolicy::class);
         Gate::policy(StockMovement::class, StockPolicy::class);

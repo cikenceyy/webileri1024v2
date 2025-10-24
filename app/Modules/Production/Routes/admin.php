@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Production\Http\Controllers\Admin\BomController;
 use App\Modules\Production\Http\Controllers\WorkOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +15,7 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
 
         Route::patch('work-orders/{workOrder}/close', [WorkOrderController::class, 'close'])
             ->name('work-orders.close');
+
+        Route::get('bom', [BomController::class, 'index'])->name('bom.index');
+        Route::get('bom/{product}', [BomController::class, 'show'])->name('bom.show');
     });

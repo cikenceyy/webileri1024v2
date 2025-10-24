@@ -12,6 +12,7 @@ use App\Modules\Marketing\Http\Controllers\OpportunityController;
 use App\Modules\Marketing\Http\Controllers\OrderController;
 use App\Modules\Marketing\Http\Controllers\QuoteController;
 use App\Modules\Marketing\Http\Controllers\ReportController;
+use App\Modules\Marketing\Http\Controllers\Admin\PricelistController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'tenant', 'auth', 'verified'])
@@ -47,6 +48,9 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
         Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
         Route::get('reports/sales/print', [ReportController::class, 'salesPrint'])->name('reports.sales.print');
         Route::get('reports/sales/export', [ReportController::class, 'salesExport'])->name('reports.sales.export');
+
+        Route::get('pricelists', [PricelistController::class, 'index'])->name('pricelists.index');
+        Route::get('pricelists/{pricelist}', [PricelistController::class, 'show'])->name('pricelists.show');
 
         Route::get('activities', [ActivityController::class, 'index'])->name('activities.index');
         Route::post('activities', [ActivityController::class, 'store'])->name('activities.store');

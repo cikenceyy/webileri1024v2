@@ -1,4 +1,5 @@
 (function () {
+    window.Marketing = window.Marketing || {};
     window.Inventory = window.Inventory || {};
 
     const Pricelists = {
@@ -57,6 +58,7 @@
 
             const clone = this.template.content.cloneNode(true);
             this.$items.appendChild(clone);
+            this.$host.dispatchEvent(new CustomEvent('marketing:pricelists:row-added'));
             this.$host.dispatchEvent(new CustomEvent('inventory:prices:row-added'));
         },
 
@@ -68,6 +70,7 @@
             const row = this.$items.querySelector(`[data-row-id="${id}"]`);
             if (row) {
                 row.remove();
+                this.$host.dispatchEvent(new CustomEvent('marketing:pricelists:row-removed', { detail: { id } }));
                 this.$host.dispatchEvent(new CustomEvent('inventory:prices:row-removed', { detail: { id } }));
             }
         },
@@ -90,6 +93,7 @@
         },
     };
 
+    window.Marketing.Pricelists = Pricelists;
     window.Inventory.Pricelists = Pricelists;
 
     document.addEventListener('DOMContentLoaded', () => Pricelists.init());

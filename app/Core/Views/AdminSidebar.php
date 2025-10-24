@@ -66,6 +66,7 @@ class AdminSidebar
                             ['label' => 'Fırsatlar', 'route' => 'admin.marketing.opportunities.index', 'pattern' => 'admin/marketing/opportunities*'],
                             ['label' => 'Teklifler', 'route' => 'admin.marketing.quotes.index', 'pattern' => 'admin/marketing/quotes*'],
                             ['label' => 'Siparişler', 'route' => 'admin.marketing.orders.index', 'pattern' => 'admin/marketing/orders*'],
+                            ['label' => 'Fiyat Listeleri', 'route' => 'admin.marketing.pricelists.index', 'pattern' => 'admin/marketing/pricelists*'],
                             ['label' => 'Satış Raporu', 'route' => 'admin.marketing.reports.sales', 'pattern' => 'admin/marketing/reports/sales*'],
                             ['label' => 'Aktivite Akışı', 'route' => 'admin.marketing.activities.index', 'pattern' => 'admin/marketing/activities*'],
                             ['label' => 'Müşteri İçe Aktarım', 'route' => 'admin.marketing.customers.import.form', 'pattern' => 'admin/marketing/import/customers*'],
@@ -91,8 +92,6 @@ class AdminSidebar
                             ['label' => 'Stok Konsolu', 'route' => 'admin.inventory.stock.console', 'pattern' => 'admin/inventory/stock/console*'],
                             ['label' => 'Ürünler', 'route' => 'admin.inventory.products.index', 'pattern' => 'admin/inventory/products*'],
                             ['label' => 'Depolar', 'route' => 'admin.inventory.warehouses.index', 'pattern' => 'admin/inventory/warehouses*'],
-                            ['label' => 'Fiyat Listeleri', 'route' => 'admin.inventory.pricelists.index', 'pattern' => 'admin/inventory/pricelists*'],
-                            ['label' => 'Ürün Reçeteleri', 'route' => 'admin.inventory.bom.index', 'pattern' => 'admin/inventory/bom*'],
                             ['label' => 'Ayarlar', 'route' => 'admin.inventory.settings.index', 'pattern' => 'admin/inventory/settings*'],
                         ],
                     ],
@@ -103,6 +102,7 @@ class AdminSidebar
                         'pattern' => 'admin/production*',
                         'children' => [
                             ['label' => 'Üretim Emirleri', 'route' => 'admin.production.work-orders.index', 'pattern' => 'admin/production/work-orders*'],
+                            ['label' => 'Ürün Reçeteleri', 'route' => 'admin.production.bom.index', 'pattern' => 'admin/production/bom*'],
                         ],
                     ],
                     [
@@ -118,14 +118,12 @@ class AdminSidebar
                     [
                         'label' => 'Finans & Muhasebe',
                         'icon' => 'bi bi-cash-coin',
-                        'route' => 'admin.finance.home',
+                        'route' => 'admin.finance.invoices.index',
                         'pattern' => 'admin/finance*',
                         'children' => [
-                            ['label' => 'Kontrol Merkezi', 'route' => 'admin.finance.home', 'pattern' => 'admin/finance'],
-                            ['label' => 'Tahsilat Konsolu', 'route' => 'admin.finance.collections.index', 'pattern' => 'admin/finance/collections*'],
-                            ['label' => 'Fatura Stüdyosu', 'route' => 'admin.finance.invoices.index', 'pattern' => 'admin/finance/invoices*'],
-                            ['label' => 'Banka & Kasa Paneli', 'route' => 'admin.finance.cash-panel.index', 'pattern' => 'admin/finance/cash-panel*'],
+                            ['label' => 'Faturalar', 'route' => 'admin.finance.invoices.index', 'pattern' => 'admin/finance/invoices*'],
                             ['label' => 'Tahsilatlar', 'route' => 'admin.finance.receipts.index', 'pattern' => 'admin/finance/receipts*'],
+                            ['label' => 'Cashbook (Lite)', 'route' => 'admin.finance.cash-panel.index', 'pattern' => 'admin/finance/cash-panel*'],
                         ],
                     ],
                     [

@@ -113,7 +113,7 @@
                 <h2 class="inv-product__section-title">Belgeler</h2>
             </header>
             <div class="inv-product__doc-links">
-                <a href="{{ route('admin.inventory.bom.show', $product) }}" class="btn btn-outline-primary">Reçete (BOM)</a>
+                <a href="{{ route('admin.production.bom.show', $product) }}" class="btn btn-outline-primary">Reçete (BOM)</a>
                 <a href="{{ route('admin.inventory.products.components', $product) }}" class="btn btn-outline-secondary">Kullanılan Malzemeler</a>
             </div>
         </section>

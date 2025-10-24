@@ -1,32 +1,33 @@
 <?php
 
-namespace App\Modules\Inventory\Http\Controllers;
+namespace App\Modules\Production\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\StockItem;
+use App\Modules\Production\Domain\Models\Bom;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class BomController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $this->authorize('viewAny', Product::class);
+        $this->authorize('viewAny', Bom::class);
 
         $products = Product::query()
             ->orderBy('name')
             ->paginate(12)
             ->withQueryString();
 
-        return view('inventory::bom.index', [
+        return view('production::admin.bom.index', [
             'products' => $products,
         ]);
     }
 
     public function show(Product $product, Request $request): View
     {
-        $this->authorize('view', $product);
+        $this->authorize('view', new Bom($product));
 
         $lot = max(1, (int) $request->integer('lot', 1));
 
@@ -51,7 +52,7 @@ class BomController extends Controller
             ->where('product_id', $product->id)
             ->sum('qty');
 
-        return view('inventory::bom.show', [
+        return view('production::admin.bom.show', [
             'product' => $product,
             'lot' => $lot,
             'components' => $components,

@@ -13,7 +13,7 @@
 @endpush
 
 @section('content')
-    <div class="finance-shell" data-finance-screen="invoices" data-summary-endpoint="{{ route('admin.finance.collections.show', ['invoice' => '__INVOICE__']) }}">
+    <div class="finance-shell" data-finance-screen="invoices" data-summary-endpoint="{{ config('features.finance.collections_console') ? route('admin.finance.collections.show', ['invoice' => '__INVOICE__']) : '' }}">
         <header class="finance-shell__section-header">
             <div>
                 <h1>{{ __('Fatura Stüdyosu') }}</h1>
@@ -23,7 +23,9 @@
                 @can('create', App\Modules\Finance\Domain\Models\Invoice::class)
                     <x-ui-button tag="a" :href="route('admin.finance.invoices.create')" variant="primary" data-shortcut="N">{{ __('Yeni Fatura (N)') }}</x-ui-button>
                 @endcan
-                <x-ui-button tag="a" :href="route('admin.finance.collections.index')" variant="outline">{{ __('Tahsilat Konsolu') }}</x-ui-button>
+                @if (config('features.finance.collections_console'))
+                    <x-ui-button tag="a" :href="route('admin.finance.collections.index')" variant="outline">{{ __('Tahsilat Konsolu') }}</x-ui-button>
+                @endif
             </div>
         </header>
 

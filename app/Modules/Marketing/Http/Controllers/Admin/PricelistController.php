@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Modules\Inventory\Http\Controllers;
+namespace App\Modules\Marketing\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\PriceList;
-use App\Modules\Inventory\Domain\Models\PriceListItem;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PricelistController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', PriceList::class);
 
@@ -20,7 +18,7 @@ class PricelistController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('inventory::pricelists.index', [
+        return view('marketing::admin.pricelists.index', [
             'priceLists' => $lists,
         ]);
     }
@@ -31,7 +29,7 @@ class PricelistController extends Controller
 
         $pricelist->load(['items' => fn ($query) => $query->with('product')->orderBy('product_id')]);
 
-        return view('inventory::pricelists.show', [
+        return view('marketing::admin.pricelists.show', [
             'pricelist' => $pricelist,
         ]);
     }

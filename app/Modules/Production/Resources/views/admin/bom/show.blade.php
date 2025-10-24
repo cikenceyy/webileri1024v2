@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', $product->name . ' • BOM')
-@section('module', 'Inventory')
+@section('module', 'Production')
 
 @push('page-styles')
-    @vite('app/Modules/Inventory/Resources/scss/bom.scss')
+    @vite('app/Modules/Production/Resources/scss/bom.scss')
 @endpush
 
 @push('page-scripts')
-    @vite('app/Modules/Inventory/Resources/js/bom.js')
+    @vite('app/Modules/Production/Resources/js/bom.js')
 @endpush
 
 @section('content')

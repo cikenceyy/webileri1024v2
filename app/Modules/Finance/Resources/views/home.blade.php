@@ -28,7 +28,9 @@
                         @can('create', App\Modules\Finance\Domain\Models\Receipt::class)
                             <x-ui-button tag="a" :href="route('admin.finance.receipts.create')" variant="success" data-shortcut="R">{{ __('Tahsilat Al (R)') }}</x-ui-button>
                         @endcan
-                        <x-ui-button tag="a" :href="route('admin.finance.collections.index')" variant="outline" data-shortcut="G">{{ __('Ödemeleri Yönet (G)') }}</x-ui-button>
+                        @if (config('features.finance.collections_console'))
+                            <x-ui-button tag="a" :href="route('admin.finance.collections.index')" variant="outline" data-shortcut="G">{{ __('Ödemeleri Yönet (G)') }}</x-ui-button>
+                        @endif
                     </div>
                 </header>
 
@@ -68,7 +70,9 @@
                         <h2 id="finance-home-upcoming">{{ __('Vadesi Yaklaşanlar') }}</h2>
                         <p class="text-muted">{{ __('Bugün ve hafta içinde tahsil edilmesi gereken bakiyeler') }}</p>
                     </div>
-                    <x-ui-button tag="a" :href="route('admin.finance.collections.index')" variant="link">{{ __('Tahsilat Konsolu’na git') }}</x-ui-button>
+                    @if (config('features.finance.collections_console'))
+                        <x-ui-button tag="a" :href="route('admin.finance.collections.index')" variant="link">{{ __('Tahsilat Konsolu’na git') }}</x-ui-button>
+                    @endif
                 </header>
 
                 <div class="finance-lists" data-finance-scrollable>

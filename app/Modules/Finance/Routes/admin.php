@@ -15,11 +15,13 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
     ->group(function (): void {
         Route::get('/', FinanceHomeController::class)->name('home');
 
-        Route::get('collections', [CollectionConsoleController::class, 'index'])->name('collections.index');
-        Route::get('collections/invoices/{invoice}', [CollectionConsoleController::class, 'show'])
-            ->name('collections.show');
-        Route::put('collections/invoices/{invoice}/lane', [CollectionConsoleController::class, 'updateLane'])
-            ->name('collections.lane');
+        if (config('features.finance.collections_console')) {
+            Route::get('collections', [CollectionConsoleController::class, 'index'])->name('collections.index');
+            Route::get('collections/invoices/{invoice}', [CollectionConsoleController::class, 'show'])
+                ->name('collections.show');
+            Route::put('collections/invoices/{invoice}/lane', [CollectionConsoleController::class, 'updateLane'])
+                ->name('collections.lane');
+        }
 
         Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
         Route::get('invoices/from-order/{order}', [InvoiceController::class, 'createFromOrder'])->name('invoices.from-order');

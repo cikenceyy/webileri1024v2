@@ -1,4 +1,5 @@
 (function () {
+    window.Production = window.Production || {};
     window.Inventory = window.Inventory || {};
 
     const Bom = {
@@ -70,14 +71,17 @@
                 }
             });
 
+            this.$host.dispatchEvent(new CustomEvent('production:bom:lot-changed', { detail: { lotSize } }));
             this.$host.dispatchEvent(new CustomEvent('inventory:bom:lot-changed', { detail: { lotSize } }));
         },
 
         dispatchResolve(materialId, actionType) {
+            this.$host.dispatchEvent(new CustomEvent('production:bom:resolve', { detail: { materialId, actionType } }));
             this.$host.dispatchEvent(new CustomEvent('inventory:bom:resolve', { detail: { materialId, actionType } }));
         },
     };
 
+    window.Production.Bom = Bom;
     window.Inventory.Bom = Bom;
 
     document.addEventListener('DOMContentLoaded', () => Bom.init());

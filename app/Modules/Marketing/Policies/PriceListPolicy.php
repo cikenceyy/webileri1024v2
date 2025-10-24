@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Inventory\Policies;
+namespace App\Modules\Marketing\Policies;
 
 use App\Models\User;
 use App\Modules\Inventory\Domain\Models\PriceList;
@@ -9,27 +9,27 @@ class PriceListPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $this->hasPermission($user, 'inventory.pricelist.view');
+        return $this->hasPermission($user, 'marketing.pricelist.view');
     }
 
     public function view(User $user, PriceList $priceList): bool
     {
-        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'inventory.pricelist.view');
+        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'marketing.pricelist.view');
     }
 
     public function create(User $user): bool
     {
-        return $this->hasPermission($user, 'inventory.pricelist.create');
+        return $this->hasPermission($user, 'marketing.pricelist.create');
     }
 
     public function update(User $user, PriceList $priceList): bool
     {
-        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'inventory.pricelist.update');
+        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'marketing.pricelist.update');
     }
 
     public function delete(User $user, PriceList $priceList): bool
     {
-        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'inventory.pricelist.delete');
+        return $this->sameCompany($user, $priceList) && $this->hasPermission($user, 'marketing.pricelist.delete');
     }
 
     protected function sameCompany(User $user, PriceList $priceList): bool
