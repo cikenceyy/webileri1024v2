@@ -66,8 +66,10 @@
         $categoryLimits = collect($categoryConfig ?? [])->mapWithKeys(
             fn($config, $key) => [
                 $key => [
-                    'mimes' => implode(', ', $config['ext'] ?? []),
+                    'extensions' => implode(', ', $config['ext'] ?? []),
+                    'mimes' => implode(', ', $config['mimes'] ?? []),
                     'max' => $formatSize(min((int) ($config['max'] ?? $globalMaxBytes), $globalMaxBytes)),
+                    'accept' => implode(',', array_map(static fn($ext) => '.' . strtolower($ext), $config['ext'] ?? [])),
                 ],
             ],
         );
@@ -463,7 +465,7 @@
                             </label>
                             <p class="drive-upload__note" data-drive-category-note>
                                 @if (($categoryLimits[$activeCategory] ?? null) !== null)
-                                    Kabul edilen uzantılar: {{ $categoryLimits[$activeCategory]['mimes'] }} · Maks
+                                    Kabul edilen uzantılar: {{ $categoryLimits[$activeCategory]['extensions'] }} · Maks
                                     {{ $categoryLimits[$activeCategory]['max'] }}
                                 @endif
                             </p>

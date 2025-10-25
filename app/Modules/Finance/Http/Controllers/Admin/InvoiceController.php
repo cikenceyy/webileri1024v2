@@ -18,6 +18,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
@@ -37,24 +40,90 @@ class InvoiceController extends Controller
             ->where('company_id', currentCompanyId())
             ->latest('created_at');
 
-        if ($search = trim((string) $request->string('q'))) {
-            $query->where(function ($builder) use ($search): void {
-                $builder->where('doc_no', 'like', '%' . $search . '%')
-                    ->orWhereHas('customer', function ($customerQuery) use ($search): void {
-                        $customerQuery->where('name', 'like', '%' . $search . '%');
+        $filters = [
+            'q' => trim((string) $request->string('q')), 
+            'status' => $request->string('status')->trim()->value(),
+            'customer_id' => $request->integer('customer_id'),
+        ];
+
+        if ($filters['q']) {
+            $query->where(function ($builder) use ($filters): void {
+                $builder->where('doc_no', 'like', '%' . $filters['q'] . '%')
+                    ->orWhereHas('customer', function ($customerQuery) use ($filters): void {
+                        $customerQuery->where('name', 'like', '%' . $filters['q'] . '%');
                     });
             });
         }
 
-        if ($status = $request->string('status')->trim()->value()) {
-            $query->where('status', $status);
+        if ($filters['status']) {
+            $query->where('status', $filters['status']);
         }
 
-        if ($customer = $request->integer('customer_id')) {
-            $query->where('customer_id', $customer);
+        if ($filters['customer_id']) {
+            $query->where('customer_id', $filters['customer_id']);
         }
 
-        $invoices = $query->paginate(20)->withQueryString();
+        $totalCount = (clone $query)->count();
+        $clientThreshold = 500;
+        $pageSizeOptions = [25, 50, 100];
+        $pageSize = $request->integer('per_page', 25);
+        if (! in_array($pageSize, $pageSizeOptions, true)) {
+            $pageSize = 25;
+        }
+
+        $mode = $totalCount <= $clientThreshold ? 'client' : 'server';
+
+        $invoices = $mode === 'server'
+            ? $query->paginate($pageSize)->withQueryString()
+            : $query->limit($clientThreshold)->get();
+
+        $dataset = [];
+        if ($mode === 'client') {
+            $statusBadges = [
+                Invoice::STATUS_DRAFT => 'text-bg-secondary',
+                Invoice::STATUS_ISSUED => 'text-bg-primary',
+                Invoice::STATUS_PARTIALLY_PAID => 'text-bg-warning',
+                Invoice::STATUS_PAID => 'text-bg-success',
+                Invoice::STATUS_CANCELLED => 'text-bg-danger',
+            ];
+
+            $dataset = $invoices->map(function (Invoice $invoice) use ($statusBadges) {
+                $docNo = $invoice->doc_no ?? __('Taslak');
+                $statusLabel = Str::headline($invoice->status);
+                $currency = $invoice->currency ?? config('app.currency', 'TRY');
+
+                return [
+                    'id' => (string) $invoice->getKey(),
+                    'doc_no' => $docNo,
+                    'doc_no_url' => route('admin.finance.invoices.show', $invoice),
+                    'customer' => $invoice->customer?->name ?? '—',
+                    'customer_filter' => $invoice->customer_id ? (string) $invoice->customer_id : '',
+                    'status' => $statusLabel,
+                    'status_badge' => $statusBadges[$invoice->status] ?? 'text-bg-secondary',
+                    'status_filter' => $invoice->status,
+                    'grand_total' => number_format((float) $invoice->grand_total, 2) . ' ' . $currency,
+                    'grand_total_raw' => (float) $invoice->grand_total,
+                    'paid_amount' => number_format((float) $invoice->paid_amount, 2) . ' ' . $currency,
+                    'paid_amount_raw' => (float) $invoice->paid_amount,
+                    'due_date' => optional($invoice->due_date)?->format('Y-m-d') ?? '—',
+                    'due_date_raw' => optional($invoice->due_date)?->format('Y-m-d') ?? '',
+                    'actions' => [
+                        [
+                            'label' => __('Görüntüle'),
+                            'url' => route('admin.finance.invoices.show', $invoice),
+                            'variant' => 'outline-primary',
+                            'size' => 'sm',
+                            'icon' => 'bi bi-box-arrow-up-right',
+                        ],
+                    ],
+                    'search' => strtolower(implode(' ', array_filter([
+                        $docNo,
+                        $invoice->customer?->name,
+                        $statusLabel,
+                    ]))),
+                ];
+            })->all();
+        }
 
         $metrics = [
             'draft' => Invoice::where('company_id', currentCompanyId())->where('status', Invoice::STATUS_DRAFT)->count(),
@@ -63,11 +132,54 @@ class InvoiceController extends Controller
             'paid' => Invoice::where('company_id', currentCompanyId())->where('status', Invoice::STATUS_PAID)->count(),
         ];
 
+        $customers = Customer::where('company_id', currentCompanyId())->orderBy('name')->get(['id', 'name']);
+
+        $tableFilters = [
+            [
+                'key' => 'status',
+                'label' => __('Durum'),
+                'name' => 'status',
+                'value' => $filters['status'] ?? '',
+                'options' => array_merge([
+                    ['value' => '', 'label' => __('Tümü')],
+                ], array_map(fn ($status) => ['value' => $status, 'label' => __(Str::headline($status))], Invoice::statuses())),
+                'field' => 'status_filter',
+            ],
+            [
+                'key' => 'customer',
+                'label' => __('Müşteri'),
+                'name' => 'customer_id',
+                'value' => $filters['customer_id'] ?? '',
+                'options' => array_merge([
+                    ['value' => '', 'label' => __('Tümü')],
+                ], $customers->map(fn ($customer) => ['value' => (string) $customer->id, 'label' => $customer->name])->all()),
+                'field' => 'customer_filter',
+                'type' => 'numeric',
+            ],
+        ];
+
+        $tableColumns = [
+            ['key' => 'doc_no', 'label' => __('Doc No'), 'sortable' => true, 'type' => 'link', 'wrap' => false],
+            ['key' => 'customer', 'label' => __('Müşteri'), 'sortable' => true],
+            ['key' => 'status', 'label' => __('Durum'), 'sortable' => true, 'type' => 'badge', 'badgeKey' => 'status_badge'],
+            ['key' => 'grand_total', 'label' => __('Toplam'), 'sortable' => true, 'sortKey' => 'grand_total_raw', 'align' => 'end'],
+            ['key' => 'paid_amount', 'label' => __('Ödenen'), 'sortable' => true, 'sortKey' => 'paid_amount_raw', 'align' => 'end'],
+            ['key' => 'due_date', 'label' => __('Vade'), 'sortable' => true, 'sortKey' => 'due_date_raw'],
+            ['key' => 'actions', 'label' => __('Aksiyonlar'), 'type' => 'actions', 'align' => 'end'],
+        ];
+
         return view('finance::admin.invoices.index', [
-            'invoices' => $invoices,
-            'filters' => $request->only(['q', 'status', 'customer_id']),
+            'mode' => $mode,
+            'invoices' => $mode === 'server' ? $invoices : null,
+            'filters' => $filters,
             'metrics' => $metrics,
-            'customers' => Customer::where('company_id', currentCompanyId())->orderBy('name')->get(['id', 'name']),
+            'tableDataset' => $dataset,
+            'tableFilters' => $tableFilters,
+            'tableColumns' => $tableColumns,
+            'pageSizeOptions' => $pageSizeOptions,
+            'pageSize' => $pageSize,
+            'totalCount' => $totalCount,
+            'paginatorHtml' => $mode === 'server' ? $invoices->links() : null,
         ]);
     }
 
@@ -244,10 +356,49 @@ class InvoiceController extends Controller
 
         $invoice->load(['customer', 'lines', 'applications.receipt']);
         $settings = $this->settingsReader->get(currentCompanyId());
+        $templateSlug = $settings->documents['invoice_print_template'] ?? null;
+
+        $candidates = [];
+        if ($templateSlug) {
+            if (Str::contains($templateSlug, '::')) {
+                $candidates[] = $templateSlug;
+            } else {
+                $candidates[] = 'finance::admin.invoices.templates.' . $templateSlug;
+                $candidates[] = 'finance::admin.invoices.' . $templateSlug;
+            }
+        }
+        $candidates[] = 'finance::admin.invoices.print_default';
+
+        $resolvedView = null;
+        foreach ($candidates as $candidate) {
+            if (View::exists($candidate)) {
+                $resolvedView = $candidate;
+                break;
+            }
+        }
+
+        if (! $resolvedView) {
+            $resolvedView = 'finance::admin.invoices.print_default';
+        }
+
+        if ($templateSlug) {
+            $customFound = collect($candidates)
+                ->filter(fn ($candidate) => $candidate !== 'finance::admin.invoices.print_default')
+                ->contains(fn ($candidate) => View::exists($candidate));
+
+            if (! $customFound) {
+                Log::warning('Invoice print template not found, falling back to default.', [
+                    'template' => $templateSlug,
+                    'invoice_id' => $invoice->getKey(),
+                    'company_id' => currentCompanyId(),
+                ]);
+            }
+        }
 
         return view('finance::admin.invoices.print', [
             'invoice' => $invoice,
-            'template' => $settings->documents['invoice_print_template'],
+            'templateView' => $resolvedView,
+            'requestedTemplate' => $templateSlug,
         ]);
     }
 

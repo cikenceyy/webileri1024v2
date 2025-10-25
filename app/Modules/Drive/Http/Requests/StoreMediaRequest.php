@@ -49,9 +49,21 @@ class StoreMediaRequest extends FormRequest
 
     public function messages(): array
     {
+        $category = $this->validatedCategory();
+        $config = config('drive.categories.' . $category, []);
+        $extensions = Arr::get($config, 'ext', []);
+        $mimes = Arr::get($config, 'mimes', []);
+
+        $extensionList = $extensions ? implode(', ', array_map(fn ($ext) => '.' . strtolower($ext), $extensions)) : null;
+        $mimeList = $mimes ? implode(', ', array_map('strtolower', $mimes)) : null;
+
         return [
-            'file.mimes' => 'Dosya uzantısı seçilen kategori için uygun değil.',
-            'file.mimetypes' => 'Dosya türü seçilen kategori için uygun değil.',
+            'file.mimes' => $extensionList
+                ? sprintf('Dosya uzantısı desteklenmiyor. Kabul edilen uzantılar: %s.', $extensionList)
+                : 'Dosya uzantısı desteklenmiyor.',
+            'file.mimetypes' => $mimeList
+                ? sprintf('Dosya türü desteklenmiyor. Beklenen MIME türleri: %s.', $mimeList)
+                : 'Dosya türü desteklenmiyor.',
         ];
     }
 
@@ -82,27 +94,48 @@ class StoreMediaRequest extends FormRequest
             $maxBytes = $this->resolveMaxBytes($categoryConfig);
 
             if ($file->getSize() > $maxBytes) {
-                $validator->errors()->add('file', 'Dosya boyutu izin verilen sınırı aşıyor.');
+                $validator->errors()->add(
+                    'file',
+                    sprintf(
+                        'Dosya boyutu izin verilen sınırı aşıyor. Maksimum: %s.',
+                        $this->formatBytes($maxBytes)
+                    ),
+                );
             }
 
             $forbiddenExtensions = ['php', 'phar', 'phtml', 'pht', 'exe', 'sh', 'bat', 'cmd', 'com', 'dll'];
             $extension = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: '');
 
             if ($extension && in_array($extension, $forbiddenExtensions, true)) {
-                $validator->errors()->add('file', 'Bu dosya uzantısı güvenlik nedeniyle yasaktır.');
+                $validator->errors()->add('file', sprintf('".%s" uzantısı güvenlik nedeniyle yasaktır.', $extension));
             }
 
             $allowedExtensions = array_map('strtolower', Arr::get($categoryConfig, 'ext', []));
 
             if ($allowedExtensions && ! in_array($extension, $allowedExtensions, true)) {
-                $validator->errors()->add('file', 'Dosya uzantısı seçilen kategori için uygun değil.');
+                $extLabel = $extension ? '.' . $extension : __('bilinmiyor');
+                $validator->errors()->add(
+                    'file',
+                    sprintf(
+                        '"%s" uzantısı desteklenmiyor. Kabul edilen uzantılar: %s.',
+                        $extLabel,
+                        implode(', ', array_map(fn ($ext) => '.' . $ext, $allowedExtensions))
+                    ),
+                );
             }
 
             $mime = strtolower((string) $file->getClientMimeType());
             $allowedMimes = array_map('strtolower', Arr::get($categoryConfig, 'mimes', []));
 
             if ($mime && $allowedMimes && ! in_array($mime, $allowedMimes, true)) {
-                $validator->errors()->add('file', 'Dosya türü seçilen kategori için uygun değil.');
+                $validator->errors()->add(
+                    'file',
+                    sprintf(
+                        '%s MIME türü desteklenmiyor. Beklenen türler: %s.',
+                        $mime,
+                        implode(', ', $allowedMimes)
+                    ),
+                );
             }
         });
     }
@@ -132,5 +165,22 @@ class StoreMediaRequest extends FormRequest
     protected function bytesToKilobytes(int $bytes): int
     {
         return (int) max(1, (int) ceil($bytes / 1024));
+    }
+
+    protected function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1_073_741_824) {
+            return sprintf('%.2f GB', $bytes / 1_073_741_824);
+        }
+
+        if ($bytes >= 1_048_576) {
+            return sprintf('%.2f MB', $bytes / 1_048_576);
+        }
+
+        if ($bytes >= 1024) {
+            return sprintf('%.2f KB', $bytes / 1024);
+        }
+
+        return sprintf('%d B', $bytes);
     }
 }

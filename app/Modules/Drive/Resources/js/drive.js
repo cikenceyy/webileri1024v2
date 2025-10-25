@@ -831,14 +831,27 @@ const bootDrive = () => {
         if (!limit) {
             categoryNote.textContent = '';
             toggleHidden(categoryNote, true);
+            if (fileInput) {
+                fileInput.removeAttribute('accept');
+            }
             return;
         }
 
-        const parts = [limit.mimes ? `Kabul edilen uzantılar: ${limit.mimes}` : '', limit.max ? `Maks ${limit.max}` : '']
+        const parts = [
+            limit.extensions ? `Kabul edilen uzantılar: ${limit.extensions}` : '',
+            limit.max ? `Maks ${limit.max}` : '',
+        ]
             .filter(Boolean)
             .join(' · ');
         categoryNote.textContent = parts;
         toggleHidden(categoryNote, parts.length === 0);
+        if (fileInput) {
+            if (limit.accept) {
+                fileInput.setAttribute('accept', limit.accept);
+            } else {
+                fileInput.removeAttribute('accept');
+            }
+        }
     };
 
     applyCategoryNote();
