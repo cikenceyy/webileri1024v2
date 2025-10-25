@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'ui:sidebar:collapsible:v1';
+const STORAGE_KEY = 'sidebarExpanded';
 
 const readStoredState = () => {
     if (typeof window === 'undefined') {
@@ -60,6 +60,7 @@ const applySectionState = (item, expanded) => {
     ensurePanelAccessibility(item, trigger, panel);
 
     item.classList.toggle('is-open', expanded);
+    item.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     panel.hidden = !expanded;
     panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
@@ -82,7 +83,9 @@ export const initSidebarNavigation = () => {
 
     const findPanelState = (item) => {
         const id = item.dataset.sidebarId;
-        const hasActiveChild = Boolean(item.querySelector('.ui-sidebar__subitem.is-active, .ui-sidebar__link[aria-current="page"]'));
+        const hasActiveChild = Boolean(
+            item.querySelector('.ui-sidebar__subitem.is-active, .ui-sidebar__link[aria-current="page"]')
+        );
         if (hasActiveChild) {
             if (id) {
                 persistState(id, true);
@@ -148,6 +151,19 @@ export const initSidebarNavigation = () => {
     });
 
     sidebar.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            const currentItem = event.target.closest('.ui-sidebar__item.has-children.is-open');
+            if (!currentItem) {
+                return;
+            }
+
+            setExpanded(currentItem, false);
+            const trigger = currentItem.querySelector('.ui-sidebar__trigger');
+            trigger?.focus({ preventScroll: true });
+            event.stopPropagation();
+            return;
+        }
+
         if (event.key !== ' ' && event.key !== 'Enter') {
             return;
         }

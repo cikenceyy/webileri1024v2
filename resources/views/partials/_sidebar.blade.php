@@ -113,6 +113,7 @@
                                 @if($hasChildren)
                                     data-sidebar-collapsible
                                     data-sidebar-id="{{ $collapseId }}"
+                                    aria-expanded="{{ $isOpen ? 'true' : 'false' }}"
                                 @endif
                             >
                                 @if($hasChildren)
