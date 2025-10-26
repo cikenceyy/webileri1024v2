@@ -1,6 +1,5 @@
 <?php
 
-use App\Modules\Drive\Domain\Models\Media;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,13 +11,9 @@ return new class extends Migration
         Schema::create('media', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
-            $table->enum('category', [
-                Media::CATEGORY_DOCUMENTS,
-                Media::CATEGORY_MEDIA_PRODUCTS,
-                Media::CATEGORY_MEDIA_CATALOGS,
-                Media::CATEGORY_PAGES,
-            ]);
+            $table->string('category', 64);
             $table->string('disk');
+            $table->uuid('uuid')->unique();
             $table->string('path');
             $table->string('original_name');
             $table->string('mime');

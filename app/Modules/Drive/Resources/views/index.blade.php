@@ -15,6 +15,7 @@
 
     @php
         use App\Modules\Drive\Domain\Models\Media;
+        use App\Modules\Drive\Support\DriveStructure;
         use Illuminate\Support\Str;
 
         $formatSize = static function (?int $bytes): string {
@@ -35,35 +36,51 @@
             return $bytes . ' B';
         };
 
-        $categories = array_filter(
-            $tabs,
-            fn($key) => in_array(
-                $key,
-                [
-                    Media::CATEGORY_DOCUMENTS,
-                    Media::CATEGORY_MEDIA_PRODUCTS,
-                    Media::CATEGORY_MEDIA_CATALOGS,
-                    Media::CATEGORY_PAGES,
-                ],
-                true,
-            ),
-            ARRAY_FILTER_USE_KEY,
-        );
-
-        $activeCategory = in_array($tab, array_keys($categories), true) ? $tab : Media::CATEGORY_DOCUMENTS;
-
         $moduleLabels = Media::moduleOptions();
         $moduleOptions = collect($moduleLabels)
             ->map(fn($label, $slug) => ['value' => $slug, 'label' => $label])
             ->values()
             ->all();
-        $defaultModule = array_key_first($moduleLabels) ?? Media::MODULE_DEFAULT;
-        $activeModule = Str::startsWith($tab, 'module_') ? Str::after($tab, 'module_') : $defaultModule;
-        if (!array_key_exists($activeModule, $moduleLabels)) {
-            $activeModule = $defaultModule;
+        $folderDefinitions = collect($folderConfig ?? [])->mapWithKeys(fn($config) => [$config['key'] => $config]);
+        $folderIconMap = $folderDefinitions->mapWithKeys(function ($config, $key) {
+            return [
+                $key => ($config['type'] ?? Media::TYPE_DOCUMENT) === Media::TYPE_MEDIA ? 'bi bi-image' : 'bi bi-file-earmark-text',
+            ];
+        })->all();
+        $defaultModule = DriveStructure::defaultModule();
+        $defaultFolder = DriveStructure::defaultFolder($defaultModule);
+        $activeModule = $defaultModule;
+        $activeFolder = $defaultFolder;
+
+        if (Str::startsWith($tab, 'module_')) {
+            $rest = Str::after($tab, 'module_');
+            if (Str::contains($rest, '__')) {
+                [$moduleSlug, $folderKey] = explode('__', $rest, 2);
+                if (array_key_exists($moduleSlug, $moduleLabels)) {
+                    $activeModule = $moduleSlug;
+                }
+                if ($folderDefinitions->has($folderKey)) {
+                    $activeFolder = $folderKey;
+                }
+            } elseif (array_key_exists($rest, $moduleLabels)) {
+                $activeModule = $rest;
+                $activeFolder = DriveStructure::defaultFolder($activeModule);
+            }
+        } elseif (Str::startsWith($tab, 'folder_')) {
+            $maybeFolder = Str::after($tab, 'folder_');
+            if ($folderDefinitions->has($maybeFolder)) {
+                $activeFolder = $maybeFolder;
+            }
+        } elseif (in_array($tab, ['recent_documents', 'important_documents'], true)) {
+            $activeFolder = DriveStructure::normalizeFolderKey('documents', $activeModule);
+        } elseif (in_array($tab, ['recent_media', 'important_media'], true)) {
+            $activeFolder = DriveStructure::normalizeFolderKey('media', $activeModule);
         }
 
-        $categoryLimits = collect($categoryConfig ?? [])->mapWithKeys(
+        // Backwards compatibility for templates that still reference the older variable name.
+        $activeCategory = $activeFolder;
+
+        $categoryLimits = $folderDefinitions->mapWithKeys(
             fn($config, $key) => [
                 $key => [
                     'mimes' => implode(', ', $config['ext'] ?? []),
@@ -101,22 +118,7 @@
                 ],
             ],
         ];
-
-        $moduleGroup = [
-            'title' => 'Modüller',
-            'items' => collect($moduleLabels)
-                ->map(
-                    fn($label, $slug) => [
-                        'key' => 'module_' . $slug,
-                        'label' => $label,
-                        'icon' => $moduleIcons[$slug] ?? 'bi bi-folder',
-                    ],
-                )
-                ->values()
-                ->all(),
-        ];
-
-        $folderGroups = collect(array_merge($quickGroups, [$moduleGroup]))
+        $quickGroups = collect($quickGroups)
             ->map(function ($group) use ($tabs) {
                 $items = collect($group['items'] ?? [])
                     ->filter(fn($item) => array_key_exists($item['key'], $tabs))
@@ -128,6 +130,22 @@
             ->filter(fn($group) => count($group['items']) > 0)
             ->values()
             ->all();
+
+        $moduleNavigation = collect($moduleNavigation ?? [])->map(function ($module) use ($moduleIcons) {
+            $folders = collect($module['folders'] ?? [])->map(function ($folder) use ($module) {
+                return [
+                    'key' => 'module_' . $module['module'] . '__' . $folder['key'],
+                    'folder' => $folder['key'],
+                    'label' => $folder['label'],
+                ];
+            })->values()->all();
+
+            return array_merge($module, [
+                'key' => 'module_' . $module['module'],
+                'icon' => $moduleIcons[$module['module']] ?? 'bi bi-folder',
+                'folders' => $folders,
+            ]);
+        })->values();
 
         $buildTabUrl = static function (string $key) use ($pickerMode) {
             return route(
@@ -154,17 +172,6 @@
             'recent_media' => 'bi bi-image',
             'important_documents' => 'bi bi-star-fill',
             'important_media' => 'bi bi-star-fill',
-            'module_' . Media::MODULE_CMS => $moduleIcons[Media::MODULE_CMS] ?? 'bi bi-folder',
-            'module_' . Media::MODULE_MARKETING => $moduleIcons[Media::MODULE_MARKETING] ?? 'bi bi-folder',
-            'module_' . Media::MODULE_FINANCE => $moduleIcons[Media::MODULE_FINANCE] ?? 'bi bi-folder',
-            'module_' . Media::MODULE_LOGISTICS => $moduleIcons[Media::MODULE_LOGISTICS] ?? 'bi bi-folder',
-            'module_' . Media::MODULE_INVENTORY => $moduleIcons[Media::MODULE_INVENTORY] ?? 'bi bi-folder',
-            'module_' . Media::MODULE_PRODUCTION => $moduleIcons[Media::MODULE_PRODUCTION] ?? 'bi bi-folder',
-            'module_' . Media::MODULE_HR => $moduleIcons[Media::MODULE_HR] ?? 'bi bi-folder',
-            Media::CATEGORY_DOCUMENTS => 'bi bi-file-earmark-text',
-            Media::CATEGORY_MEDIA_PRODUCTS => 'bi bi-box-seam',
-            Media::CATEGORY_MEDIA_CATALOGS => 'bi bi-book',
-            Media::CATEGORY_PAGES => 'bi bi-file-earmark-code',
             'default' => 'bi bi-folder',
         ];
 
@@ -182,7 +189,8 @@
     <div class="drive" 
         data-drive-root data-drive-total="{{ $totalCount }}"
         data-drive-page-size="{{ $mediaItems->perPage() }}" data-drive-search-url="{{ route('admin.drive.media.index') }}"
-        data-drive-active-tab="{{ $tab }}" data-category-default="{{ $activeCategory }}"
+        data-drive-active-tab="{{ $tab }}" data-category-default="{{ $activeFolder }}"
+        data-category-active="{{ $activeFolder }}"
         data-module-default="{{ $defaultModule }}" data-module-active="{{ $activeModule }}"
         data-category-limits='@json($categoryLimits)' data-picker-mode="{{ $pickerMode ? '1' : '0' }}"
         data-upload-url="{{ route('admin.drive.media.store') }}"
@@ -215,11 +223,11 @@
                     </div>
 
                     <ul class="drive-tree__groups">
-                        @foreach ($folderGroups as $groupIndex => $group)
+                        @foreach ($quickGroups as $groupIndex => $group)
                             @php
-                                $groupTitle = $group['title'] ?? 'Klasör';
+                                $groupTitle = $group['title'] ?? 'Kısayollar';
                                 $items = $group['items'] ?? [];
-                                $groupId = 'drive-tree-' . Str::slug($groupTitle) . '-' . $groupIndex;
+                                $groupId = 'drive-tree-quick-' . $groupIndex;
                             @endphp
                             @if (count($items))
                                 <li class="drive-tree__group" data-drive-tree-item>
@@ -244,13 +252,9 @@
                                                         <i class="{{ $iconClass }}" aria-hidden="true"></i>
                                                     </span>
                                                     <span class="drive-tree__info">
-                                                        <span class="drive-tree__name">
-                                                            {{ $label }}
-                                                        </span>
+                                                        <span class="drive-tree__name">{{ $label }}</span>
                                                         <span class="drive-tree__stats">
-                                                            <span class="drive-tree__count">
-                                                                {{ number_format((int) ($folderStat['total'] ?? 0)) }}
-                                                            </span>
+                                                            <span class="drive-tree__count">{{ number_format((int) ($folderStat['total'] ?? 0)) }}</span>
                                                             @if (!is_null($importantCount) && $importantCount > 0)
                                                                 <span class="drive-tree__badge" aria-label="Önemli dosya sayısı">
                                                                     <i class="bi bi-star-fill" aria-hidden="true"></i>
@@ -266,6 +270,101 @@
                                 </li>
                             @endif
                         @endforeach
+
+                        @if ($moduleNavigation->isNotEmpty())
+                            @php
+                                $modulesGroupId = 'drive-tree-modules';
+                            @endphp
+                            <li class="drive-tree__group" data-drive-tree-item>
+                                <button class="drive-tree__toggle" type="button" aria-controls="{{ $modulesGroupId }}" aria-expanded="true" data-drive-tree-toggle>
+                                    <span class="drive-tree__toggle-label">Modüller</span>
+                                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                </button>
+                                <ul class="drive-tree__panel" id="{{ $modulesGroupId }}" data-drive-tree-panel role="group" aria-hidden="false">
+                                    @foreach ($moduleNavigation as $moduleIndex => $module)
+                                        @php
+                                            $modulePanelId = 'drive-tree-module-' . Str::slug($module['module']) . '-' . $moduleIndex;
+                                            $moduleActive = Str::startsWith($tab, 'module_' . $module['module']);
+                                            $moduleKey = $module['key'];
+                                            $moduleStats = $stats[$moduleKey] ?? ['total' => 0];
+                                            $moduleImportant = $moduleStats['important'] ?? null;
+                                            $moduleUrl = $buildTabUrl($moduleKey);
+                                            $moduleLinkActive = $tab === $moduleKey;
+                                        @endphp
+                                        <li class="drive-tree__item drive-tree__item--module">
+                                            <button class="drive-tree__toggle drive-tree__toggle--module" type="button" aria-controls="{{ $modulePanelId }}" aria-expanded="{{ $moduleActive ? 'true' : 'false' }}" data-drive-tree-toggle>
+                                                <span class="drive-tree__icon">
+                                                    <i class="{{ $module['icon'] }}" aria-hidden="true"></i>
+                                                </span>
+                                                <span class="drive-tree__info">
+                                                    <span class="drive-tree__name">{{ $module['label'] }}</span>
+                                                    <span class="drive-tree__stats">
+                                                        <span class="drive-tree__count">{{ number_format((int) ($moduleStats['total'] ?? 0)) }}</span>
+                                                        @if (!is_null($moduleImportant) && $moduleImportant > 0)
+                                                            <span class="drive-tree__badge" aria-label="Önemli dosya sayısı">
+                                                                <i class="bi bi-star-fill" aria-hidden="true"></i>
+                                                                {{ number_format($moduleImportant) }}
+                                                            </span>
+                                                        @endif
+                                                    </span>
+                                                </span>
+                                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                            </button>
+                                            <ul class="drive-tree__panel drive-tree__panel--module" id="{{ $modulePanelId }}" data-drive-tree-panel role="group" @if (!$moduleActive) hidden aria-hidden="true" @else aria-hidden="false" @endif>
+                                                <li class="drive-tree__item">
+                                                    <a href="{{ $moduleUrl }}" class="drive-tree__link {{ $moduleLinkActive ? 'is-active' : '' }}" data-drive-folder-link data-drive-folder="{{ $moduleKey }}" aria-current="{{ $moduleLinkActive ? 'page' : 'false' }}">
+                                                        <span class="drive-tree__icon">
+                                                            <i class="{{ $module['icon'] }}" aria-hidden="true"></i>
+                                                        </span>
+                                                        <span class="drive-tree__info">
+                                                            <span class="drive-tree__name">{{ $module['label'] }} · Tümü</span>
+                                                            <span class="drive-tree__stats">
+                                                                <span class="drive-tree__count">{{ number_format((int) ($moduleStats['total'] ?? 0)) }}</span>
+                                                                @if (!is_null($moduleImportant) && $moduleImportant > 0)
+                                                                    <span class="drive-tree__badge" aria-label="Önemli dosya sayısı">
+                                                                        <i class="bi bi-star-fill" aria-hidden="true"></i>
+                                                                        {{ number_format($moduleImportant) }}
+                                                                    </span>
+                                                                @endif
+                                                            </span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                @foreach ($module['folders'] as $folder)
+                                                    @php
+                                                        $folderKey = $folder['key'];
+                                                        $folderStats = $stats[$folderKey] ?? ['total' => 0];
+                                                        $folderImportant = $folderStats['important'] ?? null;
+                                                        $folderUrl = $buildTabUrl($folderKey);
+                                                        $folderActive = $tab === $folderKey;
+                                                        $folderIcon = $folderIconMap[$folder['folder']] ?? $folderIcons['default'];
+                                                    @endphp
+                                                    <li class="drive-tree__item">
+                                                        <a href="{{ $folderUrl }}" class="drive-tree__link {{ $folderActive ? 'is-active' : '' }}" data-drive-folder-link data-drive-folder="{{ $folderKey }}" aria-current="{{ $folderActive ? 'page' : 'false' }}">
+                                                            <span class="drive-tree__icon">
+                                                                <i class="{{ $folderIcon }}" aria-hidden="true"></i>
+                                                            </span>
+                                                            <span class="drive-tree__info">
+                                                                <span class="drive-tree__name">{{ $folder['label'] }}</span>
+                                                                <span class="drive-tree__stats">
+                                                                    <span class="drive-tree__count">{{ number_format((int) ($folderStats['total'] ?? 0)) }}</span>
+                                                                    @if (!is_null($folderImportant) && $folderImportant > 0)
+                                                                        <span class="drive-tree__badge" aria-label="Önemli dosya sayısı">
+                                                                            <i class="bi bi-star-fill" aria-hidden="true"></i>
+                                                                            {{ number_format($folderImportant) }}
+                                                                        </span>
+                                                                    @endif
+                                                                </span>
+                                                            </span>
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </li>
+                        @endif
                     </ul>
 
                     <div class="drive-tree__usage" data-drive-storage>
@@ -462,9 +561,9 @@
                                     data-drive-file-input>
                             </label>
                             <p class="drive-upload__note" data-drive-category-note>
-                                @if (($categoryLimits[$activeCategory] ?? null) !== null)
-                                    Kabul edilen uzantılar: {{ $categoryLimits[$activeCategory]['mimes'] }} · Maks
-                                    {{ $categoryLimits[$activeCategory]['max'] }}
+                                @if (($categoryLimits[$activeFolder] ?? null) !== null)
+                                    Kabul edilen uzantılar: {{ $categoryLimits[$activeFolder]['mimes'] }} · Maks
+                                    {{ $categoryLimits[$activeFolder]['max'] }}
                                 @endif
                             </p>
                         </div>
