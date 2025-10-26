@@ -7,7 +7,12 @@
         @stack('meta')
         <title>{{ trim($__env->yieldContent('title', config('app.name', 'Webileri Admin'))) }}</title>
 
-        @vite(['resources/scss/admin.scss', 'resources/js/admin.js'])
+        @vite([
+            'resources/scss/admin.scss',
+            'resources/js/admin.js',
+            'resources/css/tablekit.css',
+            'resources/js/tablekit/index.js',
+        ])
         @stack('page-styles')
         @stack('styles')
     </head>

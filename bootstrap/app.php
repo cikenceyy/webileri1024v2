@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ConsoleServiceProvider::class,
         CmsServiceProvider::class,
         App\Providers\AppServiceProvider::class,
+        App\Providers\ViewServiceProvider::class,
         App\Providers\EventServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {

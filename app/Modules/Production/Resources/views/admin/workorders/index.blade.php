@@ -27,41 +27,10 @@
     </form>
 
     <div class="card">
-        <div class="card-body p-0">
-            <table class="table mb-0">
-                <thead>
-                <tr>
-                    <th>Numara</th>
-                    <th>Ürün</th>
-                    <th>Durum</th>
-                    <th>Hedef</th>
-                    <th>Termin</th>
-                    <th class="text-end">İşlemler</th>
-                </tr>
-                </thead>
-                <tbody>
-                @forelse($workOrders as $workOrder)
-                    <tr>
-                        <td>{{ $workOrder->doc_no }}</td>
-                        <td>{{ $workOrder->product?->name }}</td>
-                        <td>{{ ucfirst(str_replace('_', ' ', $workOrder->status)) }}</td>
-                        <td>{{ number_format($workOrder->target_qty, 3) }} {{ $workOrder->uom }}</td>
-                        <td>{{ optional($workOrder->due_date)->format('d.m.Y') ?? '—' }}</td>
-                        <td class="text-end">
-                            <a href="{{ route('admin.production.workorders.show', $workOrder) }}" class="btn btn-sm btn-outline-primary">Görüntüle</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-4">İş emri bulunmuyor.</td>
-                    </tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="mt-3">
-        {{ $workOrders->links() }}
+        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+            <x-slot name="toolbar">
+                <x-table:toolbar :config="$tableKitConfig" :search-placeholder="__('İş emri ara…')" />
+            </x-slot>
+        </x-table>
     </div>
 @endsection

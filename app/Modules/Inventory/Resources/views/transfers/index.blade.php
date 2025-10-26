@@ -11,38 +11,10 @@
                 <a href="{{ route('admin.inventory.transfers.create') }}" class="btn btn-primary btn-sm">Yeni Transfer</a>
             @endcan
         </header>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Belge No</th>
-                    <th>Kaynak</th>
-                    <th>Hedef</th>
-                    <th>Durum</th>
-                    <th>Tarih</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($transfers as $transfer)
-                    <tr>
-                        <td>{{ $transfer->doc_no }}</td>
-                        <td>{{ $transfer->fromWarehouse?->name }}</td>
-                        <td>{{ $transfer->toWarehouse?->name }}</td>
-                        <td><span class="badge bg-{{ $transfer->status === 'posted' ? 'success' : 'secondary' }}">{{ ucfirst($transfer->status) }}</span></td>
-                        <td>{{ optional($transfer->created_at)->format('d.m.Y H:i') }}</td>
-                        <td class="text-end">
-                            <a href="{{ route('admin.inventory.transfers.show', $transfer) }}" class="btn btn-sm btn-outline-secondary">Görüntüle</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">Henüz transfer kaydı yok.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-        <div class="mt-3">
-            {{ $transfers->links() }}
-        </div>
+        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+            <x-slot name="toolbar">
+                <x-table:toolbar :config="$tableKitConfig" />
+            </x-slot>
+        </x-table>
     </section>
 @endsection

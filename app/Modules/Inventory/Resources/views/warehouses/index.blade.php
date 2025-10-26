@@ -57,34 +57,11 @@
                         </p>
                     </div>
                 </div>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Ürün</th>
-                            <th>Raf</th>
-                            <th class="text-end">Miktar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($stockItems as $row)
-                            <tr>
-                                <td>{{ $row['product']?->name ?? '—' }}<br><span class="text-muted">{{ $row['product']?->sku ?? '' }}</span></td>
-                                <td>
-                                    @if ($row['bin'])
-                                        {{ $row['bin']->code }} — {{ $row['bin']->name }}
-                                    @else
-                                        Genel stok
-                                    @endif
-                                </td>
-                                <td class="text-end">{{ number_format($row['qty'], 2) }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">Kayıt bulunamadı.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                <x-table :config="$tableKitConfig" :rows="$tableKitRows" class="inv-warehouse__table">
+                    <x-slot name="toolbar">
+                        <x-table:toolbar :config="$tableKitConfig" />
+                    </x-slot>
+                </x-table>
             </div>
         </div>
     </section>

@@ -90,30 +90,11 @@
         </div>
 
         <div class="inv-products-list__table" data-view-panel="table">
-            <table class="table align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Ürün</th>
-                        <th>SKU</th>
-                        <th>Stok</th>
-                        <th>Fiyat</th>
-                        <th class="text-end">İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($products as $product)
-                        <tr>
-                            <td>{{ $product->name }}</td>
-                            <td>{{ $product->sku }}</td>
-                            <td>{{ number_format($product->stockItems->sum('qty') ?? 0, 2) }}</td>
-                            <td>{{ number_format($product->price ?? 0, 2) }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.inventory.products.show', $product) }}" class="btn btn-sm btn-outline-primary">Detay</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+                <x-slot name="toolbar">
+                    <x-table:toolbar :config="$tableKitConfig" :search-placeholder="__('Ürün ara')" />
+                </x-slot>
+            </x-table>
         </div>
 
         <div class="inv-products-list__pagination" data-pagination>
