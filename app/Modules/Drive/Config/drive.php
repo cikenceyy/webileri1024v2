@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'presign_ttl_seconds' => env('DRIVE_PRESIGN_TTL', 300),
-    'max_upload_bytes' => (int) env('DRIVE_MAX_UPLOAD_BYTES', 50 * 1024 * 1024),
-    'disk' => env('DRIVE_DISK', config('filesystems.default', 'public')),
+    'presign_ttl_seconds' => (int) config('files.temporary_url_seconds', env('DRIVE_PRESIGN_TTL', 300)),
+    'max_upload_bytes' => (int) (config('files.max_upload_megabytes', 50) * 1024 * 1024),
+    'disk' => env('DRIVE_DISK', config('filesystems.default', 'local')),
     'path_prefix' => env('DRIVE_PATH_PREFIX', 'companies/{company_id}/drive'),
     'default_storage_limit_bytes' => (int) env('DRIVE_DEFAULT_STORAGE_LIMIT_BYTES', 1_073_741_824),
     'defaults' => [
@@ -14,76 +14,36 @@ return [
         'documents' => [
             'label' => 'Belgeler',
             'type' => 'document',
-            'mimes' => [
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/vnd.ms-word.document.macroEnabled.12',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
-                'application/vnd.ms-excel',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-excel.sheet.macroEnabled.12',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
-                'text/csv',
-                'text/plain',
-                'application/rtf',
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
-                'application/vnd.openxmlformats-officedocument.presentationml.template',
-                'application/vnd.oasis.opendocument.text',
-                'application/vnd.oasis.opendocument.spreadsheet',
-                'application/vnd.oasis.opendocument.presentation',
-                'application/zip',
-                'application/x-zip-compressed',
-                'application/x-rar-compressed',
-                'application/x-7z-compressed',
-            ],
-            'ext' => [
-                'pdf',
-                'doc',
-                'docx',
-                'docm',
-                'dotx',
-                'xls',
-                'xlsx',
-                'xlsm',
-                'xlt',
-                'xltx',
-                'csv',
-                'txt',
-                'rtf',
-                'ppt',
-                'pptx',
-                'pptm',
-                'pot',
-                'potx',
-                'odt',
-                'ods',
-                'odp',
-                'zip',
-                'rar',
-                '7z',
-            ],
-            'max' => 50 * 1024 * 1024,
+            'mimes' => collect(config('files.document_extensions', []))
+                ->map(fn ($ext) => config('files.allowed_extensions.' . $ext, []))
+                ->flatten()
+                ->unique()
+                ->values()
+                ->all(),
+            'ext' => config('files.document_extensions', []),
+            'max' => (int) (config('files.max_upload_megabytes', 50) * 1024 * 1024),
         ],
         'media' => [
             'label' => 'Medya',
             'type' => 'media',
-            'mimes' => [
-                'application/pdf',
-                'image/jpeg',
-                'image/png',
-                'image/webp',
-                'image/svg+xml',
-            ],
-            'ext' => ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'svg'],
-            'max' => 50 * 1024 * 1024,
+            'mimes' => collect(config('files.media_extensions', []))
+                ->map(fn ($ext) => config('files.allowed_extensions.' . $ext, []))
+                ->flatten()
+                ->unique()
+                ->values()
+                ->all(),
+            'ext' => config('files.media_extensions', []),
+            'max' => (int) (config('files.max_upload_megabytes', 50) * 1024 * 1024),
         ],
         'products' => [
             'label' => 'Ürün Dosyaları',
             'type' => 'media',
-            'mimes' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+            'mimes' => collect(['jpg', 'jpeg', 'png', 'webp', 'svg'])
+                ->map(fn ($ext) => config('files.allowed_extensions.' . $ext, []))
+                ->flatten()
+                ->unique()
+                ->values()
+                ->all(),
             'ext' => ['jpg', 'jpeg', 'png', 'webp', 'svg'],
             'max' => 25 * 1024 * 1024,
         ],

@@ -4,6 +4,7 @@ namespace App\Modules\Drive\Http\Controllers;
 
 use App\Core\Support\Models\Company;
 use App\Http\Controllers\Controller;
+use App\Modules\Drive\Domain\DriveStorage;
 use App\Modules\Drive\Domain\Models\Media;
 use App\Modules\Drive\Http\Requests\ReplaceMediaRequest;
 use App\Modules\Drive\Http\Requests\StoreManyMediaRequest;
@@ -16,14 +17,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use function currentCompanyId;
 use function tenant;
 
 class MediaController extends Controller
 {
-    public function __construct()
+    public function __construct(private readonly DriveStorage $storage)
     {
         $this->middleware(function ($request, $next) {
             $this->authorize('viewAny', Media::class);
@@ -42,7 +42,10 @@ class MediaController extends Controller
     {
         $pickerMode = $request->boolean('picker');
         $tab = $this->normalizeTab($request->query('tab'), $pickerMode);
-        $query = Media::query()->with('uploader');
+        $companyId = $this->resolveCompanyId($request);
+        $query = Media::query()
+            ->with('uploader')
+            ->where('company_id', $companyId);
 
         if ($pickerMode) {
             $pickerTab = array_key_first($this->pickerTabDefinitions());
@@ -57,9 +60,9 @@ class MediaController extends Controller
         $query = $this->applyFilters($this->applyTabFilter($query, $tab), $request);
 
         $media = $query->paginate(12)->withQueryString();
-        $stats = $pickerMode ? $this->buildPickerStats() : $this->buildStats();
+        $stats = $pickerMode ? $this->buildPickerStats($companyId) : $this->buildStats($companyId);
         $tabs = $pickerMode ? $this->pickerTabDefinitions() : $this->tabDefinitions();
-        $storage = $this->resolveStorageStats();
+        $storage = $this->resolveStorageStats($companyId);
 
         return view('drive::index', [
             'tab' => $tab,
@@ -77,7 +80,7 @@ class MediaController extends Controller
 
     public function store(StoreMediaRequest $request)
     {
-        $companyId = (int) $request->attributes->get('company_id');
+        $companyId = $this->resolveCompanyId($request);
         $data = $request->validated();
         $file = $request->file('file');
         $category = $data['category'];
@@ -100,7 +103,7 @@ class MediaController extends Controller
 
     public function storeMany(StoreManyMediaRequest $request): JsonResponse
     {
-        $companyId = (int) $request->attributes->get('company_id');
+        $companyId = $this->resolveCompanyId($request);
         $data = $request->validated();
         $category = $data['category'];
         $module = $data['module'] ?? Media::MODULE_DEFAULT;
@@ -130,15 +133,17 @@ class MediaController extends Controller
     {
         $this->authorize('replace', $media);
 
-        $companyId = (int) $request->attributes->get('company_id');
+        $companyId = $this->resolveCompanyId($request);
         $file = $request->file('file');
 
         $this->ensureCompanyMatch($media, $companyId);
 
         $oldPaths = array_filter([$media->path, $media->thumb_path]);
-        $meta = $this->uploadFile($file, $media->category, $companyId, $media->module, $media->disk, $media->uuid);
+        $meta = $this->uploadFile($file, $media->category, $companyId, $media->module, $media);
 
-        $media->fill($meta);
+        $media->fill(array_merge($meta, [
+            'visibility' => $meta['visibility'] ?? $media->visibility,
+        ]));
         $media->uploaded_by = Auth::id();
         $media->save();
 
@@ -147,7 +152,7 @@ class MediaController extends Controller
 
         if ($pathsToDelete) {
             try {
-                Storage::disk($media->disk)->delete($pathsToDelete);
+                $this->storage->filesystem($media->disk)->delete($pathsToDelete);
             } catch (\Throwable $exception) {
                 report($exception);
             }
@@ -163,24 +168,18 @@ class MediaController extends Controller
     {
         $this->authorize('download', $media);
 
-        $disk = Storage::disk($media->disk);
-        $ttl = (int) config('drive.presign_ttl_seconds', 300);
+        $filesystem = $this->storage->filesystem($media->disk);
+        $url = $this->storage->temporaryUrl($media);
 
-        try {
-            $url = $disk->temporaryUrl($media->path, now()->addSeconds($ttl), [
-                'ResponseContentDisposition' => 'attachment; filename="' . addslashes($media->original_name) . '"',
-            ]);
-
+        if ($url) {
             return redirect()->away($url);
-        } catch (\Throwable $exception) {
-            if (! $disk->exists($media->path)) {
-                abort(404, 'Dosya bulunamadı.');
-            }
-
-            return $disk->download($media->path, $media->original_name, [
-                'Content-Type' => $media->mime,
-            ]);
         }
+
+        if (! $filesystem->exists($media->path)) {
+            abort(404, 'Dosya bulunamadı.');
+        }
+
+        return $this->storage->download($media);
     }
 
     public function destroy(Request $request, Media $media): RedirectResponse
@@ -222,17 +221,17 @@ class MediaController extends Controller
         ]);
     }
 
-    private function resolveStorageStats(): array
+    private function resolveStorageStats(int $companyId): array
     {
         $defaultLimit = (int) config('drive.default_storage_limit_bytes', 1_073_741_824);
         $company = tenant();
 
-        if (! $company && ($companyId = currentCompanyId())) {
+        if (! $company && $companyId) {
             $company = Company::query()->find($companyId);
         }
 
-        $limit = (int) ($company->drive_storage_limit_bytes ?? $defaultLimit);
-        $used = (int) Media::query()->sum('size');
+        $limit = (int) ($company?->drive_storage_limit_bytes ?? $defaultLimit);
+        $used = (int) Media::query()->where('company_id', $companyId)->sum('size');
         $remaining = max($limit - $used, 0);
         $percentage = $limit > 0 ? round(min(100, ($used / $limit) * 100), 2) : 0.0;
 
@@ -433,9 +432,9 @@ class MediaController extends Controller
         ];
     }
 
-    protected function buildStats(): array
+    protected function buildStats(int $companyId): array
     {
-        $base = Media::query();
+        $base = Media::query()->where('company_id', $companyId);
         $documentCategories = Media::documentCategories();
         $mediaCategories = Media::mediaCategories();
 
@@ -483,7 +482,7 @@ class MediaController extends Controller
         return $stats;
     }
 
-    protected function buildPickerStats(): array
+    protected function buildPickerStats(int $companyId): array
     {
         $key = array_key_first($this->pickerTabDefinitions());
 
@@ -494,8 +493,8 @@ class MediaController extends Controller
         if (! str_contains($key, '__')) {
             return [
                 $key => [
-                    'total' => Media::query()->count(),
-                    'important' => Media::query()->where('is_important', true)->count(),
+                    'total' => Media::query()->where('company_id', $companyId)->count(),
+                    'important' => Media::query()->where('company_id', $companyId)->where('is_important', true)->count(),
                 ],
             ];
         }
@@ -504,8 +503,8 @@ class MediaController extends Controller
 
         return [
             $key => [
-                'total' => Media::query()->where('module', $module)->where('category', $folder)->count(),
-                'important' => Media::query()->where('module', $module)->where('category', $folder)->where('is_important', true)->count(),
+                'total' => Media::query()->where('company_id', $companyId)->where('module', $module)->where('category', $folder)->count(),
+                'important' => Media::query()->where('company_id', $companyId)->where('module', $module)->where('category', $folder)->where('is_important', true)->count(),
             ],
         ];
     }
@@ -526,45 +525,22 @@ class MediaController extends Controller
         ]));
     }
 
-    protected function uploadFile(UploadedFile $file, string $category, int $companyId, string $module, ?string $disk = null, ?string $uuid = null): array
+    protected function uploadFile(UploadedFile $file, string $category, int $companyId, string $module, ?Media $existing = null): array
     {
-        $disk = $disk ?: config('drive.disk', config('filesystems.default', 'public'));
-        $extension = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin');
-        $prefix = (string) config('drive.path_prefix', 'companies/{company_id}/drive');
-        $basePath = trim(str_replace('{company_id}', (string) $companyId, $prefix), '/');
-        $uuid = $uuid ?: (string) Str::uuid();
-        $folder = trim($basePath . '/' . trim($module, '/') . '/' . trim($category, '/') . '/' . $uuid, '/');
-        $filename = 'content';
-
-        $storedPath = $file->storeAs($folder, $filename, [
-            'disk' => $disk,
-            'visibility' => 'public',
-        ]);
-
-        $sha = null;
-        try {
-            $sha = hash_file('sha256', $file->getRealPath());
-        } catch (\Throwable $exception) {
-            report($exception);
-        }
-
-        $dimensions = null;
-        if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'], true)) {
-            $dimensions = @getimagesize($file->getRealPath());
-        }
+        $stored = $this->storage->put($file, $companyId, $module, $category, $existing?->visibility);
 
         return [
-            'disk' => $disk,
-            'uuid' => $uuid,
-            'path' => $storedPath,
+            'disk' => $stored->disk,
+            'visibility' => $stored->visibility,
+            'path' => $stored->path,
             'thumb_path' => null,
-            'original_name' => $file->getClientOriginalName(),
-            'mime' => strtolower((string) $file->getClientMimeType()),
-            'ext' => $extension,
-            'size' => $file->getSize(),
-            'sha256' => $sha ?: null,
-            'width' => is_array($dimensions) ? $dimensions[0] : null,
-            'height' => is_array($dimensions) ? $dimensions[1] : null,
+            'original_name' => $stored->originalName,
+            'mime' => $stored->mime,
+            'ext' => $stored->extension,
+            'size' => $stored->size,
+            'sha256' => $stored->hash,
+            'width' => $stored->width,
+            'height' => $stored->height,
         ];
     }
 
@@ -593,6 +569,8 @@ class MediaController extends Controller
             'path' => $media->path,
             'thumb_path' => $media->thumb_path,
             'disk' => $media->disk,
+            'visibility' => $media->visibility,
+            'temporary_url' => $this->storage->temporaryUrl($media),
             'download_url' => route('admin.drive.media.download', $media),
         ];
     }
@@ -602,5 +580,20 @@ class MediaController extends Controller
         if ((int) $media->company_id !== $companyId) {
             abort(403, 'Bu dosyaya erişim yetkiniz yok.');
         }
+    }
+
+    protected function resolveCompanyId(Request $request): int
+    {
+        $attribute = $request->attributes->get('company_id');
+
+        if ($attribute) {
+            return (int) $attribute;
+        }
+
+        if ($tenant = tenant()) {
+            return (int) $tenant->getKey();
+        }
+
+        return (int) (currentCompanyId() ?: 0);
     }
 }

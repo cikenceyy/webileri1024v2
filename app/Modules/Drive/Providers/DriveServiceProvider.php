@@ -2,7 +2,10 @@
 
 namespace App\Modules\Drive\Providers;
 
+use App\Modules\Drive\Console\Commands\DriveHealthCommand;
 use App\Modules\Drive\Console\Commands\DriveRefreshMeta;
+use App\Modules\Drive\Console\Commands\DriveRehydrateUrlsCommand;
+use App\Modules\Drive\Console\Commands\DriveScanOrphansCommand;
 use App\Modules\Drive\Domain\Models\Media;
 use App\Modules\Drive\Policies\MediaPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -15,7 +18,12 @@ class DriveServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../Config/drive.php', 'drive');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([DriveRefreshMeta::class]);
+            $this->commands([
+                DriveRefreshMeta::class,
+                DriveHealthCommand::class,
+                DriveRehydrateUrlsCommand::class,
+                DriveScanOrphansCommand::class,
+            ]);
         }
     }
 

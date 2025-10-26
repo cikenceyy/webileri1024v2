@@ -45,6 +45,7 @@ class Media extends Model
         'category',
         'module',
         'disk',
+        'visibility',
         'path',
         'uuid',
         'thumb_path',

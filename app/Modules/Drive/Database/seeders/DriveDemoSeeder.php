@@ -20,7 +20,7 @@ class DriveDemoSeeder extends Seeder
             return;
         }
 
-        $disk = config('filesystems.default', 's3');
+        $disk = config('drive.disk', config('filesystems.default', 'local'));
         $storage = Storage::disk($disk);
 
         $definitions = [
@@ -57,44 +57,67 @@ class DriveDemoSeeder extends Seeder
                     }
 
                     foreach ($definitions[$folderKey] as $file) {
-                        $uuid = (string) Str::uuid();
-                        $folderPath = trim($basePrefix . '/' . $moduleSlug . '/' . $folderKey . '/' . $uuid, '/');
-                        $path = $folderPath . '/content';
+                        $identifier = (string) Str::ulid();
+                        $extension = strtolower($file['ext']);
+                        $nameSlug = Str::of(pathinfo($file['original_name'], PATHINFO_FILENAME) ?: 'file')
+                            ->slug('-')
+                            ->limit(60, '')
+                            ->lower()
+                            ->whenEmpty(fn () => 'file')
+                            ->value();
+                        $today = now();
+                        $directory = implode('/', array_filter([
+                            $basePrefix,
+                            $moduleSlug,
+                            $folderKey,
+                            $today->format('Y'),
+                            $today->format('m'),
+                            $today->format('d'),
+                        ]));
+                        $filename = sprintf('%s_%s.%s', $identifier, $nameSlug, $extension);
+                        $path = trim($directory . '/' . $filename, '/');
+                        $content = (string) ($file['content'] ?? 'demo');
 
-                        if (! $storage->exists($path)) {
-                            try {
-                                $storage->put($path, $file['content'] ?? 'demo');
-                            } catch (\Throwable $exception) {
-                                report($exception);
-                                continue;
-                            }
+                        try {
+                            $storage->put($path, $content, ['visibility' => 'private']);
+                        } catch (\Throwable $exception) {
+                            report($exception);
+                            continue;
                         }
 
-                        $size = $storage->exists($path) ? ($storage->size($path) ?: strlen($file['content'] ?? 'demo')) : strlen($file['content'] ?? 'demo');
-                        $hash = hash('sha256', $file['content'] ?? 'demo');
+                        $size = $storage->exists($path) ? ($storage->size($path) ?: strlen($content)) : strlen($content);
+                        $hash = hash('sha256', $content);
 
-                        Media::query()->updateOrCreate(
-                            [
-                                'company_id' => $company->id,
-                                'uuid' => $uuid,
-                            ],
-                            [
-                                'disk' => $disk,
-                                'module' => $moduleSlug,
-                                'category' => $folderKey,
-                                'path' => $path,
-                                'original_name' => $file['original_name'],
-                                'mime' => strtolower($file['mime']),
-                                'ext' => strtolower($file['ext']),
-                                'size' => $size,
-                                'sha256' => $hash,
-                                'width' => null,
-                                'height' => null,
-                                'thumb_path' => null,
-                                'is_important' => (bool) ($file['important'] ?? false),
-                                'uploaded_by' => $uploaderId,
-                            ]
-                        );
+                        $media = Media::query()->firstOrNew([
+                            'company_id' => $company->id,
+                            'module' => $moduleSlug,
+                            'category' => $folderKey,
+                            'original_name' => $file['original_name'],
+                        ]);
+
+                        $media->fill([
+                            'disk' => $disk,
+                            'visibility' => 'private',
+                            'path' => $path,
+                            'mime' => strtolower($file['mime']),
+                            'ext' => $extension,
+                            'size' => $size,
+                            'sha256' => $hash,
+                            'width' => null,
+                            'height' => null,
+                            'thumb_path' => null,
+                            'is_important' => (bool) ($file['important'] ?? false),
+                            'uploaded_by' => $uploaderId,
+                        ]);
+
+                        if (! $media->exists) {
+                            $media->company_id = $company->id;
+                            $media->module = $moduleSlug;
+                            $media->category = $folderKey;
+                            $media->original_name = $file['original_name'];
+                        }
+
+                        $media->save();
                     }
                 }
             }
