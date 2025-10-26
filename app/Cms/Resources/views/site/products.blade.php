@@ -49,7 +49,7 @@
                 <div class="product-grid grid-auto" data-filter-target>
                     @forelse($products as $product)
                         <article class="product-card stack-sm" data-category="{{ $product['category'] ?? 'all' }}">
-                            <div class="product-card__media ratio-3x2">
+                            <div class="product-card__media ratio-4x3">
                                 @php $productCover = $product['cover_image'] ?? $placeholder('Product', 640, 480); @endphp
                                 <img src="{{ $productCover }}" srcset="{{ $productCover }} 640w" sizes="(min-width: 62rem) 240px, 50vw"
                                      width="640" height="480" alt="{{ $product['name'] }}" loading="lazy">
@@ -68,7 +68,7 @@
                     @empty
                         @foreach((array) $placeholders as $placeholderCard)
                             <article class="product-card stack-sm placeholder" data-skeleton>
-                                <div class="product-card__media ratio-3x2 placeholder-block"></div>
+                                <div class="product-card__media ratio-4x3 placeholder-block"></div>
                                 <div class="stack-xs">
                                     <h2>{{ $placeholderCard['title'] ?? __('cms::site.products.grid.placeholder_title') }}</h2>
                                     <p>{{ $placeholderCard['description'] ?? __('cms::site.products.grid.placeholder_description') }}</p>

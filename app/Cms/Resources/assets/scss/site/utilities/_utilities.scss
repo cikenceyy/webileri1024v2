@@ -43,7 +43,6 @@
 
 .ratio-16x9,
 .ratio-4x3,
-.ratio-3x2,
 .ratio-1x1 {
     position: relative;
     overflow: hidden;
@@ -51,12 +50,10 @@
 
 .ratio-16x9::before { content: ''; display: block; padding-top: 56.25%; }
 .ratio-4x3::before { content: ''; display: block; padding-top: 75%; }
-.ratio-3x2::before { content: ''; display: block; padding-top: 66.66%; }
 .ratio-1x1::before { content: ''; display: block; padding-top: 100%; }
 
 .ratio-16x9 > img,
 .ratio-4x3 > img,
-.ratio-3x2 > img,
 .ratio-1x1 > img {
     position: absolute;
     inset: 0;

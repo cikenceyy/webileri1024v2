@@ -193,7 +193,7 @@
                 <div class="product-grid grid-auto">
                     @forelse($featuredProducts as $product)
                         <article class="product-card stack-sm">
-                            <div class="product-card__media ratio-3x2">
+                            <div class="product-card__media ratio-4x3">
                                 @php $productCover = $product['cover_image'] ?? $placeholder('Product', 640, 480); @endphp
                                 <img src="{{ $productCover }}" srcset="{{ $productCover }} 640w" sizes="(min-width: 62rem) 240px, 50vw"
                                      width="640" height="480" alt="{{ $product['name'] ?? 'Product' }}" loading="lazy">
@@ -215,7 +215,7 @@
                     @empty
                         @foreach((array) $productFallbacks as $fallback)
                             <article class="product-card stack-sm placeholder" data-skeleton>
-                                <div class="product-card__media ratio-3x2 placeholder-block"></div>
+                                <div class="product-card__media ratio-4x3 placeholder-block"></div>
                                 <div class="stack-xs">
                                     <h3>{{ $fallback['title'] ?? __('cms::site.home.products.placeholder_title') }}</h3>
                                     <p>{{ $fallback['description'] ?? __('cms::site.home.products.placeholder_description') }}</p>
