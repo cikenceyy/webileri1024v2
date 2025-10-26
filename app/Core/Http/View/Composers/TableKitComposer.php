@@ -620,7 +620,7 @@ class TableKitComposer
      */
     protected function composeProductionWorkorders(array $data): ?array
     {
-        if (! isset($data['workorders'])) {
+        if (! isset($data['workorders']) && ! isset($data['workOrders'])) {
             return null;
         }
 
@@ -640,7 +640,7 @@ class TableKitComposer
             ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
         ];
 
-        $paginator = $data['workorders'];
+        $paginator = $data['workorders'] ?? $data['workOrders'];
         $items = $paginator instanceof LengthAwarePaginator ? $paginator->getCollection() : collect($paginator);
 
         $rows = $items->map(function ($workorder) {
