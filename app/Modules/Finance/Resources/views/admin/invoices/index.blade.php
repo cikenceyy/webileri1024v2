@@ -80,42 +80,10 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>{{ __('Doc No') }}</th>
-                    <th>{{ __('Customer') }}</th>
-                    <th>{{ __('Status') }}</th>
-                    <th class="text-end">{{ __('Grand Total') }}</th>
-                    <th class="text-end">{{ __('Paid') }}</th>
-                    <th>{{ __('Due Date') }}</th>
-                    <th class="text-end">{{ __('Actions') }}</th>
-                </tr>
-                </thead>
-                <tbody>
-                @forelse($invoices as $invoice)
-                    <tr>
-                        <td>{{ $invoice->doc_no ?? __('(Draft)') }}</td>
-                        <td>{{ $invoice->customer?->name }}</td>
-                        <td><span class="badge bg-secondary text-uppercase">{{ __(Str::headline($invoice->status)) }}</span></td>
-                        <td class="text-end">{{ number_format($invoice->grand_total, 2) }} {{ $invoice->currency }}</td>
-                        <td class="text-end">{{ number_format($invoice->paid_amount, 2) }} {{ $invoice->currency }}</td>
-                        <td>{{ optional($invoice->due_date)?->format('Y-m-d') ?? '—' }}</td>
-                        <td class="text-end">
-                            <a href="{{ route('admin.finance.invoices.show', $invoice) }}" class="btn btn-sm btn-outline-primary">{{ __('Open') }}</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">{{ __('No invoices found.') }}</td>
-                    </tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="card-footer">
-            {{ $invoices->links() }}
-        </div>
+        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+            <x-slot name="toolbar">
+                <x-table:toolbar :config="$tableKitConfig" :search-placeholder="__('Fatura ara…')" />
+            </x-slot>
+        </x-table>
     </div>
 @endsection
