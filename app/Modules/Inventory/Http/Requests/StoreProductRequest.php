@@ -3,6 +3,7 @@
 namespace App\Modules\Inventory\Http\Requests;
 
 use App\Modules\Drive\Domain\Models\Media;
+use App\Modules\Drive\Support\DriveStructure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,6 +17,8 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         $companyId = $this->attributes->get('company_id') ?? (app()->bound('company') ? app('company')->id : null);
+
+        $productFolder = DriveStructure::normalizeFolderKey('products', Media::MODULE_INVENTORY);
 
         return [
             'sku' => [
@@ -33,10 +36,10 @@ class StoreProductRequest extends FormRequest
             'reorder_point' => ['nullable', 'numeric', 'min:0'],
             'media_id' => [
                 'nullable',
-                Rule::exists('media', 'id')->where(function ($query) use ($companyId) {
+                Rule::exists('media', 'id')->where(function ($query) use ($companyId, $productFolder) {
                     return $query
                         ->where('company_id', $companyId)
-                        ->where('category', Media::CATEGORY_MEDIA_PRODUCTS)
+                        ->where('category', $productFolder)
                         ->whereNull('deleted_at');
                 }),
             ],

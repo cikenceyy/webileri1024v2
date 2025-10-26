@@ -9,17 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Modules\Drive\Support\DriveStructure;
 
 class Media extends Model
 {
     use BelongsToCompany;
     use HasFactory;
     use SoftDeletes;
-
-    public const CATEGORY_DOCUMENTS = 'documents';
-    public const CATEGORY_MEDIA_PRODUCTS = 'media_products';
-    public const CATEGORY_MEDIA_CATALOGS = 'media_catalogs';
-    public const CATEGORY_PAGES = 'pages';
 
     public const TYPE_DOCUMENT = 'document';
     public const TYPE_MEDIA = 'media';
@@ -44,22 +40,14 @@ class Media extends Model
         self::MODULE_HR => 'HR',
     ];
 
-    public const DOCUMENT_CATEGORIES = [
-        self::CATEGORY_DOCUMENTS,
-        self::CATEGORY_PAGES,
-    ];
-
-    public const MEDIA_CATEGORIES = [
-        self::CATEGORY_MEDIA_PRODUCTS,
-        self::CATEGORY_MEDIA_CATALOGS,
-    ];
-
     protected $fillable = [
         'company_id',
         'category',
         'module',
         'disk',
+        'visibility',
         'path',
+        'uuid',
         'thumb_path',
         'original_name',
         'mime',
@@ -81,40 +69,51 @@ class Media extends Model
 
     public static function moduleOptions(): array
     {
-        return self::MODULE_LABELS;
+        return DriveStructure::moduleOptions();
     }
 
     public static function moduleKeys(): array
     {
-        return array_keys(self::MODULE_LABELS);
+        return array_keys(self::moduleOptions());
     }
 
     public static function moduleLabel(?string $module): string
     {
         $module = $module ?: self::MODULE_DEFAULT;
 
-        return self::MODULE_LABELS[$module] ?? Str::of($module)->headline();
+        return DriveStructure::moduleOptions()[$module] ?? Str::of($module)->headline();
+    }
+
+    public static function folderKeys(): array
+    {
+        return DriveStructure::folderKeys();
     }
 
     public static function documentCategories(): array
     {
-        return self::DOCUMENT_CATEGORIES;
+        return DriveStructure::foldersByType(self::TYPE_DOCUMENT);
     }
 
     public static function mediaCategories(): array
     {
-        return self::MEDIA_CATEGORIES;
+        return DriveStructure::foldersByType(self::TYPE_MEDIA);
     }
 
     public static function categoryType(string $category): string
     {
-        return in_array($category, self::DOCUMENT_CATEGORIES, true)
+        return DriveStructure::folderType($category) === self::TYPE_DOCUMENT
             ? self::TYPE_DOCUMENT
             : self::TYPE_MEDIA;
     }
 
     protected static function booted(): void
     {
+        static::creating(function (self $media): void {
+            if (! $media->uuid) {
+                $media->uuid = (string) Str::uuid();
+            }
+        });
+
         static::deleted(function (self $media): void {
             if (! $media->isForceDeleting()) {
                 return;

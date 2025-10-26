@@ -1,39 +1,81 @@
 <?php
 
 return [
-    'presign_ttl_seconds' => env('DRIVE_PRESIGN_TTL', 300),
-    'max_upload_bytes' => (int) env('DRIVE_MAX_UPLOAD_BYTES', 50 * 1024 * 1024),
-    'disk' => env('DRIVE_DISK', config('filesystems.default', 'public')),
+    'presign_ttl_seconds' => (int) config('files.temporary_url_seconds', env('DRIVE_PRESIGN_TTL', 300)),
+    'max_upload_bytes' => (int) (config('files.max_upload_megabytes', 50) * 1024 * 1024),
+    'disk' => env('DRIVE_DISK', config('filesystems.default', 'local')),
     'path_prefix' => env('DRIVE_PATH_PREFIX', 'companies/{company_id}/drive'),
     'default_storage_limit_bytes' => (int) env('DRIVE_DEFAULT_STORAGE_LIMIT_BYTES', 1_073_741_824),
-    'categories' => [
+    'defaults' => [
+        'module' => 'cms',
+        'folder' => 'documents',
+    ],
+    'folders' => [
         'documents' => [
-            'mimes' => [
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/vnd.ms-excel',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'text/csv',
-                'text/plain',
-            ],
-            'ext' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt'],
-            'max' => 50 * 1024 * 1024,
+            'label' => 'Belgeler',
+            'type' => 'document',
+            'mimes' => collect(config('files.document_extensions', []))
+                ->map(fn ($ext) => config('files.allowed_extensions.' . $ext, []))
+                ->flatten()
+                ->unique()
+                ->values()
+                ->all(),
+            'ext' => config('files.document_extensions', []),
+            'max' => (int) (config('files.max_upload_megabytes', 50) * 1024 * 1024),
         ],
-        'media_products' => [
-            'mimes' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+        'media' => [
+            'label' => 'Medya',
+            'type' => 'media',
+            'mimes' => collect(config('files.media_extensions', []))
+                ->map(fn ($ext) => config('files.allowed_extensions.' . $ext, []))
+                ->flatten()
+                ->unique()
+                ->values()
+                ->all(),
+            'ext' => config('files.media_extensions', []),
+            'max' => (int) (config('files.max_upload_megabytes', 50) * 1024 * 1024),
+        ],
+        'products' => [
+            'label' => 'Ürün Dosyaları',
+            'type' => 'media',
+            'mimes' => collect(['jpg', 'jpeg', 'png', 'webp', 'svg'])
+                ->map(fn ($ext) => config('files.allowed_extensions.' . $ext, []))
+                ->flatten()
+                ->unique()
+                ->values()
+                ->all(),
             'ext' => ['jpg', 'jpeg', 'png', 'webp', 'svg'],
             'max' => 25 * 1024 * 1024,
         ],
-        'media_catalogs' => [
-            'mimes' => ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
-            'ext' => ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
-            'max' => 50 * 1024 * 1024,
+    ],
+    'modules' => [
+        'cms' => [
+            'label' => 'CMS',
+            'folders' => ['documents', 'media'],
         ],
-        'pages' => [
-            'mimes' => ['text/html', 'application/json', 'text/markdown', 'text/yaml', 'application/yaml', 'text/plain'],
-            'ext' => ['html', 'htm', 'json', 'md', 'yaml', 'yml', 'txt'],
-            'max' => 5 * 1024 * 1024,
+        'marketing' => [
+            'label' => 'Marketing',
+            'folders' => ['documents', 'media'],
+        ],
+        'finance' => [
+            'label' => 'Finance',
+            'folders' => ['documents', 'media'],
+        ],
+        'logistics' => [
+            'label' => 'Logistics',
+            'folders' => ['documents', 'media'],
+        ],
+        'inventory' => [
+            'label' => 'Inventory',
+            'folders' => ['documents', 'media', 'products'],
+        ],
+        'production' => [
+            'label' => 'Production',
+            'folders' => ['documents', 'media'],
+        ],
+        'hr' => [
+            'label' => 'HR',
+            'folders' => ['documents', 'media'],
         ],
     ],
 ];

@@ -615,6 +615,11 @@ const bootDrive = () => {
     let emptyState = null;
     let pagination = null;
     let summary = null;
+    let categorySelect = null;
+    let moduleSelect = null;
+    let categoryNote = null;
+    let progressHost = null;
+    let progressWrapper = null;
     let currentSearchTerm = normalizeTerm(root.querySelector('[data-drive-search-input]')?.value || '');
 
     const refreshRefs = () => {
@@ -692,6 +697,58 @@ const bootDrive = () => {
         }
     };
 
+    let applyCategoryNote = () => {};
+
+    const handleCategoryChange = () => {
+        if (categorySelect) {
+            root.dataset.categoryActive = categorySelect.value || root.dataset.categoryDefault || '';
+        }
+        applyCategoryNote();
+    };
+    const handleModuleChange = () => {
+        if (moduleSelect) {
+            root.dataset.moduleActive = moduleSelect.value || root.dataset.moduleDefault || 'cms';
+        }
+    };
+
+    const refreshUploadElements = () => {
+        const nextCategorySelect = root.querySelector('[data-drive-category-select] select, [data-drive-category-select]');
+        if (categorySelect && categorySelect !== nextCategorySelect) {
+            categorySelect.removeEventListener('change', handleCategoryChange);
+        }
+        categorySelect = nextCategorySelect;
+        if (categorySelect) {
+            categorySelect.addEventListener('change', handleCategoryChange);
+            root.dataset.categoryActive = categorySelect.value || root.dataset.categoryDefault || '';
+        }
+
+        const nextModuleSelect = root.querySelector('[data-drive-module-select] select, [data-drive-module-select]');
+        if (moduleSelect && moduleSelect !== nextModuleSelect) {
+            moduleSelect.removeEventListener('change', handleModuleChange);
+        }
+        moduleSelect = nextModuleSelect;
+        if (moduleSelect) {
+            moduleSelect.addEventListener('change', handleModuleChange);
+            root.dataset.moduleActive = moduleSelect.value || root.dataset.moduleDefault || 'cms';
+        }
+
+        categoryNote = root.querySelector('[data-drive-category-note]');
+        progressHost = root.querySelector('[data-drive-progress-items]');
+        progressWrapper = root.querySelector('[data-drive-progress]');
+    };
+
+    const refreshCategoryLimits = () => {
+        try {
+            limits = JSON.parse(root.dataset.categoryLimits || '{}');
+        } catch (error) {
+            limits = {};
+        }
+    };
+
+    let limits = {};
+    refreshUploadElements();
+    refreshCategoryLimits();
+
     const replaceContentFrom = (docRoot) => {
         const newGrid = docRoot.querySelector('[data-drive-grid]');
         if (grid && newGrid) {
@@ -741,9 +798,28 @@ const bootDrive = () => {
             root.dataset.driveStorageUsed = docRoot.dataset.driveStorageUsed;
         }
 
+        if (docRoot.dataset.categoryDefault) {
+            root.dataset.categoryDefault = docRoot.dataset.categoryDefault;
+        }
+
+        if (docRoot.dataset.categoryActive) {
+            root.dataset.categoryActive = docRoot.dataset.categoryActive;
+        }
+
+        if (docRoot.dataset.moduleDefault) {
+            root.dataset.moduleDefault = docRoot.dataset.moduleDefault;
+        }
+
+        if (docRoot.dataset.moduleActive) {
+            root.dataset.moduleActive = docRoot.dataset.moduleActive;
+        }
+
         refreshRefs();
         refreshTooltips(root);
         updateStorageMetrics(root);
+        refreshUploadElements();
+        refreshCategoryLimits();
+        applyCategoryNote();
     };
 
     const performRemoteSearch = async (term) => {
@@ -809,24 +885,13 @@ const bootDrive = () => {
     const uploadPanel = root.querySelector('[data-drive-upload-panel]');
     const dropzone = root.querySelector('[data-drive-dropzone]');
     const fileInput = root.querySelector('[data-drive-file-input]');
-    const categorySelect = root.querySelector('[data-drive-category-select] select, [data-drive-category-select]');
-    const moduleSelect = root.querySelector('[data-drive-module-select] select, [data-drive-module-select]');
-    const categoryNote = root.querySelector('[data-drive-category-note]');
-    const progressHost = root.querySelector('[data-drive-progress-items]');
-    const progressWrapper = root.querySelector('[data-drive-progress]');
-    const moduleDefault = root.dataset.moduleActive || root.dataset.moduleDefault || 'cms';
 
-    const limits = (() => {
-        try {
-            return JSON.parse(root.dataset.categoryLimits || '{}');
-        } catch (error) {
-            return {};
-        }
-    })();
+    const getActiveModule = () => root.dataset.moduleActive || root.dataset.moduleDefault || 'cms';
+    const getActiveCategory = () => categorySelect?.value ?? root.dataset.categoryActive ?? root.dataset.categoryDefault;
 
-    const applyCategoryNote = () => {
+    applyCategoryNote = () => {
         if (!categoryNote) return;
-        const key = categorySelect?.value ?? root.dataset.categoryDefault;
+        const key = getActiveCategory();
         const limit = limits[key];
         if (!limit) {
             categoryNote.textContent = '';
@@ -842,10 +907,6 @@ const bootDrive = () => {
     };
 
     applyCategoryNote();
-    categorySelect?.addEventListener('change', applyCategoryNote);
-    moduleSelect?.addEventListener('change', () => {
-        root.dataset.moduleActive = moduleSelect.value || moduleDefault;
-    });
 
     const ensureProgress = () => {
         if (progressWrapper) {
@@ -877,8 +938,8 @@ const bootDrive = () => {
 
         try {
             const formData = new FormData();
-            const categoryValue = categorySelect?.value ?? root.dataset.categoryDefault;
-            const moduleValue = moduleSelect?.value || moduleDefault;
+            const categoryValue = getActiveCategory();
+            const moduleValue = getActiveModule();
             formData.append('category', categoryValue);
             formData.append('module', moduleValue);
             formData.append('files[]', file);
