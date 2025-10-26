@@ -24,41 +24,10 @@
     </form>
 
     <div class="card">
-        <div class="table-responsive">
-            <table class="table mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th>Belge No</th>
-                        <th>Tedarikçi</th>
-                        <th>Durum</th>
-                        <th>Depo</th>
-                        <th>Tarih</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($receipts as $receipt)
-                        <tr>
-                            <td class="fw-semibold">{{ $receipt->doc_no }}</td>
-                            <td>{{ $receipt->vendor_id ? ('#' . $receipt->vendor_id) : '—' }}</td>
-                            <td><span class="badge bg-light text-dark text-capitalize">{{ $receipt->status }}</span></td>
-                            <td>{{ $receipt->warehouse?->name ?? '—' }}</td>
-                            <td>{{ optional($receipt->received_at)->format('d.m.Y H:i') ?? '—' }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.logistics.receipts.show', $receipt) }}" class="btn btn-sm btn-outline-primary">Görüntüle</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Henüz kayıt bulunmuyor.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="mt-3">
-        {{ $receipts->links() }}
+        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+            <x-slot name="toolbar">
+                <x-table:toolbar :config="$tableKitConfig" :search-placeholder="__('GRN ara…')" />
+            </x-slot>
+        </x-table>
     </div>
 @endsection

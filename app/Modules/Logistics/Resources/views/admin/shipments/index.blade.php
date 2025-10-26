@@ -24,41 +24,10 @@
     </form>
 
     <div class="card">
-        <div class="table-responsive">
-            <table class="table mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th>Belge No</th>
-                        <th>Müşteri</th>
-                        <th>Durum</th>
-                        <th>Paket</th>
-                        <th>Sevk Tarihi</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($shipments as $shipment)
-                        <tr>
-                            <td class="fw-semibold">{{ $shipment->doc_no }}</td>
-                            <td>{{ $shipment->customer?->name ?? '—' }}</td>
-                            <td><span class="badge bg-light text-dark text-capitalize">{{ $shipment->status }}</span></td>
-                            <td>{{ $shipment->packages_count ?? '—' }}</td>
-                            <td>{{ optional($shipment->shipped_at)->format('d.m.Y H:i') ?? '—' }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.logistics.shipments.show', $shipment) }}" class="btn btn-sm btn-outline-primary">Görüntüle</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Henüz sevkiyat bulunmuyor.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="mt-3">
-        {{ $shipments->links() }}
+        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+            <x-slot name="toolbar">
+                <x-table:toolbar :config="$tableKitConfig" :search-placeholder="__('Sevkiyat ara…')" />
+            </x-slot>
+        </x-table>
     </div>
 @endsection

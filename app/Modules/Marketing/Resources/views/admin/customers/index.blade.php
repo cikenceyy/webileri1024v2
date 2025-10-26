@@ -26,44 +26,10 @@
     </form>
 
     <div class="card">
-        <div class="table-responsive">
-            <table class="table mb-0">
-                <thead>
-                    <tr>
-                        <th>Ad / Ünvan</th>
-                        <th>E-posta</th>
-                        <th>Vade (gün)</th>
-                        <th>Varsayılan Fiyat Listesi</th>
-                        <th>Durum</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($customers as $customer)
-                        <tr>
-                            <td>{{ $customer->name }}</td>
-                            <td>{{ $customer->email ?? '—' }}</td>
-                            <td>{{ $customer->payment_terms_days ?? 0 }}</td>
-                            <td>{{ optional($customer->priceList)->name ?? '—' }}</td>
-                            <td>
-                                <span class="badge bg-{{ $customer->is_active ? 'success' : 'secondary' }}">
-                                    {{ $customer->is_active ? 'Aktif' : 'Pasif' }}
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.marketing.customers.show', $customer) }}" class="btn btn-sm btn-outline-primary">Detay</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Henüz müşteri kaydı bulunmuyor.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="card-footer">
-            {{ $customers->links() }}
-        </div>
+        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+            <x-slot name="toolbar">
+                <x-table:toolbar :config="$tableKitConfig" :search-placeholder="__('Müşteri ara…')" />
+            </x-slot>
+        </x-table>
     </div>
 @endsection

@@ -9,6 +9,7 @@ use App\Core\Support\Console\Commands\CloudPredeployCommand;
 use App\Core\Support\Console\Commands\FlushTenantDomainCacheCommand;
 use App\Core\Support\Console\Commands\SequenceAuditCommand;
 use App\Core\Support\Console\Commands\SequenceSeedCommand;
+use App\Core\Console\Commands\TablekitScan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,6 +26,7 @@ class CoreServiceProvider extends ServiceProvider
                 SequenceAuditCommand::class,
                 CloudPredeployCommand::class,
                 CloudPostdeployCommand::class,
+                TablekitScan::class,
             ]);
         }
     }
