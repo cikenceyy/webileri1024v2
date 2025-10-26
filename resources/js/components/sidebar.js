@@ -40,6 +40,10 @@ const ensurePanelAccessibility = (item, trigger, panel) => {
         trigger.setAttribute('aria-controls', panel.id);
     }
 
+    if (trigger.dataset.sidebarTarget !== panel.id) {
+        trigger.dataset.sidebarTarget = panel.id;
+    }
+
     if (panel.getAttribute('aria-labelledby') !== trigger.id) {
         panel.setAttribute('aria-labelledby', trigger.id);
     }
@@ -50,8 +54,8 @@ const ensurePanelAccessibility = (item, trigger, panel) => {
 };
 
 const applySectionState = (item, expanded) => {
-    const trigger = item.querySelector('.ui-sidebar__trigger');
-    const panel = item.querySelector('.ui-sidebar__panel');
+    const trigger = item.querySelector('[data-role="sidebar-trigger"]');
+    const panel = item.querySelector('[data-role="sidebar-panel"]');
 
     if (!trigger || !panel) {
         return;
@@ -72,7 +76,7 @@ export const initSidebarNavigation = () => {
     }
 
     const storedState = readStoredState();
-    const collapsibleItems = Array.from(sidebar.querySelectorAll('.ui-sidebar__item.has-children'));
+    const collapsibleItems = Array.from(sidebar.querySelectorAll('[data-sidebar-collapsible]'));
 
     const persistState = (id, value) => {
         if (!id) return;
@@ -92,6 +96,11 @@ export const initSidebarNavigation = () => {
 
         if (id && Object.prototype.hasOwnProperty.call(storedState, id)) {
             return Boolean(storedState[id]);
+        }
+
+        const trigger = item.querySelector('[data-role="sidebar-trigger"]');
+        if (trigger) {
+            return trigger.getAttribute('aria-expanded') === 'true';
         }
 
         return item.classList.contains('is-open');
@@ -129,7 +138,7 @@ export const initSidebarNavigation = () => {
     };
 
     const handleTrigger = (trigger) => {
-        const item = trigger.closest('.ui-sidebar__item.has-children');
+        const item = trigger.closest('[data-sidebar-collapsible]');
         if (!item) {
             return;
         }
@@ -138,7 +147,7 @@ export const initSidebarNavigation = () => {
     };
 
     sidebar.addEventListener('click', (event) => {
-        const trigger = event.target.closest('.ui-sidebar__trigger');
+        const trigger = event.target.closest('[data-role="sidebar-trigger"]');
         if (!trigger || !sidebar.contains(trigger)) {
             return;
         }
@@ -152,7 +161,7 @@ export const initSidebarNavigation = () => {
             return;
         }
 
-        const trigger = event.target.closest('.ui-sidebar__trigger');
+        const trigger = event.target.closest('[data-role="sidebar-trigger"]');
         if (!trigger || !sidebar.contains(trigger)) {
             return;
         }
