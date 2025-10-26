@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use function e;
+use function collect;
 use function view;
 
 class Column
@@ -16,6 +17,9 @@ class Column
     public const TYPE_BADGE = 'badge';
     public const TYPE_DATE = 'date';
     public const TYPE_ENUM = 'enum';
+    public const TYPE_CHIP = 'chip';
+    public const TYPE_SIGNAL = 'signal';
+    public const TYPE_SELECTION = 'select';
     public const TYPE_ACTIONS = 'actions';
 
     /**
@@ -28,6 +32,9 @@ class Column
         self::TYPE_BADGE => 'text',
         self::TYPE_DATE => 'date',
         self::TYPE_ENUM => 'text',
+        self::TYPE_CHIP => 'text',
+        self::TYPE_SIGNAL => 'text',
+        self::TYPE_SELECTION => 'actions',
         self::TYPE_ACTIONS => 'actions',
     ];
 
@@ -89,12 +96,12 @@ class Column
 
     public function sortable(): bool
     {
-        return $this->sortable && $this->type !== self::TYPE_ACTIONS;
+        return $this->sortable && ! in_array($this->type, [self::TYPE_ACTIONS, self::TYPE_SELECTION], true);
     }
 
     public function filterable(): bool
     {
-        return $this->filterable && $this->type !== self::TYPE_ACTIONS;
+        return $this->filterable && ! in_array($this->type, [self::TYPE_ACTIONS, self::TYPE_SELECTION], true);
     }
 
     public function hiddenOnXs(): bool
@@ -230,10 +237,10 @@ class Column
             }
         }
 
-        return $this->defaultFormatter($raw);
+        return $this->defaultFormatter($row, $raw);
     }
 
-    protected function defaultFormatter(mixed $raw): string|array
+    protected function defaultFormatter(array|object $row, mixed $raw): string|array
     {
         return match ($this->type) {
             self::TYPE_NUMBER => $this->formatNumber($raw),
@@ -243,10 +250,114 @@ class Column
                 'display' => $this->resolveBadgeLabel($raw),
                 'html' => sprintf('<span class="tablekit__badge tablekit__badge--%s">%s</span>', e($this->normalizeBadgeModifier($raw)), e($this->resolveBadgeLabel($raw))),
             ],
+            self::TYPE_CHIP => $this->formatChip($raw),
+            self::TYPE_SIGNAL => $this->formatSignal($raw),
+            self::TYPE_SELECTION => $this->formatSelection($raw, $row),
             self::TYPE_DATE => $this->formatDate($raw),
             self::TYPE_ACTIONS => $this->formatActions($raw),
             default => $this->formatText($raw),
         };
+    }
+
+    protected function formatChip(mixed $raw): array
+    {
+        $items = [];
+
+        if (is_array($raw)) {
+            $items = array_values($raw);
+        } elseif ($raw !== null && $raw !== '') {
+            $items = [
+                [
+                    'label' => (string) $raw,
+                ],
+            ];
+        }
+
+        $htmlItems = collect($items)->map(function ($item) {
+            $label = is_array($item) ? Arr::get($item, 'label', '') : (string) $item;
+            $icon = is_array($item) ? Arr::get($item, 'icon') : null;
+            $tone = is_array($item) ? Arr::get($item, 'tone', 'default') : 'default';
+
+            $iconHtml = $icon ? sprintf('<span class="tablekit__chip-icon">%s</span>', e($icon)) : '';
+
+            return sprintf('<span class="tablekit__chip tablekit__chip--%s">%s<span class="tablekit__chip-label">%s</span></span>', e(Str::slug($tone)), $iconHtml, e($label));
+        })->implode('');
+
+        $text = collect($items)->map(function ($item) {
+            return is_array($item) ? (string) Arr::get($item, 'label', '') : (string) $item;
+        })->filter()->implode(', ');
+
+        return [
+            'raw' => $items,
+            'display' => $text,
+            'html' => $htmlItems !== '' ? $htmlItems : '—',
+        ];
+    }
+
+    protected function formatSignal(mixed $raw): array
+    {
+        $level = 'neutral';
+        $label = '—';
+        $hint = null;
+
+        if (is_array($raw)) {
+            $level = (string) Arr::get($raw, 'level', 'neutral');
+            $label = (string) Arr::get($raw, 'label', Str::headline($level));
+            $hint = Arr::get($raw, 'hint');
+        } elseif (is_string($raw)) {
+            $level = $raw;
+            $label = Str::headline($raw);
+        }
+
+        $html = sprintf('<span class="tablekit__signal tablekit__signal--%s"%s><span class="tablekit__signal-dot"></span><span class="tablekit__signal-label">%s</span></span>', e(Str::slug($level)), $hint ? sprintf(' title="%s"', e($hint)) : '', e($label));
+
+        return [
+            'raw' => [
+                'level' => $level,
+                'label' => $label,
+                'hint' => $hint,
+            ],
+            'display' => $label,
+            'html' => $html,
+        ];
+    }
+
+    protected function formatSelection(mixed $raw, array|object $row): array
+    {
+        $value = null;
+        $disabled = false;
+        $checked = false;
+
+        if (is_array($raw)) {
+            $value = Arr::get($raw, 'value');
+            $disabled = (bool) Arr::get($raw, 'disabled', false);
+            $checked = (bool) Arr::get($raw, 'checked', false);
+        }
+
+        if ($value === null && is_array($row) && array_key_exists('id', $row)) {
+            $value = $row['id'];
+        }
+
+        $value ??= is_scalar($raw) ? $raw : null;
+
+        $html = '<span class="tablekit__checkbox-wrapper">'
+            . sprintf(
+                '<input type="checkbox" class="tablekit__checkbox" data-tablekit-select value="%s" %s %s>',
+                e((string) ($value ?? '')),
+                $disabled ? 'disabled' : '',
+                $checked ? 'checked' : ''
+            )
+            . '</span>';
+
+        return [
+            'raw' => [
+                'value' => $value,
+                'disabled' => $disabled,
+                'checked' => $checked,
+            ],
+            'display' => $value ? (string) $value : '',
+            'html' => $html,
+        ];
     }
 
     protected function formatText(mixed $raw): string

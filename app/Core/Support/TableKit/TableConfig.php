@@ -22,7 +22,9 @@ class TableConfig implements Arrayable
         array $columns,
         protected int $clientThreshold = self::DEFAULT_CLIENT_THRESHOLD,
         protected ?string $defaultSort = null,
-        protected ?int $dataCount = null
+        protected ?int $dataCount = null,
+        protected bool $virtual = false,
+        protected ?int $virtualRowHeight = null
     ) {
         $this->columns = $columns;
     }
@@ -42,7 +44,9 @@ class TableConfig implements Arrayable
             $columnObjects,
             (int) Arr::get($options, 'client_threshold', self::DEFAULT_CLIENT_THRESHOLD),
             Arr::get($options, 'default_sort'),
-            Arr::get($options, 'data_count')
+            Arr::get($options, 'data_count'),
+            (bool) Arr::get($options, 'virtual', false),
+            Arr::get($options, 'row_height')
         );
     }
 
@@ -67,6 +71,21 @@ class TableConfig implements Arrayable
     public function dataCount(): ?int
     {
         return $this->dataCount;
+    }
+
+    public function virtual(): bool
+    {
+        return $this->virtual;
+    }
+
+    public function virtualRowHeight(): ?int
+    {
+        return $this->virtualRowHeight ? (int) $this->virtualRowHeight : null;
+    }
+
+    public function hasSelectionColumn(): bool
+    {
+        return collect($this->columns)->contains(fn (Column $column) => $column->type() === Column::TYPE_SELECTION);
     }
 
     public function withDataCount(int $count): self
@@ -110,12 +129,13 @@ class TableConfig implements Arrayable
             'rows' => $rowsCollection->map(function (array $row, int $index) {
                 $cells = Arr::get($row, 'cells', $row);
                 $rowId = Arr::get($row, 'id', Str::uuid()->toString());
+                $meta = Arr::get($row, 'meta');
 
                 $preparedCells = [];
 
                 foreach ($this->columns as $column) {
                     $cellValue = $cells[$column->key()] ?? null;
-                    $cellData = $column->prepareCell($cells, $cellValue);
+                    $cellData = $column->prepareCell(array_merge($cells, ['id' => $rowId]), $cellValue);
                     $cellData['text'] = trim(strip_tags($cellData['html']));
                     $preparedCells[$column->key()] = $cellData;
                 }
@@ -123,6 +143,10 @@ class TableConfig implements Arrayable
                 return [
                     'id' => $rowId,
                     'index' => $index,
+                    'meta' => $meta ? [
+                        'html' => (string) $meta,
+                        'text' => trim(strip_tags((string) $meta)),
+                    ] : null,
                     'cells' => $preparedCells,
                 ];
             })->values()->all(),
@@ -149,6 +173,8 @@ class TableConfig implements Arrayable
             'clientThreshold' => $this->clientThreshold,
             'defaultSort' => $this->defaultSort,
             'dataCount' => $this->dataCount,
+            'virtual' => $this->virtual,
+            'rowHeight' => $this->virtualRowHeight(),
         ];
     }
 }

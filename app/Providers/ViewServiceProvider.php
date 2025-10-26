@@ -15,6 +15,9 @@ class ViewServiceProvider extends ServiceProvider
         Blade::component('components.tablekit.toolbar', 'table:toolbar');
         Blade::component('components.tablekit.col', 'table:col');
         Blade::component('components.tablekit.row-actions', 'table:row-actions');
+        Blade::component('components.tablekit.stepper-summary', 'table:stepper-summary');
+        Blade::component('components.tablekit.bulk', 'table:bulk');
+        Blade::component('components.tablekit.row-meta', 'table:row-meta');
 
         View::composer([
             'inventory::warehouses.index',

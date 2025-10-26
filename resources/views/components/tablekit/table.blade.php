@@ -25,6 +25,9 @@
     $componentId = $id ?? 'tablekit-'.Str::uuid()->toString();
     $columnCount = count($config->columns());
     $toolbarContent = isset($toolbar) ? trim($toolbar) : '';
+    $stepperSummaryContent = isset($stepperSummary) ? trim($stepperSummary) : '';
+    $bulkContent = isset($bulk) ? trim($bulk) : '';
+    $rowMetaTemplate = isset($rowMeta) ? trim($rowMeta) : '';
     $statusCount = $mode === 'server' ? $totalCount : $rowsCollection->count();
 @endphp
 
@@ -35,10 +38,23 @@
     'data-tablekit-count' => $totalCount,
     'data-tablekit-client-threshold' => $config->clientThreshold(),
     'data-tablekit-default-sort' => $config->defaultSort() ?? '',
+    'data-tablekit-virtual' => $config->virtual() ? 'true' : 'false',
+    'data-tablekit-row-height' => $config->virtualRowHeight() ?? '',
+    'data-tablekit-selectable' => $config->hasSelectionColumn() ? 'true' : 'false',
 ]) }}>
     <script type="application/json" data-tablekit-dataset>
         {!! json_encode($dataset, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
     </script>
+
+    @if($rowMetaTemplate !== '')
+        <template data-tablekit-row-meta-template>{!! $rowMetaTemplate !!}</template>
+    @endif
+
+    @if($stepperSummaryContent !== '')
+        <div class="tablekit__stepper-summary" data-tablekit-stepper-summary aria-live="polite">
+            {!! $stepperSummaryContent !!}
+        </div>
+    @endif
 
     @if($toolbarContent !== '')
         <div class="tablekit__toolbar" data-tablekit-toolbar>
@@ -56,6 +72,9 @@
                         if ($column->hiddenOnXs()) {
                             $thClasses[] = 'tablekit__th--hidden-xs';
                         }
+                        if ($column->type() === \App\Core\Support\TableKit\Column::TYPE_SELECTION) {
+                            $thClasses[] = 'tablekit__th--select';
+                        }
                         if ($loop->first) {
                             $thClasses[] = 'tablekit__th--sticky';
                         }
@@ -70,9 +89,15 @@
                             aria-sort="none"
                         @endif
                     >
-                        <span class="tablekit__th-label">{{ $column->label() }}</span>
-                        @if($column->sortable())
-                            <span class="tablekit__sort-indicator" aria-hidden="true"></span>
+                        @if($column->type() === \App\Core\Support\TableKit\Column::TYPE_SELECTION)
+                            <span class="tablekit__checkbox-wrapper">
+                                <input type="checkbox" class="tablekit__checkbox" data-tablekit-select-all>
+                            </span>
+                        @else
+                            <span class="tablekit__th-label">{{ $column->label() }}</span>
+                            @if($column->sortable())
+                                <span class="tablekit__sort-indicator" aria-hidden="true"></span>
+                            @endif
                         @endif
                     </th>
                 @endforeach
@@ -82,12 +107,18 @@
             @forelse($rowsCollection as $row)
                 @php
                     $cells = Arr::get($row, 'cells', $row);
+                    $rowMeta = Arr::get($row, 'meta');
+                    $rowId = Arr::get($row, 'id');
                 @endphp
-                <tr role="row" class="tablekit__row" tabindex="0">
+                <tr role="row" class="tablekit__row" tabindex="0" data-tablekit-row @if($rowId) data-row-id="{{ $rowId }}" @endif>
                     @foreach($config->columns() as $column)
                         @php
                             $cellValue = $cells[$column->key()] ?? null;
-                            $cell = $column->prepareCell($cells, $cellValue);
+                            $contextCells = $cells;
+                            if (! array_key_exists('id', $contextCells) && $rowId) {
+                                $contextCells['id'] = $rowId;
+                            }
+                            $cell = $column->prepareCell($contextCells, $cellValue);
                             $tdClasses = ['tablekit__cell'];
                             if ($column->hiddenOnXs()) {
                                 $tdClasses[] = 'tablekit__cell--hidden-xs';
@@ -95,13 +126,21 @@
                             if ($loop->first) {
                                 $tdClasses[] = 'tablekit__cell--sticky';
                             }
+                            if ($column->type() === \App\Core\Support\TableKit\Column::TYPE_SELECTION) {
+                                $tdClasses[] = 'tablekit__cell--select';
+                            }
                         @endphp
                         <td role="cell"
                             class="{{ implode(' ', $tdClasses) }}"
                             data-tablekit-col="{{ $column->key() }}"
                             data-tablekit-col-label="{{ $column->label() }}"
                             data-tablekit-raw="{{ is_scalar($cell['raw']) ? e($cell['raw']) : '' }}"
-                        >{!! $cell['html'] !!}</td>
+                        >
+                            <div class="tablekit__cell-main">{!! $cell['html'] !!}</div>
+                            @if($loop->first && $rowMeta)
+                                <div class="tablekit__row-meta" data-tablekit-row-meta>{!! $rowMeta !!}</div>
+                            @endif
+                        </td>
                     @endforeach
                 </tr>
             @empty
@@ -122,5 +161,11 @@
                 {{ $paginator->links() }}
             @endif
         </div>
+        @if($bulkContent !== '')
+            <div class="tablekit__bulk" data-tablekit-bulk>
+                <div class="tablekit__bulk-count" data-tablekit-bulk-count>0</div>
+                <div class="tablekit__bulk-actions">{!! $bulkContent !!}</div>
+            </div>
+        @endif
     </div>
 </div>

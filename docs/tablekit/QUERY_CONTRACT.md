@@ -11,6 +11,8 @@ TableKit normalises query parameters so client and server implementations behave
 | `filters[key]` | Text/number filters. | `?filters[customer]=Acme` |
 | `filters[key][]` | Multi-select filters (badge/enum). | `?filters[status][]=draft&filters[status][]=posted` |
 | `filters[key][from]`<br>`filters[key][to]` | Date range filters. | `?filters[issued_at][from]=2024-01-01` |
+| `step` | Console step filter synchronised with the stepper. | `?step=shipments` |
+| `status[]` | Console status multi-select. | `?status[]=picking&status[]=packed` |
 
 ## Server Mode
 
@@ -19,3 +21,9 @@ When TableKit enters server mode (`data-count > threshold` or JS disabled) the t
 ## Client Mode
 
 In client mode the dataset is rendered once and TableKit updates the URL using `history.replaceState`. Navigating back/forward will restore the previous filter and sort state. Server pagination links inside the component are hidden and replaced with compact client-side controls.
+
+## Consoles
+
+- Console tables emit the `tablekit:shortcut` event for actions such as `P` (print) so existing console scripts can remain in place.
+- Stepper selections update `step` and `status[]` query parameters; client mode mirrors changes to keep the URL canonical.
+- When `virtual` is enabled, query parameters remain stable while the virtual scroller updates the visible window.
