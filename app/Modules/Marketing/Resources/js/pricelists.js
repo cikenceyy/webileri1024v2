@@ -7,7 +7,12 @@
             host: '.inv-prices',
             addRow: '[data-action="price-add"]',
             removeRow: '[data-action="price-remove"]',
+            simSection: '[data-simulation]',
             simForm: '[data-sim-form]',
+            simInputs: '[data-sim-input]',
+            simOutput: '[data-sim-output]',
+            simSummary: '[data-sim-summary]',
+            simulateButton: '[data-action="simulate"]',
         },
 
         init() {
@@ -17,6 +22,7 @@
             }
 
             this.bind();
+            this.runSimulation();
         },
 
         cache() {
@@ -26,7 +32,12 @@
             }
 
             this.$items = this.$host.querySelector('[data-price-items]');
-            this.$simForm = this.$host.querySelector(this.selectors.simForm);
+            this.$simSection = this.$host.querySelector(this.selectors.simSection);
+            this.$simForm = this.$simSection ? this.$simSection.querySelector(this.selectors.simForm) : null;
+            this.$simOutput = this.$simSection ? this.$simSection.querySelector(this.selectors.simOutput) : null;
+            this.$simSummary = this.$simSection ? this.$simSection.querySelector(this.selectors.simSummary) : null;
+            this.$simulateButton = this.$simSection ? this.$simSection.querySelector(this.selectors.simulateButton) : null;
+            this.$simInputs = this.$simForm ? Array.from(this.$simForm.querySelectorAll(this.selectors.simInputs)) : [];
             this.template = document.getElementById('tpl-price-row');
         },
 
@@ -43,11 +54,21 @@
                 if (remove) {
                     event.preventDefault();
                     this.removeRow(remove.dataset.rowId);
+                    return;
+                }
+
+                const simulate = event.target.closest(this.selectors.simulateButton);
+                if (simulate) {
+                    event.preventDefault();
+                    this.runSimulation();
                 }
             });
 
             if (this.$simForm) {
-                this.$simForm.addEventListener('input', () => this.runSimulation());
+                this.$simInputs.forEach((input) => {
+                    input.addEventListener('input', () => this.runSimulation());
+                    input.addEventListener('change', () => this.runSimulation());
+                });
             }
         },
 
@@ -81,15 +102,41 @@
             }
 
             const formData = new FormData(this.$simForm);
-            const quantity = Number(formData.get('quantity') || 1);
-            const price = Number(formData.get('price') || 0);
-            const discount = Number(formData.get('discount') || 0);
+            const quantity = Math.max(0, Number(formData.get('quantity') || 0));
+            const price = Math.max(0, Number(formData.get('price') || 0));
+            const discount = Math.min(100, Math.max(0, Number(formData.get('discount') || 0)));
+            const currency = (formData.get('currency') || 'TRY').toString().toUpperCase();
 
-            const total = Math.max(0, quantity * price * (1 - discount / 100));
-            const target = this.$host.querySelector('[data-sim-output]');
-            if (target) {
-                target.textContent = new Intl.NumberFormat(undefined, { style: 'currency', currency: formData.get('currency') || 'TRY' }).format(total);
+            const subtotal = quantity * price;
+            const discountAmount = subtotal * (discount / 100);
+            const total = Math.max(0, subtotal - discountAmount);
+
+            if (this.$simOutput) {
+                this.$simOutput.textContent = this.formatCurrency(total, currency);
             }
+
+            if (this.$simSummary) {
+                const unit = this.formatCurrency(price, currency);
+                const parts = [`${quantity} × ${unit}`];
+
+                if (discount > 0) {
+                    parts.push(`− ${discount}% (${this.formatCurrency(discountAmount, currency)} indirim)`);
+                } else {
+                    parts.push('İndirim uygulanmadı');
+                }
+
+                parts.push(`= ${this.formatCurrency(total, currency)}`);
+
+                this.$simSummary.textContent = parts.join(' ');
+            }
+        },
+
+        formatCurrency(value, currency) {
+            return new Intl.NumberFormat(undefined, {
+                style: 'currency',
+                currency,
+                maximumFractionDigits: 2,
+            }).format(Number.isFinite(value) ? value : 0);
         },
     };
 
