@@ -1,38 +1,53 @@
 @use './core';
 
-.contact-hero {
-    background: linear-gradient(135deg, rgba(255, 122, 69, 0.08), rgba(45, 92, 255, 0.08));
+.contact-page .p-contact__grid .c-card {
+    align-items: flex-start;
+}
+
+.contact-page .c-map-card {
     border-radius: var(--radius-lg);
-    padding: clamp(3rem, 6vw, 4.5rem);
+    border: 1px solid var(--color-gray-200);
+    padding: var(--space-24);
+    background: var(--color-surface);
+    display: grid;
+    gap: var(--space-16);
 }
 
-.contact-grid {
-    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+.contact-page .c-form {
+    display: grid;
+    gap: var(--space-16);
 }
 
-.contact-card form input,
-.contact-card form textarea {
+.contact-page .c-form__group {
+    display: grid;
+    gap: var(--space-8);
+}
+
+.contact-page .c-form__group input,
+.contact-page .c-form__group textarea {
     width: 100%;
-    padding: var(--space-12);
-    border-radius: var(--radius-sm);
     border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    padding: var(--space-12) var(--space-16);
     font: inherit;
 }
 
-.contact-card form textarea {
-    min-height: 7.5rem;
+.contact-page .c-form__group input:focus-visible,
+.contact-page .c-form__group textarea:focus-visible {
+    border-color: rgba(45, 92, 255, 0.45);
+    box-shadow: 0 0 0 4px rgba(45, 92, 255, 0.12);
 }
 
-.contact-hours {
+.contact-page .c-form__error {
+    color: var(--color-danger);
     font-size: var(--font-size-14);
-    color: var(--color-gray-500);
 }
 
-.contact-social a {
-    color: var(--color-primary-500);
-    font-weight: 600;
+.contact-page .c-map-placeholder {
+    border-radius: var(--radius-md);
+    background: var(--color-surface-muted);
+    display: grid;
+    place-items: center;
+    min-height: 16rem;
 }
 
-.contact-social a:hover {
-    text-decoration: underline;
-}

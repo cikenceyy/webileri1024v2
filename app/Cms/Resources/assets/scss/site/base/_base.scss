@@ -5,61 +5,68 @@
 html {
     font-family: var(--font-sans);
     font-size: 100%;
-    color: var(--color-gray-800);
+    color: var(--color-text-primary);
     scroll-behavior: smooth;
 }
 
 body {
     margin: 0;
-    background: #fff;
     min-height: 100vh;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
     line-height: var(--line-height-base);
-    font-size: clamp(1rem, 0.98rem + 0.15vw, 1.125rem);
+    font-size: clamp(1rem, 0.98rem + 0.18vw, 1.125rem);
 }
 
 a {
-    color: inherit;
+    color: var(--color-primary-500);
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 a:hover,
-a:focus {
-    color: var(--color-primary-500);
+a:focus-visible {
+    color: var(--color-primary-600);
 }
 
 a:focus-visible,
-.btn:focus-visible,
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible {
-    outline: 3px solid rgba(45, 92, 255, 0.45);
-    outline-offset: 3px;
+select:focus-visible,
+.c-button:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
 }
 
-img {
-    max-width: 100%;
+img,
+svg {
     display: block;
+    max-width: 100%;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     margin: 0;
-    color: var(--color-gray-900);
-    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    line-height: 1.2;
     letter-spacing: -0.015em;
 }
 
 h1 {
-    font-size: clamp(var(--font-size-32), 2.2rem + 1.5vw, var(--font-size-48));
+    font-size: clamp(var(--font-size-32), 2.5rem + 1.2vw, var(--font-size-48));
 }
 
 h2 {
-    font-size: clamp(var(--font-size-28), 1.8rem + 1vw, var(--font-size-40));
+    font-size: clamp(var(--font-size-28), 2rem + 0.9vw, var(--font-size-40));
 }
 
 h3 {
-    font-size: clamp(var(--font-size-24), 1.6rem + 0.6vw, var(--font-size-32));
+    font-size: clamp(var(--font-size-24), 1.4rem + 0.6vw, var(--font-size-32));
 }
 
 h4 {
@@ -72,8 +79,8 @@ h5 {
 
 h6 {
     font-size: var(--font-size-16);
-    text-transform: uppercase;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 p {
@@ -82,13 +89,22 @@ p {
     max-width: 72ch;
 }
 
-ul, ol {
+ul,
+ol {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.visually-hidden {
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+.visually-hidden,
+.u-visually-hidden {
     position: absolute !important;
     width: 1px;
     height: 1px;
@@ -110,6 +126,6 @@ ul, ol {
     transition: top 0.2s ease;
 }
 
-.skip-link:focus {
+.skip-link:focus-visible {
     top: var(--space-8);
 }

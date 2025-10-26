@@ -13,6 +13,7 @@ return [
         'primary' => 'Ana menü',
         'lang_tr' => 'TR',
         'lang_en' => 'EN',
+        'contact_cta' => 'Teklif Al',
     ],
     'footer' => [
         'tagline' => 'İnsanı merkeze alan teknolojilerle yenilikçi endüstriyel çözümler.',
@@ -24,6 +25,7 @@ return [
         'linkedin' => 'LinkedIn',
         'instagram' => 'Instagram',
         'rights' => 'Tüm hakları saklıdır.',
+        'sitemap' => 'Site haritası',
     ],
     'home' => [
         'eyebrow' => 'Sektör liderlerinin tercihi',
@@ -328,6 +330,7 @@ return [
         'description' => 'Detaylı teknik bilgileri ekibimizden isteyin.',
         'sku' => 'SKU',
         'price_callout' => 'Fiyat bilgisi için iletişime geçin',
+        'price_label' => 'Ticari model',
         'cta' => 'Fiyat için iletişime geçin',
         'gallery' => 'Ürün galerisi',
         'bullets' => [
@@ -344,6 +347,9 @@ return [
             'heading' => 'Dökümanlar',
             'subheading' => 'Teknik dökümanlar ve uyumluluk bilgileri.',
             'placeholder' => 'Döküman çok yakında',
+        ],
+        'related' => [
+            'heading' => 'İlgili çözümler',
         ],
     ],
 ];
