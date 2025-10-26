@@ -53,10 +53,27 @@ const ensurePanelAccessibility = (item, trigger, panel) => {
     }
 };
 
-const applySectionState = (item, expanded) => {
-    const trigger = item.querySelector('[data-role="sidebar-trigger"]');
-    const panel = item.querySelector('[data-role="sidebar-panel"]');
+const findTrigger = (item) =>
+    item.querySelector('[data-role="sidebar-trigger"]') || item.querySelector('.ui-sidebar__trigger');
 
+const resolvePanel = (item, trigger, ownerDocument) => {
+    if (trigger) {
+        const targetId = trigger.dataset.sidebarTarget || trigger.getAttribute('aria-controls');
+        if (targetId) {
+            const byId = ownerDocument.getElementById(targetId);
+            if (byId) {
+                return byId;
+            }
+        }
+    }
+
+    return (
+        item.querySelector('[data-role="sidebar-panel"]') ||
+        item.querySelector('.ui-sidebar__panel')
+    );
+};
+
+const applySectionState = (item, trigger, panel, expanded) => {
     if (!trigger || !panel) {
         return;
     }
@@ -76,7 +93,11 @@ export const initSidebarNavigation = () => {
     }
 
     const storedState = readStoredState();
-    const collapsibleItems = Array.from(sidebar.querySelectorAll('[data-sidebar-collapsible]'));
+    const ownerDocument = sidebar.ownerDocument || document;
+    const collapsibleItems = Array.from(
+        sidebar.querySelectorAll('[data-sidebar-collapsible], .ui-sidebar__item.has-children')
+    );
+    const itemParts = new Map();
 
     const persistState = (id, value) => {
         if (!id) return;
@@ -84,7 +105,7 @@ export const initSidebarNavigation = () => {
         writeStoredState(storedState);
     };
 
-    const findPanelState = (item) => {
+    const findPanelState = (item, trigger) => {
         const id = item.dataset.sidebarId;
         const hasActiveChild = Boolean(item.querySelector('.ui-sidebar__subitem.is-active, .ui-sidebar__link[aria-current="page"]'));
         if (hasActiveChild) {
@@ -98,7 +119,6 @@ export const initSidebarNavigation = () => {
             return Boolean(storedState[id]);
         }
 
-        const trigger = item.querySelector('[data-role="sidebar-trigger"]');
         if (trigger) {
             return trigger.getAttribute('aria-expanded') === 'true';
         }
@@ -106,8 +126,8 @@ export const initSidebarNavigation = () => {
         return item.classList.contains('is-open');
     };
 
-    const setExpanded = (item, expanded) => {
-        applySectionState(item, expanded);
+    const setExpanded = (item, parts, expanded) => {
+        applySectionState(item, parts?.trigger, parts?.panel, expanded);
         persistState(item.dataset.sidebarId, expanded);
     };
 
@@ -116,29 +136,42 @@ export const initSidebarNavigation = () => {
             item.dataset.sidebarId = item.dataset.sidebarId || item.id || `sidebar-node-${index}`;
         }
 
-        const expanded = findPanelState(item);
-        applySectionState(item, expanded);
+        const trigger = findTrigger(item);
+        const panel = resolvePanel(item, trigger, ownerDocument);
+        if (!trigger || !panel) {
+            return;
+        }
+
+        itemParts.set(item, { trigger, panel });
+
+        const expanded = findPanelState(item, trigger);
+        applySectionState(item, trigger, panel, expanded);
     });
 
     const collapseSiblings = (current) => {
-        collapsibleItems.forEach((item) => {
+        itemParts.forEach((parts, item) => {
             if (item !== current) {
-                setExpanded(item, false);
+                setExpanded(item, parts, false);
             }
         });
     };
 
     const toggleItem = (item) => {
-        const expanded = item.classList.contains('is-open');
+        const parts = itemParts.get(item);
+        if (!parts) {
+            return;
+        }
+
+        const expanded = parts.trigger.getAttribute('aria-expanded') === 'true';
         const next = !expanded;
         if (next) {
             collapseSiblings(item);
         }
-        setExpanded(item, next);
+        setExpanded(item, parts, next);
     };
 
     const handleTrigger = (trigger) => {
-        const item = trigger.closest('[data-sidebar-collapsible]');
+        const item = trigger.closest('[data-sidebar-collapsible], .ui-sidebar__item.has-children');
         if (!item) {
             return;
         }
@@ -147,7 +180,7 @@ export const initSidebarNavigation = () => {
     };
 
     sidebar.addEventListener('click', (event) => {
-        const trigger = event.target.closest('[data-role="sidebar-trigger"]');
+        const trigger = event.target.closest('[data-role="sidebar-trigger"], .ui-sidebar__trigger');
         if (!trigger || !sidebar.contains(trigger)) {
             return;
         }
@@ -161,7 +194,7 @@ export const initSidebarNavigation = () => {
             return;
         }
 
-        const trigger = event.target.closest('[data-role="sidebar-trigger"]');
+        const trigger = event.target.closest('[data-role="sidebar-trigger"], .ui-sidebar__trigger');
         if (!trigger || !sidebar.contains(trigger)) {
             return;
         }
