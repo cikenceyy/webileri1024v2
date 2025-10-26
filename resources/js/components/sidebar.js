@@ -82,8 +82,14 @@ const applySectionState = (item, trigger, panel, expanded) => {
 
     item.classList.toggle('is-open', expanded);
     trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    panel.hidden = !expanded;
-    panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+
+    if (expanded) {
+        panel.removeAttribute('hidden');
+        panel.setAttribute('aria-hidden', 'false');
+    } else {
+        panel.setAttribute('hidden', '');
+        panel.setAttribute('aria-hidden', 'true');
+    }
 };
 
 export const initSidebarNavigation = () => {
@@ -127,7 +133,11 @@ export const initSidebarNavigation = () => {
     };
 
     const setExpanded = (item, parts, expanded) => {
-        applySectionState(item, parts?.trigger, parts?.panel, expanded);
+        if (!parts) {
+            return;
+        }
+
+        applySectionState(item, parts.trigger, parts.panel, expanded);
         persistState(item.dataset.sidebarId, expanded);
     };
 
@@ -146,60 +156,27 @@ export const initSidebarNavigation = () => {
 
         const expanded = findPanelState(item, trigger);
         applySectionState(item, trigger, panel, expanded);
-    });
 
-    const collapseSiblings = (current) => {
-        itemParts.forEach((parts, item) => {
-            if (item !== current) {
-                setExpanded(item, parts, false);
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            const next = trigger.getAttribute('aria-expanded') !== 'true';
+            if (next) {
+                itemParts.forEach((parts, other) => {
+                    if (other !== item) {
+                        setExpanded(other, parts, false);
+                    }
+                });
             }
+            setExpanded(item, itemParts.get(item), next);
         });
-    };
 
-    const toggleItem = (item) => {
-        const parts = itemParts.get(item);
-        if (!parts) {
-            return;
-        }
+        trigger.addEventListener('keydown', (event) => {
+            if (event.key !== ' ' && event.key !== 'Enter') {
+                return;
+            }
 
-        const expanded = parts.trigger.getAttribute('aria-expanded') === 'true';
-        const next = !expanded;
-        if (next) {
-            collapseSiblings(item);
-        }
-        setExpanded(item, parts, next);
-    };
-
-    const handleTrigger = (trigger) => {
-        const item = trigger.closest('[data-sidebar-collapsible], .ui-sidebar__item.has-children');
-        if (!item) {
-            return;
-        }
-
-        toggleItem(item);
-    };
-
-    sidebar.addEventListener('click', (event) => {
-        const trigger = event.target.closest('[data-role="sidebar-trigger"], .ui-sidebar__trigger');
-        if (!trigger || !sidebar.contains(trigger)) {
-            return;
-        }
-
-        event.preventDefault();
-        handleTrigger(trigger);
-    });
-
-    sidebar.addEventListener('keydown', (event) => {
-        if (event.key !== ' ' && event.key !== 'Enter') {
-            return;
-        }
-
-        const trigger = event.target.closest('[data-role="sidebar-trigger"], .ui-sidebar__trigger');
-        if (!trigger || !sidebar.contains(trigger)) {
-            return;
-        }
-
-        event.preventDefault();
-        handleTrigger(trigger);
+            event.preventDefault();
+            trigger.click();
+        });
     });
 };
