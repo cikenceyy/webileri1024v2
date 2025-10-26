@@ -56,6 +56,11 @@ class TableKit {
         this.virtual = element.getAttribute('data-tablekit-virtual') === 'true';
         this.virtualRowHeight = parseInt(element.getAttribute('data-tablekit-row-height') || '0', 10) || 48;
         this.selectable = element.getAttribute('data-tablekit-selectable') === 'true';
+        this.dense = element.getAttribute('data-tablekit-dense') === 'true';
+        this.filterKeys = (element.getAttribute('data-tablekit-filters') || '')
+            .split(',')
+            .map((key) => key.trim())
+            .filter((key) => key.length > 0);
 
         this.rows = [];
         this.columns = [];
@@ -70,6 +75,10 @@ class TableKit {
         this.selected = new Set();
         this.virtualizer = null;
         this.emptyPlaceholder = this.body ? (this.body.querySelector('.tablekit__empty')?.outerHTML || '') : '';
+
+        if (this.dense) {
+            this.element.classList.add('tablekit--dense');
+        }
 
         this.bootstrapDataset();
         this.determineMode();
@@ -286,6 +295,10 @@ class TableKit {
             const key = wrapper.getAttribute('data-tablekit-filter-key');
             const type = wrapper.getAttribute('data-tablekit-filter-type');
             if (!key) {
+                return;
+            }
+
+            if (this.filterKeys.length > 0 && !this.filterKeys.includes(key)) {
                 return;
             }
 
@@ -752,7 +765,15 @@ class TableKit {
                     </div>
                 `;
             } else {
-                innerHtml = `<div class="tablekit__cell-main">${cell.html}</div>`;
+                let payload = typeof cell.preformatted === 'string' && cell.preformatted !== ''
+                    ? this.escape(cell.preformatted)
+                    : cell.html;
+
+                if (typeof payload !== 'string' || payload.trim() === '') {
+                    payload = cell.html;
+                }
+
+                innerHtml = `<div class="tablekit__cell-main">${payload}</div>`;
                 if (index === 0 && row.meta && row.meta.html) {
                     innerHtml += `<div class="tablekit__row-meta" data-tablekit-row-meta>${row.meta.html}</div>`;
                 }

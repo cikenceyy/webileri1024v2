@@ -1,12 +1,12 @@
 # Consoles Integration
 
-TableKit v1.5 powers the console flow lists (O2C, P2P, Replenish, etc.) while keeping the existing stepper navigation and bulk action forms intact. This document describes the conventions required for console views.
+TableKit v1.9 powers the console flow lists (O2C, P2P, Replenish, etc.) while keeping the existing stepper navigation and bulk action forms intact. This document describes the conventions required for console views.
 
 ## Layout Slots
 
 | Slot | Purpose |
 | --- | --- |
-| `<x-table:stepper-summary>` | Render the condensed counter bar that mirrors the left-hand stepper. Use the same ordering and data attributes (`data-step-target`) so TableKit can synchronise keyboard navigation. |
+| `<x-table:stepper-summary>` | Render the condensed counter bar that mirrors the left-hand stepper. Use the same ordering and data attributes (`data-step-target`) so TableKit can synchronise keyboard navigation. Add `aria-controls` to mirror the stepper container. |
 | `<x-table:bulk>` | Place existing bulk action buttons inside this slot. The selection counter is rendered automatically (`data-tablekit-bulk-count`). |
 | `<x-table:row-meta>` | Template for secondary row information (chips, signals, warehouse badges). The template is injected beneath the first column in both server and client modes. |
 
@@ -15,7 +15,8 @@ TableKit v1.5 powers the console flow lists (O2C, P2P, Replenish, etc.) while ke
 - Each row **must** expose a stable `id` so selection and bulk actions can reference it.
 - Selection uses a `select` column type. Provide `['value' => $id, 'disabled' => false, 'checked' => false]` to control availability.
 - Meta fragments can be pre-rendered via `view('components.tablekit.row-meta', [...])->render()` or inline HTML.
-- Enable virtual scrolling (`'virtual' => true`) for console datasets to keep scrolling fluid when thousands of records are present. Adjust `row_height` when dense layouts are required (default 48px).
+- Enable virtual scrolling (`'virtual' => true`) for console datasets to keep scrolling fluid when thousands of records are present. Adjust `row_height` when dense layouts are required (default 48px, dense mode works well with 44px).
+- When using dense tables add `dense="true"` to `<x-table>` so keyboard focus outlines still align with the condensed rows.
 
 ## Query Parameters
 
@@ -35,6 +36,7 @@ Client mode keeps these parameters in sync via `history.replaceState` so page re
 | `A` | Toggles “select all” for the currently visible rows. |
 | `Enter` | Triggers the primary row action (if any). |
 | `P` | Dispatches the `tablekit:shortcut` event with `{ key: 'print', selected: [...] }`. Existing console scripts can listen for this event to trigger print flows. |
+| `Shift` + `S` | Synchronises the stepper selection with the toolbar filter when both are visible. |
 | `Esc` | Returns focus to the search input. |
 
 ## Bulk Actions

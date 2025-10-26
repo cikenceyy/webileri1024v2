@@ -4,6 +4,8 @@
     'paginator' => null,
     'id' => null,
     'emptyText' => __('Kayıt bulunamadı.'),
+    'dense' => false,
+    'filters' => null,
 ])
 
 @php
@@ -29,9 +31,12 @@
     $bulkContent = isset($bulk) ? trim($bulk) : '';
     $rowMetaTemplate = isset($rowMeta) ? trim($rowMeta) : '';
     $statusCount = $mode === 'server' ? $totalCount : $rowsCollection->count();
+    $isDense = filter_var($dense, FILTER_VALIDATE_BOOLEAN);
+    $filterKeys = is_array($filters) ? implode(',', $filters) : (is_string($filters) ? $filters : '');
+    $emptyContent = isset($empty) ? trim($empty) : '';
 @endphp
 
-<div {{ $attributes->class(['tablekit'])->merge([
+<div {{ $attributes->class(['tablekit', 'tablekit--dense' => $isDense])->merge([
     'id' => $componentId,
     'data-tablekit' => 'true',
     'data-tablekit-mode' => $mode,
@@ -41,6 +46,8 @@
     'data-tablekit-virtual' => $config->virtual() ? 'true' : 'false',
     'data-tablekit-row-height' => $config->virtualRowHeight() ?? '',
     'data-tablekit-selectable' => $config->hasSelectionColumn() ? 'true' : 'false',
+    'data-tablekit-dense' => $isDense ? 'true' : 'false',
+    'data-tablekit-filters' => $filterKeys,
 ]) }}>
     <script type="application/json" data-tablekit-dataset>
         {!! json_encode($dataset, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
@@ -144,8 +151,14 @@
                     @endforeach
                 </tr>
             @empty
-                <tr class="tablekit__empty">
-                    <td colspan="{{ $columnCount }}">{{ $emptyText }}</td>
+                <tr class="tablekit__empty" data-tablekit-empty>
+                    <td colspan="{{ $columnCount }}">
+                        @if($emptyContent !== '')
+                            {!! $emptyContent !!}
+                        @else
+                            {{ $emptyText }}
+                        @endif
+                    </td>
                 </tr>
             @endforelse
             </tbody>

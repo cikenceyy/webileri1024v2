@@ -136,7 +136,8 @@ class TableConfig implements Arrayable
                 foreach ($this->columns as $column) {
                     $cellValue = $cells[$column->key()] ?? null;
                     $cellData = $column->prepareCell(array_merge($cells, ['id' => $rowId]), $cellValue);
-                    $cellData['text'] = trim(strip_tags($cellData['html']));
+                    $textSource = $cellData['preformatted'] ?? $cellData['html'];
+                    $cellData['text'] = trim(strip_tags((string) $textSource));
                     $preparedCells[$column->key()] = $cellData;
                 }
 

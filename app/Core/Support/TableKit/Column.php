@@ -148,12 +148,14 @@ class Column
         $raw = $this->determineRawValue($cell);
 
         $formatted = $this->applyFormatter($row, $raw, $cell);
+        $preformatted = $this->resolvePreformatted($row);
 
         if (is_array($formatted) && isset($formatted['html'], $formatted['display'])) {
             return [
                 'raw' => $formatted['raw'] ?? $raw,
                 'display' => (string) $formatted['display'],
                 'html' => (string) $formatted['html'],
+                'preformatted' => $preformatted,
             ];
         }
 
@@ -169,7 +171,26 @@ class Column
             'raw' => $raw,
             'display' => $display,
             'html' => $html,
+            'preformatted' => $preformatted,
         ];
+    }
+
+    protected function resolvePreformatted(array|object $row): ?string
+    {
+        $key = Arr::get($this->options, 'preformatted');
+        if (! $key) {
+            return null;
+        }
+
+        if (is_array($row) && array_key_exists($key, $row)) {
+            return $row[$key] !== null ? (string) $row[$key] : null;
+        }
+
+        if (is_object($row) && isset($row->{$key})) {
+            return $row->{$key} !== null ? (string) $row->{$key} : null;
+        }
+
+        return null;
     }
 
     /**

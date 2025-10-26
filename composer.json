@@ -74,7 +74,8 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
-        ]
+        ],
+        "tablekit:scan": "@php artisan tablekit:scan --no-ansi"
     },
     "extra": {
         "laravel": {

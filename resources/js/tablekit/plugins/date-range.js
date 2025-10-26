@@ -13,6 +13,16 @@ export function initDateRangeControls(root) {
         }
 
         const [fromInput, toInput] = inputs;
+        const rootLocale = typeof root.getAttribute === 'function' ? root.getAttribute('data-locale') : null;
+        const locale = wrapper.getAttribute('data-locale')
+            || rootLocale
+            || document.documentElement.lang
+            || 'en';
+
+        if (locale) {
+            fromInput.lang = locale;
+            toInput.lang = locale;
+        }
 
         const enforceOrder = () => {
             const fromValue = fromInput.value;

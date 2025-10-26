@@ -12,7 +12,7 @@ Column definitions drive both the rendered table and the client-side behaviour. 
 | `hidden_xs` | bool | Hides the column in the mobile card layout. |
 | `enum` | array | Available values for `badge` or `enum` columns (`value => label`). Used for dropdown filters and badge labelling. |
 | `formatter` | callable|string | Optional formatter callback. Receives the row, column and raw value. Should return a string or an array containing `html`, `display` and `raw`. |
-| `options` | array | Additional settings (e.g. `['precision' => 2]` for numbers or money, `['tone' => 'warning']` for chips). |
+| `options` | array | Additional settings (e.g. `['precision' => 2]` for numbers or money, `['tone' => 'warning']` for chips, `['preformatted' => 'due_date_human']` for client mode fallbacks). |
 
 ## Row Structure
 
@@ -44,6 +44,8 @@ If `cells` is omitted the array itself is used. Each cell can be:
 - A signal definition (`['level' => 'danger', 'label' => 'Stok Yok']`).
 - An actions array (automatically rendered by `<x-table:row-actions>`).
 - A selection meta array (`['value' => 'ROW-ID', 'disabled' => false, 'checked' => true]`) used when `type` is `select`.
+
+If the dataset contains both formatted and raw values (e.g. `grand_total` and `grand_total_formatted`), set `['options' => ['preformatted' => 'grand_total_formatted']]` on the column. TableKit will use the preformatted string in client mode and fall back to the formatter in server mode.
 
 Rows can optionally include a `meta` key containing a pre-rendered HTML snippet (chips, statuses, secondary descriptions). When present it is displayed beneath the first column and is available to the client dataset for filtering.
 

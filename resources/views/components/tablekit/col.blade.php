@@ -48,7 +48,7 @@
                 $from = is_array($value) ? Arr::get($value, 'from') : null;
                 $to = is_array($value) ? Arr::get($value, 'to') : null;
             @endphp
-            <div class="tablekit__date-range" data-tablekit-filter="date-range">
+            <div class="tablekit__date-range" data-tablekit-filter="date-range" data-locale="{{ app()->getLocale() }}">
                 <input type="date" name="filters[{{ $key }}][from]" value="{{ $from }}" class="tablekit__input" aria-label="{{ $label }} {{ __('başlangıç') }}">
                 <span class="tablekit__date-separator">—</span>
                 <input type="date" name="filters[{{ $key }}][to]" value="{{ $to }}" class="tablekit__input" aria-label="{{ $label }} {{ __('bitiş') }}">

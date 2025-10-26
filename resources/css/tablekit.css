@@ -138,6 +138,10 @@
   border: 1px solid var(--ui-color-border, #d5dbe8);
 }
 
+.tablekit--dense .tablekit__table-wrapper {
+  border-radius: 0.65rem;
+}
+
 .tablekit__table {
   width: 100%;
   border-collapse: separate;
@@ -162,6 +166,10 @@
   color: var(--ui-color-text-subtle, #475066);
   border-bottom: 1px solid var(--ui-color-border, #d5dbe8);
   white-space: nowrap;
+}
+
+.tablekit--dense .tablekit__th {
+  padding: 0.55rem 0.75rem;
 }
 
 .tablekit__th--select {
@@ -215,6 +223,15 @@
   color: var(--ui-color-text, #1c2436);
   border-bottom: 1px solid var(--ui-color-border-subtle, rgba(206, 215, 231, 0.6));
   vertical-align: middle;
+}
+
+.tablekit--dense .tablekit__cell {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.tablekit--dense .tablekit__row-meta {
+  margin-top: 0.25rem;
 }
 
 .tablekit__cell-main {
@@ -304,6 +321,23 @@
   padding: 2rem;
   color: var(--ui-color-text-muted, #606a80);
   font-size: 0.9rem;
+}
+
+.tablekit__empty-content {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+}
+
+.tablekit__empty-content-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(29, 111, 225, 0.12);
+  color: var(--ui-color-primary, #1d6fe1);
+  font-size: 1.25rem;
 }
 
 .tablekit__footer {
