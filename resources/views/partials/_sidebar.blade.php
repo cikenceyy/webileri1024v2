@@ -111,7 +111,7 @@
                             <li
                                 class="ui-sidebar__item {{ $isOpen ? 'is-open' : '' }} {{ $hasChildren ? 'has-children' : '' }}"
                                 @if($hasChildren)
-                                    data-sidebar-collapsible
+                                    data-sidebar-collapsible="true"
                                     data-sidebar-id="{{ $collapseId }}"
                                 @endif
                             >
@@ -124,6 +124,7 @@
                                         aria-controls="{{ $collapseId }}-panel"
                                         aria-expanded="{{ $isOpen ? 'true' : 'false' }}"
                                         aria-label="{{ $item['label'] }}"
+                                        data-sidebar-target="{{ $collapseId }}-panel"
                                     >
                                         <span class="ui-sidebar__icon" aria-hidden="true"><i class="{{ $item['icon'] ?? 'bi bi-circle' }}"></i></span>
                                         <span class="ui-sidebar__label">{{ $item['label'] }}</span>
