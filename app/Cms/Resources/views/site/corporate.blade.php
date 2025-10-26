@@ -50,11 +50,11 @@
         <section class="p-section" data-module="reveal">
             <div class="u-container u-stack-32">
                 <div class="p-mission">
-                    <article class="p-mission__card u-stack-12">
+                    <article class="c-card p-mission__card u-stack-12">
                         <h2>{{ __('cms::site.corporate.mission.heading') }}</h2>
                         <p>{{ $missionVision['mission'] ?? __('cms::site.corporate.mission.text') }}</p>
                     </article>
-                    <article class="p-mission__card u-stack-12">
+                    <article class="c-card p-mission__card u-stack-12">
                         <h2>{{ __('cms::site.corporate.vision.heading') }}</h2>
                         <p>{{ $missionVision['vision'] ?? __('cms::site.corporate.vision.text') }}</p>
                     </article>
@@ -170,14 +170,14 @@
                 </div>
                 <div class="p-timeline" data-module="timeline-observer">
                     @forelse($timeline as $event)
-                        <article class="p-timeline__item u-stack-8">
+                        <article class="c-card p-timeline__item u-stack-8">
                             <span class="p-timeline__year">{{ $event['year'] ?? __('cms::site.corporate.timeline.default_year') }}</span>
                             <h3>{{ $event['label'] ?? __('cms::site.corporate.timeline.default_label') }}</h3>
                             <p class="u-text-secondary">{{ $event['description'] ?? __('cms::site.corporate.timeline.default_description') }}</p>
                         </article>
                     @empty
                         @foreach((array) $timelineFallbacks as $fallback)
-                            <article class="p-timeline__item u-stack-8" data-skeleton>
+                            <article class="c-card p-timeline__item u-stack-8" data-skeleton>
                                 <span class="p-timeline__year">{{ $fallback['year'] ?? __('cms::site.corporate.timeline.default_year') }}</span>
                                 <h3>{{ $fallback['label'] ?? __('cms::site.corporate.timeline.default_label') }}</h3>
                                 <p class="u-text-secondary">{{ $fallback['description'] ?? __('cms::site.corporate.timeline.default_description') }}</p>
