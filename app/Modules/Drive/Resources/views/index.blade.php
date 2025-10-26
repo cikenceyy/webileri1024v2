@@ -73,7 +73,12 @@
             }
         } elseif (in_array($tab, ['recent_documents', 'important_documents'], true)) {
             $activeFolder = DriveStructure::normalizeFolderKey('documents', $activeModule);
+        } elseif (in_array($tab, ['recent_media', 'important_media'], true)) {
+            $activeFolder = DriveStructure::normalizeFolderKey('media', $activeModule);
         }
+
+        // Backwards compatibility for templates that still reference the older variable name.
+        $activeCategory = $activeFolder;
 
         $categoryLimits = $folderDefinitions->mapWithKeys(
             fn($config, $key) => [
@@ -185,6 +190,7 @@
         data-drive-root data-drive-total="{{ $totalCount }}"
         data-drive-page-size="{{ $mediaItems->perPage() }}" data-drive-search-url="{{ route('admin.drive.media.index') }}"
         data-drive-active-tab="{{ $tab }}" data-category-default="{{ $activeFolder }}"
+        data-category-active="{{ $activeFolder }}"
         data-module-default="{{ $defaultModule }}" data-module-active="{{ $activeModule }}"
         data-category-limits='@json($categoryLimits)' data-picker-mode="{{ $pickerMode ? '1' : '0' }}"
         data-upload-url="{{ route('admin.drive.media.store') }}"
