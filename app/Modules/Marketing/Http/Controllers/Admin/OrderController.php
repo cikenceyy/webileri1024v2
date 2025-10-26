@@ -66,6 +66,7 @@ class OrderController extends Controller
         $companyId = currentCompanyId();
         $settings = $this->settings->get($companyId);
         $defaults = $settings->defaults;
+        $defaultTerms = $this->normalizeTerms($defaults['payment_terms_days'] ?? 0);
 
         $customerId = (int) $request->query('customer_id', 0);
         $customerDefaults = $customerId ? Customer::query()->find($customerId) : null;
@@ -74,16 +75,17 @@ class OrderController extends Controller
             'doc_no' => $this->nextDocNo($companyId, $settings->sequencing),
             'currency' => $settings->money['base_currency'],
             'tax_inclusive' => $defaults['tax_inclusive'],
-            'payment_terms_days' => $defaults['payment_terms_days'],
-            'due_date' => now()->addDays($defaults['payment_terms_days'])->toDateString(),
+            'payment_terms_days' => $defaultTerms,
+            'due_date' => now()->addDays($defaultTerms)->toDateString(),
             'price_list_id' => $defaults['price_list_id'],
         ];
 
         if ($customerDefaults) {
+            $customerTerms = $this->normalizeTerms($customerDefaults->payment_terms_days ?? $payload['payment_terms_days']);
             $payload['customer_id'] = $customerDefaults->id;
             $payload['price_list_id'] = $customerDefaults->default_price_list_id ?? $payload['price_list_id'];
-            $payload['payment_terms_days'] = $customerDefaults->payment_terms_days ?? $payload['payment_terms_days'];
-            $payload['due_date'] = now()->addDays($payload['payment_terms_days'])->toDateString();
+            $payload['payment_terms_days'] = $customerTerms;
+            $payload['due_date'] = now()->addDays($customerTerms)->toDateString();
         }
 
         $products = $this->products();
@@ -108,7 +110,7 @@ class OrderController extends Controller
             $data = $request->validated();
             $customer = Customer::query()->findOrFail($data['customer_id']);
 
-            $terms = $data['payment_terms_days'] ?? ($customer->payment_terms_days ?? $settings->defaults['payment_terms_days']);
+            $terms = $this->normalizeTerms($data['payment_terms_days'] ?? ($customer->payment_terms_days ?? $settings->defaults['payment_terms_days']));
             $dueDate = $data['due_date'] ?? now()->addDays($terms)->toDateString();
 
             $order = SalesOrder::create([
@@ -173,15 +175,17 @@ class OrderController extends Controller
         DB::transaction(function () use ($request, $order): void {
             $data = $request->validated();
 
-            $terms = $data['payment_terms_days'];
-            $computedDue = $order->ordered_at ? $order->ordered_at->copy()->addDays($terms)->toDateString() : $order->due_date;
+            $terms = $this->normalizeTerms($data['payment_terms_days']);
+            $computedDue = $order->ordered_at
+                ? $order->ordered_at->copy()->addDays($terms)->toDateString()
+                : $order->due_date;
             $dueDate = $data['due_date'] ?? $computedDue;
 
             $order->update([
                 'price_list_id' => $data['price_list_id'] ?? $order->price_list_id,
                 'currency' => $data['currency'],
                 'tax_inclusive' => $data['tax_inclusive'],
-                'payment_terms_days' => $data['payment_terms_days'],
+                'payment_terms_days' => $terms,
                 'due_date' => $dueDate,
                 'notes' => $data['notes'] ?? null,
             ]);
@@ -196,6 +200,14 @@ class OrderController extends Controller
 
     public function confirm(ConfirmSalesOrderRequest $request, SalesOrder $order): RedirectResponse
     {
+        if ($order->isConfirmed()) {
+            $this->authorize('view', $order);
+
+            return redirect()
+                ->route('admin.marketing.orders.show', $order)
+                ->with('status', __('Sipariş zaten onaylandı.'));
+        }
+
         $this->authorize('confirm', $order);
 
         $order->update([
@@ -326,6 +338,13 @@ class OrderController extends Controller
             ->where('company_id', currentCompanyId())
             ->orderBy('name')
             ->pluck('name', 'id');
+    }
+
+    protected function normalizeTerms(mixed $value): int
+    {
+        $terms = (int) $value;
+
+        return max(0, min(180, $terms));
     }
 
     protected function customers()
