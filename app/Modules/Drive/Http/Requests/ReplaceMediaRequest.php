@@ -4,6 +4,7 @@ namespace App\Modules\Drive\Http\Requests;
 
 use App\Modules\Drive\Domain\Models\Media;
 use App\Modules\Drive\Http\Requests\Concerns\InteractsWithMediaUpload;
+use App\Modules\Drive\Support\DriveStructure;
 use App\Modules\Drive\Support\MediaUploadCategory;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -38,6 +39,18 @@ class ReplaceMediaRequest extends FormRequest
                 $this->mimeRule($limits),
             ]),
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $media = $this->route('media');
+
+        if ($media instanceof Media) {
+            $this->merge([
+                'module' => DriveStructure::normalizeModule($media->module),
+                'category' => $media->category,
+            ]);
+        }
     }
 
     public function withValidator($validator): void

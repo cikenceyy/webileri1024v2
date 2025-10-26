@@ -4,6 +4,7 @@ namespace App\Modules\Inventory\Database\Seeders;
 
 use App\Core\Support\Models\Company;
 use App\Modules\Drive\Domain\Models\Media;
+use App\Modules\Drive\Support\DriveStructure;
 use App\Modules\Inventory\Domain\Models\PriceList;
 use App\Modules\Inventory\Domain\Models\PriceListItem;
 use App\Modules\Inventory\Domain\Models\Product;
@@ -203,7 +204,10 @@ class InventoryBasicsDemoSeeder extends Seeder
     {
         $mediaItems = Media::query()
             ->where('company_id', $company->id)
-            ->whereIn('category', [Media::CATEGORY_MEDIA_PRODUCTS, Media::CATEGORY_MEDIA_CATALOGS])
+            ->whereIn('category', [
+                DriveStructure::normalizeFolderKey('products', Media::MODULE_INVENTORY),
+                DriveStructure::normalizeFolderKey('media', Media::MODULE_INVENTORY),
+            ])
             ->get();
 
         foreach ($products as $product) {

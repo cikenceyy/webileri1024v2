@@ -8,7 +8,10 @@ trait InteractsWithMediaUpload
 {
     protected function categoryLimits(?string $category = null): MediaUploadCategory
     {
-        return MediaUploadCategory::from($category ?? $this->input('category'));
+        return MediaUploadCategory::from(
+            $category ?? $this->input('category'),
+            $this->input('module')
+        );
     }
 
     protected function validatedCategory(): string

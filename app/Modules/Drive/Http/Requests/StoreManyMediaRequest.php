@@ -4,6 +4,7 @@ namespace App\Modules\Drive\Http\Requests;
 
 use App\Modules\Drive\Domain\Models\Media;
 use App\Modules\Drive\Http\Requests\Concerns\InteractsWithMediaUpload;
+use App\Modules\Drive\Support\DriveStructure;
 use App\Modules\Drive\Support\MediaUploadCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -19,6 +20,7 @@ class StoreManyMediaRequest extends FormRequest
 
     public function rules(): array
     {
+        $module = DriveStructure::normalizeModule($this->input('module'));
         $limits = $this->categoryLimits();
         $allowedExtensions = $limits->allowedExtensions();
         $allowedMimes = $limits->allowedMimes();
@@ -26,11 +28,11 @@ class StoreManyMediaRequest extends FormRequest
         return [
             'category' => [
                 'required',
-                Rule::in(MediaUploadCategory::allowedKeys()),
+                Rule::in(MediaUploadCategory::allowedKeys($module)),
             ],
             'module' => [
                 'required',
-                Rule::in(Media::moduleKeys()),
+                Rule::in(DriveStructure::moduleKeys()),
             ],
             'files' => ['required', 'array', 'min:1', 'max:10'],
             'files.*' => array_filter([
@@ -52,7 +54,7 @@ class StoreManyMediaRequest extends FormRequest
         }
 
         $this->merge([
-            'module' => strtolower((string) ($this->input('module') ?: Media::MODULE_DEFAULT)),
+            'module' => DriveStructure::normalizeModule($this->input('module') ?: DriveStructure::defaultModule()),
         ]);
     }
 
@@ -65,7 +67,13 @@ class StoreManyMediaRequest extends FormRequest
                 return;
             }
 
+            $module = DriveStructure::normalizeModule($this->input('module'));
             $category = $this->validatedCategory();
+            if (! DriveStructure::moduleAllowsFolder($module, $category)) {
+                $validator->errors()->add('category', 'Seçilen klasör bu modül için uygun değil.');
+
+                return;
+            }
             $limits = $this->categoryLimits($category);
             $allowedExtensions = $limits->allowedExtensions();
             $allowedMimes = $limits->allowedMimes();

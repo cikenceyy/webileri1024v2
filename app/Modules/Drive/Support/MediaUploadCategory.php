@@ -3,7 +3,6 @@
 namespace App\Modules\Drive\Support;
 
 use App\Modules\Drive\Domain\Models\Media;
-use Illuminate\Support\Arr;
 
 class MediaUploadCategory
 {
@@ -22,44 +21,36 @@ class MediaUploadCategory
 
     private string $key;
 
-    private array $config;
+    private string $module;
 
-    private function __construct(string $key, array $config)
+    private function __construct(string $module, string $key)
     {
+        $this->module = $module;
         $this->key = $key;
-        $this->config = $config;
     }
 
-    public static function from(?string $category): self
+    public static function from(?string $category, ?string $module = null): self
     {
-        $key = self::normalizeKey($category);
-        $config = config('drive.categories.' . $key, []);
-
-        return new self($key, $config);
+        $module = DriveStructure::normalizeModule($module ?: DriveStructure::defaultModule());
+        $key = self::normalizeKey($category, $module);
+        return new self($module, $key);
     }
 
     public static function fromMedia(?Media $media): self
     {
-        return self::from($media?->category);
+        return self::from($media?->category, $media?->module);
     }
 
-    public static function allowedKeys(): array
+    public static function allowedKeys(?string $module = null): array
     {
-        return [
-            Media::CATEGORY_DOCUMENTS,
-            Media::CATEGORY_MEDIA_PRODUCTS,
-            Media::CATEGORY_MEDIA_CATALOGS,
-            Media::CATEGORY_PAGES,
-        ];
+        $module = $module ? DriveStructure::normalizeModule($module) : null;
+
+        return DriveStructure::folderKeys($module);
     }
 
-    public static function normalizeKey(?string $category): string
+    public static function normalizeKey(?string $category, ?string $module = null): string
     {
-        $category = strtolower((string) $category);
-
-        return in_array($category, self::allowedKeys(), true)
-            ? $category
-            : Media::CATEGORY_DOCUMENTS;
+        return DriveStructure::normalizeFolderKey($category, $module);
     }
 
     public function key(): string
@@ -69,20 +60,17 @@ class MediaUploadCategory
 
     public function allowedExtensions(): array
     {
-        return $this->normalizeList(Arr::get($this->config, 'ext', []));
+        return DriveStructure::folderExtensions($this->key);
     }
 
     public function allowedMimes(): array
     {
-        return $this->normalizeList(Arr::get($this->config, 'mimes', []));
+        return DriveStructure::folderMimes($this->key);
     }
 
     public function maxBytes(): int
     {
-        $global = (int) config('drive.max_upload_bytes', 50 * 1024 * 1024);
-        $categoryLimit = (int) Arr::get($this->config, 'max', $global);
-
-        return (int) min($global, $categoryLimit);
+        return DriveStructure::folderMaxBytes($this->key);
     }
 
     public function maxKilobytes(): int
@@ -109,11 +97,5 @@ class MediaUploadCategory
         return in_array(strtolower($extension), self::FORBIDDEN_EXTENSIONS, true);
     }
 
-    private function normalizeList(array $items): array
-    {
-        $normalized = array_map(static fn ($value) => strtolower((string) $value), $items);
-
-        return array_values(array_unique(array_filter($normalized)));
-    }
 }
 

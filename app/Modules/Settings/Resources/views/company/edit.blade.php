@@ -93,6 +93,8 @@
                 <label class="form-label fw-semibold" for="companyLogoId">Şirket Logosu</label>
                 @php
                     $logoPickerKey = 'company-logo';
+                    $inventoryFolderKey = \App\Modules\Drive\Support\DriveStructure::normalizeFolderKey('products', \App\Modules\Drive\Domain\Models\Media::MODULE_INVENTORY);
+                    $inventoryPickerTab = 'module_' . \App\Modules\Drive\Domain\Models\Media::MODULE_INVENTORY . '__' . $inventoryFolderKey;
                     $logoPickerData = $logoMedia ? [
                         'id' => $logoMedia->id,
                         'name' => $logoMedia->original_name,
@@ -112,7 +114,7 @@
                         data-drive-picker-open
                         data-drive-picker-key="{{ $logoPickerKey }}"
                         data-drive-picker-modal="companyLogoPickerModal"
-                        data-drive-picker-folder="{{ \App\Modules\Drive\Domain\Models\Media::CATEGORY_MEDIA_PRODUCTS }}"
+                        data-drive-picker-folder="{{ $inventoryFolderKey }}"
                     >
                         Sürücüden Seç
                     </button>
@@ -177,11 +179,11 @@
     <x-slot name="title">Drive'dan Logo Seç</x-slot>
     <div class="ratio ratio-16x9" data-drive-picker-container>
         <iframe
-            src="{{ route('admin.drive.media.index', ['tab' => 'media_products', 'picker' => 1]) }}"
+              src="{{ route('admin.drive.media.index', ['tab' => $inventoryPickerTab, 'picker' => 1]) }}"
             title="Drive Logo Seçici"
             allow="autoplay"
             data-drive-picker-frame
-            data-drive-picker-src="{{ route('admin.drive.media.index', ['picker' => 1]) }}"
+              data-drive-picker-src="{{ route('admin.drive.media.index', ['tab' => $inventoryPickerTab, 'picker' => 1]) }}"
         ></iframe>
     </div>
 </x-ui-modal>
