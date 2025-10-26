@@ -1,37 +1,37 @@
 @use './core';
 
-.kvkk-page .p-toc {
+.p-kvkk .p-toc {
     top: var(--space-48);
 }
 
-.kvkk-page .p-layout {
+.p-kvkk .p-layout {
     display: grid;
     gap: var(--space-32);
     grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
     align-items: start;
 }
 
-.kvkk-page .p-content {
+.p-kvkk .p-content {
     display: grid;
     gap: var(--space-32);
 }
 
-.kvkk-page .p-content h2 {
+.p-kvkk .p-content h2 {
     margin-bottom: var(--space-16);
 }
 
-.kvkk-page .p-content ul,
-.kvkk-page .p-content ol {
+.p-kvkk .p-content ul,
+.p-kvkk .p-content ol {
     list-style: disc;
     padding-left: var(--space-32);
     color: var(--color-text-secondary);
 }
 
-.kvkk-page .p-content li + li {
+.p-kvkk .p-content li + li {
     margin-top: var(--space-12);
 }
 
-.kvkk-page .p-pdf {
+.p-kvkk .p-pdf {
     display: inline-flex;
     align-items: center;
     gap: var(--space-12);
@@ -42,14 +42,14 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.kvkk-page .p-pdf:hover,
-.kvkk-page .p-pdf:focus-visible {
+.p-kvkk .p-pdf:hover,
+.p-kvkk .p-pdf:focus-visible {
     transform: translateY(-2px);
     box-shadow: var(--shadow-xs);
 }
 
 @media (max-width: 62rem) {
-    .kvkk-page .p-layout {
+    .p-kvkk .p-layout {
         grid-template-columns: minmax(0, 1fr);
         gap: var(--space-24);
     }

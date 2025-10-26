@@ -29,7 +29,7 @@
         $timelineFallbacks = \Illuminate\Support\Facades\Lang::get('cms::site.corporate.timeline.defaults', [], $pageLocale);
     @endphp
 
-    <div class="corporate-page">
+    <div class="p-corporate">
         <section class="p-section p-section--hero" data-module="reveal">
             <div class="u-container u-container--wide u-stack-32">
                 <div class="p-hero">

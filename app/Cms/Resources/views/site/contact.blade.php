@@ -22,7 +22,7 @@
         $defaultProjectLabel = \Illuminate\Support\Facades\Lang::get('cms::site.contact.project_inquiries', [], $pageLocale);
     @endphp
 
-    <div class="contact-page">
+    <div class="p-contact">
         <section class="p-section p-section--hero" data-module="reveal">
             <div class="u-container u-container--wide u-stack-24">
                 <div class="p-hero">

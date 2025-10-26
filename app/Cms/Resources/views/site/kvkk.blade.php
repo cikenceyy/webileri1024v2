@@ -20,7 +20,7 @@
         $attachment = data_get($data, 'blocks.pdf.file');
     @endphp
 
-    <div class="kvkk-page">
+    <div class="p-kvkk">
         <section class="p-section p-section--hero" data-module="reveal">
             <div class="u-container u-container--narrow u-stack-16">
                 <div class="p-hero">

@@ -1,18 +1,18 @@
 @use './core';
 
-.products-page .p-product-grid .c-card {
+.p-products .p-product-grid .c-card {
     justify-content: space-between;
 }
 
-.products-page .p-product-grid .c-card__title {
+.p-products .p-product-grid .c-card__title {
     font-size: var(--font-size-18);
 }
 
-.products-page .p-product-grid .c-card__meta {
+.p-products .p-product-grid .c-card__meta {
     font-size: var(--font-size-14);
 }
 
-.products-page .p-empty {
+.p-products .p-empty {
     text-align: center;
     padding: clamp(var(--space-32), 8vw, var(--space-48));
     border-radius: var(--radius-lg);

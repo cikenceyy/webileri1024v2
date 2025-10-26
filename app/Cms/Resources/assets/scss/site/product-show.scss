@@ -1,43 +1,43 @@
 @use './core';
 
-.product-show-page .p-product-hero {
+.p-product-show .p-product-hero {
     align-items: start;
 }
 
-.product-show-page .p-product-hero .c-button {
+.p-product-show .p-product-hero .c-button {
     align-self: start;
 }
 
-.product-show-page .p-gallery__thumbs {
+.p-product-show .p-gallery__thumbs {
     scrollbar-width: thin;
 }
 
-.product-show-page .p-gallery__thumbs::-webkit-scrollbar {
+.p-product-show .p-gallery__thumbs::-webkit-scrollbar {
     height: 6px;
 }
 
-.product-show-page .p-gallery__thumbs::-webkit-scrollbar-thumb {
+.p-product-show .p-gallery__thumbs::-webkit-scrollbar-thumb {
     background: rgba(45, 92, 255, 0.35);
     border-radius: 999px;
 }
 
-.product-show-page .p-marketing {
+.p-product-show .p-marketing {
     display: grid;
     gap: var(--space-24);
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
 }
 
-.product-show-page .p-meta {
+.p-product-show .p-meta {
     display: grid;
     gap: var(--space-12);
     grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
 }
 
-.product-show-page .p-downloads .c-card {
+.p-product-show .p-downloads .c-card {
     align-items: flex-start;
 }
 
-.product-show-page .p-related {
+.p-product-show .p-related {
     display: grid;
     gap: var(--space-24);
     grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));

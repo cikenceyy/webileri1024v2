@@ -17,7 +17,7 @@
         $related = $related ?? [];
     @endphp
 
-    <div class="product-show-page">
+    <div class="p-product-show">
         <section class="p-section p-section--hero" data-module="reveal">
             <div class="u-container u-container--wide u-stack-32">
                 <div class="p-product-hero">

@@ -1,33 +1,33 @@
 @use './core';
 
-.corporate-page .p-hero {
+.p-corporate .p-hero {
     background: linear-gradient(135deg, rgba(45, 92, 255, 0.08), rgba(15, 23, 42, 0.05));
     border-radius: var(--radius-lg);
     padding: clamp(var(--space-32), 6vw, var(--space-48));
     gap: clamp(var(--space-24), 5vw, var(--space-40));
 }
 
-.corporate-page .p-mission {
+.p-corporate .p-mission {
     display: grid;
     gap: var(--space-24);
 }
 
-.corporate-page .p-mission__card {
+.p-corporate .p-mission__card {
     @extend .c-card;
     box-shadow: var(--shadow-xs);
 }
 
-.corporate-page .p-quality__media {
+.p-corporate .p-quality__media {
     border-radius: var(--radius-md);
     overflow: hidden;
 }
 
-.corporate-page .p-partners__item {
+.p-corporate .p-partners__item {
     background: rgba(15, 23, 42, 0.05);
 }
 
 @media (min-width: 48rem) {
-    .corporate-page .p-mission {
+    .p-corporate .p-mission {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

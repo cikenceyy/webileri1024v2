@@ -39,7 +39,7 @@
         $featuredCatalogs = $catalogs ?? ($featuredCatalogs ?? []);
     @endphp
 
-    <div class="home-page">
+    <div class="p-home">
         <section class="p-section p-section--hero" data-module="reveal">
             <div class="u-container u-container--wide u-stack-32">
                 <div class="p-hero">
@@ -160,7 +160,7 @@
                     <h2>{{ __('cms::site.home.stats.heading') }}</h2>
                     <p>{{ __('cms::site.home.stats.subheading') }}</p>
                 </div>
-                <div class="home-page p-stats">
+                <div class="p-home p-stats">
                     @forelse($statsItems as $item)
                         <div class="p-stats__card u-stack-8">
                             <span class="p-stats__value">{{ $item['value'] ?? __('cms::site.home.stats.default_value') }}</span>

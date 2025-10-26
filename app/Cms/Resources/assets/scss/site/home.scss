@@ -1,39 +1,39 @@
 @use './core';
 
-.home-page .p-hero {
+.p-home .p-hero {
     align-items: center;
     opacity: 0;
     transform: translateY(2rem);
     transition: opacity 0.32s ease, transform 0.32s ease;
 }
 
-.home-page .p-hero__media {
+.p-home .p-hero__media {
     border-radius: var(--radius-lg);
 }
 
-.home-page .p-hero.is-visible {
+.p-home .p-hero.is-visible {
     opacity: 1;
     transform: none;
 }
 
-.home-page .p-stats {
+.p-home .p-stats {
     background: linear-gradient(135deg, rgba(45, 92, 255, 0.08), rgba(15, 23, 42, 0.08));
     border-radius: var(--radius-lg);
     padding: clamp(var(--space-24), 6vw, var(--space-48));
 }
 
-.home-page .p-stats__card {
+.p-home .p-stats__card {
     background: rgba(255, 255, 255, 0.16);
     border: 1px solid rgba(255, 255, 255, 0.24);
 }
 
-.home-page .p-partners__item img {
+.p-home .p-partners__item img {
     filter: grayscale(1);
     opacity: 0.85;
 }
 
-.home-page .p-partners__item:hover,
-.home-page .p-partners__item:focus-visible {
+.p-home .p-partners__item:hover,
+.p-home .p-partners__item:focus-visible {
     transform: translateY(-2px);
     box-shadow: var(--shadow-xs);
 }

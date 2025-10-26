@@ -1,16 +1,16 @@
 @use './core';
 
-.catalogs-page .p-catalog-grid .c-card__title {
+.p-catalogs .p-catalog-grid .c-card__title {
     font-size: var(--font-size-18);
 }
 
-.catalogs-page .p-catalog-grid .c-card__meta {
+.p-catalogs .p-catalog-grid .c-card__meta {
     font-size: var(--font-size-14);
     color: var(--color-text-secondary);
 }
 
-.catalogs-page .p-catalog-grid .c-card:hover,
-.catalogs-page .p-catalog-grid .c-card:focus-within {
+.p-catalogs .p-catalog-grid .c-card:hover,
+.p-catalogs .p-catalog-grid .c-card:focus-within {
     transform: translateY(-3px);
     box-shadow: var(--shadow-xs);
 }

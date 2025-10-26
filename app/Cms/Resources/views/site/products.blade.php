@@ -17,7 +17,7 @@
         $placeholders = \Illuminate\Support\Facades\Lang::get('cms::site.products.placeholders', [], $pageLocale);
     @endphp
 
-    <div class="products-page">
+    <div class="p-products">
         <section class="p-section p-section--hero" data-module="reveal">
             <div class="u-container u-container--wide u-stack-24">
                 <div class="p-hero">
