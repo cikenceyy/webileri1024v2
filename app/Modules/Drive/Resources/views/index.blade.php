@@ -555,9 +555,9 @@
                                     data-drive-file-input>
                             </label>
                             <p class="drive-upload__note" data-drive-category-note>
-                                @if (($categoryLimits[$activeCategory] ?? null) !== null)
-                                    Kabul edilen uzantılar: {{ $categoryLimits[$activeCategory]['mimes'] }} · Maks
-                                    {{ $categoryLimits[$activeCategory]['max'] }}
+                                @if (($categoryLimits[$activeFolder] ?? null) !== null)
+                                    Kabul edilen uzantılar: {{ $categoryLimits[$activeFolder]['mimes'] }} · Maks
+                                    {{ $categoryLimits[$activeFolder]['max'] }}
                                 @endif
                             </p>
                         </div>
