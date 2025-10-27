@@ -4,7 +4,6 @@
     use App\Core\Support\TableKit\Column;
     use Illuminate\Support\Arr;
     use Illuminate\Support\Str;
-    use function collect;
 
     /** @var Column $column */
     $key = $column->key();

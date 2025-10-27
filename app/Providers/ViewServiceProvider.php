@@ -34,7 +34,7 @@ class ViewServiceProvider extends ServiceProvider
             'marketing::orders.index',
             'marketing::admin.customers.index',
             'marketing::admin.orders.index',
-            'production::workorders.index',
+            'production::admin.workorders.index',
         ], TableKitComposer::class);
     }
 }

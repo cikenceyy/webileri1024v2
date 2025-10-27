@@ -14,7 +14,6 @@
     use Illuminate\Support\Arr;
     use Illuminate\Support\Collection;
     use Illuminate\Support\Str;
-    use function collect;
 
     /** @var TableConfig $config */
     $config = $config instanceof TableConfig ? $config : TableConfig::make([], []);

@@ -6,7 +6,6 @@ use App\Core\Support\TableKit\TableConfig;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use function collect;
 use function e;
 use function number_format;
 use function optional;
@@ -30,7 +29,7 @@ class TableKitComposer
             'logistics::receipts.index' => $this->composeLogisticsReceipts($data),
             'marketing::customers.index' => $this->composeMarketingCustomers($data),
             'marketing::orders.index' => $this->composeMarketingOrders($data),
-            'production::workorders.index' => $this->composeProductionWorkorders($data),
+            'production::admin.workorders.index' => $this->composeProductionWorkorders($data),
             default => null,
         };
 
