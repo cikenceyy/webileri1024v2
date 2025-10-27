@@ -15,6 +15,7 @@
     @php
         use Illuminate\Support\Str;
     @endphp
+    <div>test</div>
     <div class="inv-products-list" data-view="{{ $filters['view'] }}">
         <header class="inv-products-list__filters">
             <form method="get" class="inv-products-list__filter-form">
