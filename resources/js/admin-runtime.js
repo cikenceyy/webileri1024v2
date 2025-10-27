@@ -12,6 +12,8 @@ import { bootstrapRuntime, initRuntimeControls, toggleSidebarMode } from './comp
 import { initSidebarNavigation } from './components/sidebar.js';
 import { initTableCore } from './components/table-core.js';
 import { initDrivePickerHost } from './components/drive-picker-host.js';
+import { initClientTables } from './table-client.js';
+
 
 
 const initActions = () => {
@@ -90,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initToolbar();
     initScrollShadow();
     initTableCore();
+    initClientTables();
     initHeaderEffects();
     initSidebarNavigation();
     initDrivePickerHost();

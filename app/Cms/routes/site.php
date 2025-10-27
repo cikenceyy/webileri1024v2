@@ -25,6 +25,8 @@ Route::middleware(['web'])->group(function () {
     Route::get('/urun/{slug}', [ProductShowController::class, 'show'])->name('cms.product.show');
 
     Route::prefix('en')->name('cms.en.')->group(function () {
+        Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+        Route::get('/robots.txt', RobotsController::class)->name('robots');
         Route::get('/', [HomeController::class, 'indexEn'])->name('home');
         Route::get('/corporate', [CorporateController::class, 'indexEn'])->name('corporate');
         Route::get('/contact', [ContactController::class, 'indexEn'])->name('contact');

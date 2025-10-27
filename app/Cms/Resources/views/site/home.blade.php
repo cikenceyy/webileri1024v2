@@ -2,10 +2,10 @@
 
 @push('critical-css')
     <style>
-        .home-hero{display:grid;gap:clamp(var(--space-24),5vw,var(--space-40));align-items:center}
-        @media (min-width:48rem){.home-hero{grid-template-columns:repeat(2,minmax(0,1fr));}}
-        .home-hero__media{position:relative;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
-        .home-hero__media img{width:100%;height:100%;object-fit:cover;display:block}
+        .p-hero{display:grid;gap:clamp(var(--space-24),5vw,var(--space-40));align-items:center}
+        @media (min-width:48rem){.p-hero{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        .p-hero__media{position:relative;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+        .p-hero__media img{width:100%;height:100%;object-fit:cover;display:block}
     </style>
 @endpush
 
@@ -35,279 +35,266 @@
         $statsFallbacks = \Illuminate\Support\Facades\Lang::get('cms::site.home.stats.defaults', [], $pageLocale);
         $productFallbacks = \Illuminate\Support\Facades\Lang::get('cms::site.home.products.placeholders', [], $pageLocale);
         $catalogFallbacks = \Illuminate\Support\Facades\Lang::get('cms::site.home.catalogs.placeholders', [], $pageLocale);
+        $featuredProducts = $featuredProducts ?? [];
+        $featuredCatalogs = $catalogs ?? ($featuredCatalogs ?? []);
     @endphp
 
-    <section class="section section--hero" data-module="reveal">
-        <div class="container container--wide">
-            <div class="pattern-hero home-hero">
-                <div class="stack-lg">
-                    <p class="eyebrow">{{ __('cms::site.home.eyebrow') }}</p>
-                    <h1 class="display">{{ $hero['title'] ?? __('cms::site.home.hero.title') }}</h1>
-                    <p class="lead">{{ $hero['subtitle'] ?? __('cms::site.home.hero.subtitle') }}</p>
-                    <div class="cluster">
-                        <a class="btn btn-primary" data-module="beacon" data-beacon-event="home-cta" data-beacon-payload="hero"
-                           href="{{ !empty($hero['cta_link']) && !empty($hero['cta_text']) ? $hero['cta_link'] : ($pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact')) }}">
-                            {{ $hero['cta_text'] ?? __('cms::site.home.hero.cta_default') }}
-                        </a>
+    <div class="p-home">
+        <section class="p-section p-section--hero" data-module="reveal">
+            <div class="u-container u-container--wide u-stack-32">
+                <div class="p-hero">
+                    <div class="u-stack-16">
+                        <p class="p-eyebrow">{{ __('cms::site.home.eyebrow') }}</p>
+                        <h1 class="p-display">{{ $hero['title'] ?? __('cms::site.home.hero.title') }}</h1>
+                        <p class="p-lead">{{ $hero['subtitle'] ?? __('cms::site.home.hero.subtitle') }}</p>
+                        <div class="u-cluster">
+                            <a class="c-button c-button--primary" data-module="beacon" data-beacon-event="home-cta" data-beacon-payload="hero"
+                               href="{{ !empty($hero['cta_link']) && !empty($hero['cta_text']) ? $hero['cta_link'] : ($pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact')) }}">
+                                {{ $hero['cta_text'] ?? __('cms::site.home.hero.cta_default') }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="p-hero__media" data-module="lazy-media">
+                        <img src="{{ $heroImage }}" srcset="{{ $heroImage }} 1280w, {{ $heroImage }} 640w"
+                             sizes="(min-width: 62rem) 50vw, 100vw" width="1280" height="720"
+                             alt="{{ $hero['title'] ?? 'Automation hero image' }}" loading="eager">
                     </div>
                 </div>
-                <div class="home-hero__media" data-module="lazy-media">
-                    <img src="{{ $heroImage }}" srcset="{{ $heroImage }} 1280w, {{ $heroImage }} 640w"
-                         sizes="(min-width: 62rem) 50vw, 100vw" width="1280" height="720"
-                         alt="{{ $hero['title'] ?? 'Automation hero image' }}" loading="eager">
-                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" data-module="reveal">
-        <div class="container">
-            <div class="pattern-usp">
-                <div class="section-head stack-sm">
+        <section class="p-section" data-module="reveal">
+            <div class="u-container u-stack-32">
+                <div class="p-section__head u-stack-12">
                     <h2>{{ __('cms::site.home.usp.heading') }}</h2>
                     <p>{{ __('cms::site.home.usp.subheading') }}</p>
                 </div>
-                <div class="usp-grid grid-auto">
+                <div class="p-usp__grid">
                     @forelse($uspItems as $item)
-                        <article class="usp-card stack-sm">
+                        <article class="c-card c-card--usp u-stack-12">
                             @if(!empty($item['icon']))
-                                <img class="usp-card__icon" src="{{ $item['icon'] }}" width="48" height="48" alt="" loading="lazy">
+                                <img class="c-card__icon" src="{{ $item['icon'] }}" width="48" height="48" alt="" loading="lazy">
                             @endif
                             <h3>{{ $item['title'] ?? __('cms::site.home.usp.default_title') }}</h3>
-                            <p>{{ $item['description'] ?? __('cms::site.home.usp.default_description') }}</p>
+                            <p class="u-text-secondary">{{ $item['description'] ?? __('cms::site.home.usp.default_description') }}</p>
                         </article>
                     @empty
                         @foreach((array) $uspFallbacks as $fallback)
-                            <article class="usp-card stack-sm" data-skeleton>
-                                <div class="usp-card__icon placeholder-icon" aria-hidden="true"></div>
+                            <article class="c-card c-card--usp u-stack-12" data-skeleton>
+                                <div class="c-card__icon" aria-hidden="true"></div>
                                 <h3>{{ $fallback['title'] ?? __('cms::site.home.usp.default_title') }}</h3>
-                                <p>{{ $fallback['description'] ?? __('cms::site.home.usp.default_description') }}</p>
+                                <p class="u-text-secondary">{{ $fallback['description'] ?? __('cms::site.home.usp.default_description') }}</p>
                             </article>
                         @endforeach
                     @endforelse
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" data-module="reveal">
-        <div class="container">
-            <div class="pattern-industries">
-                <div class="section-head stack-sm">
+        <section class="p-section" data-module="reveal">
+            <div class="u-container u-stack-32">
+                <div class="p-section__head u-stack-12">
                     <h2>{{ __('cms::site.home.industries.heading') }}</h2>
                     <p>{{ __('cms::site.home.industries.subheading') }}</p>
                 </div>
-                <div class="industry-grid grid-auto">
+                <div class="p-industries__grid">
                     @forelse($industryItems as $item)
-                        <article class="industry-card stack-sm">
+                        <article class="c-card c-card--industry u-stack-12">
                             @if(!empty($item['icon']))
-                                <img src="{{ $item['icon'] }}" width="56" height="56" alt="" loading="lazy">
+                                <img class="c-card__icon" src="{{ $item['icon'] }}" width="56" height="56" alt="" loading="lazy">
                             @endif
                             <h3>{{ $item['title'] ?? __('cms::site.home.industries.default_title') }}</h3>
-                            <p>{{ $item['description'] ?? __('cms::site.home.industries.default_description') }}</p>
+                            <p class="u-text-secondary">{{ $item['description'] ?? __('cms::site.home.industries.default_description') }}</p>
                         </article>
                     @empty
                         @foreach((array) $industryFallbacks as $fallback)
-                            <article class="industry-card stack-sm" data-skeleton>
-                                <div class="placeholder-icon" aria-hidden="true"></div>
+                            <article class="c-card c-card--industry u-stack-12" data-skeleton>
+                                <div class="c-card__icon" aria-hidden="true"></div>
                                 <h3>{{ $fallback['title'] ?? __('cms::site.home.industries.default_title') }}</h3>
-                                <p>{{ $fallback['description'] ?? __('cms::site.home.industries.default_description') }}</p>
+                                <p class="u-text-secondary">{{ $fallback['description'] ?? __('cms::site.home.industries.default_description') }}</p>
                             </article>
                         @endforeach
                     @endforelse
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" data-module="reveal">
-        <div class="container">
-            <div class="pattern-process">
-                <div class="section-head stack-sm">
+        <section class="p-section" data-module="reveal">
+            <div class="u-container u-stack-32">
+                <div class="p-section__head u-stack-12">
                     <h2>{{ __('cms::site.home.process.heading') }}</h2>
                     <p>{{ __('cms::site.home.process.subheading') }}</p>
                 </div>
-                <ol class="process-steps">
+                <div class="p-process">
                     @forelse($processSteps as $step)
-                        <li class="process-step stack-sm">
-                            <div class="process-step__index">{{ $step['step_no'] ?? __('cms::site.home.process.step_prefix') }}</div>
-                            <div class="process-step__body stack-xs">
+                        <div class="p-process__item u-stack-12">
+                            <span class="p-process__index">{{ $step['step_no'] ?? __('cms::site.home.process.step_prefix') }}</span>
+                            <div class="u-stack-12">
                                 <h3>{{ $step['title'] ?? __('cms::site.home.process.default_title') }}</h3>
-                                <p>{{ $step['description'] ?? __('cms::site.home.process.default_description') }}</p>
+                                <p class="u-text-secondary">{{ $step['description'] ?? __('cms::site.home.process.default_description') }}</p>
                                 @if(!empty($step['image']))
-                                    <div class="process-step__media ratio-4x3" data-module="lazy-media">
+                                    <div class="p-process__media u-ratio-4x3" data-module="lazy-media">
                                         <img src="{{ $step['image'] }}" width="960" height="720" alt="{{ $step['title'] ?? 'Process step' }}" loading="lazy">
                                     </div>
                                 @endif
                             </div>
-                        </li>
-                    @empty
-                        @foreach((array) $processFallbacks as $fallback)
-                            <li class="process-step stack-sm" data-skeleton>
-                                <div class="process-step__index">{{ $fallback['step'] ?? __('cms::site.home.process.step_prefix') }}</div>
-                                <div class="process-step__body stack-xs">
-                                    <h3>{{ $fallback['title'] ?? __('cms::site.home.process.default_title') }}</h3>
-                                    <p>{{ $fallback['description'] ?? __('cms::site.home.process.default_description') }}</p>
-                                </div>
-                            </li>
-                        @endforeach
-                    @endforelse
-                </ol>
-            </div>
-        </div>
-    </section>
-
-    <section class="section section--subtle" data-module="reveal">
-        <div class="container">
-            <div class="pattern-stats">
-                <div class="section-head stack-sm">
-                    <h2>{{ __('cms::site.home.stats.heading') }}</h2>
-                    <p>{{ __('cms::site.home.stats.subheading') }}</p>
-                </div>
-                <div class="stats-grid">
-                    @forelse($statsItems as $item)
-                        <div class="stat-card stack-xs">
-                            <span class="stat-card__value">{{ $item['value'] ?? __('cms::site.home.stats.default_value') }}</span>
-                            <span class="stat-card__label">{{ $item['label'] ?? __('cms::site.home.stats.default_label') }}</span>
                         </div>
                     @empty
-                        @foreach((array) $statsFallbacks as $fallback)
-                            <div class="stat-card stack-xs" data-skeleton>
-                                <span class="stat-card__value">{{ $fallback['value'] ?? __('cms::site.home.stats.default_value') }}</span>
-                                <span class="stat-card__label">{{ $fallback['label'] ?? __('cms::site.home.stats.default_label') }}</span>
+                        @foreach((array) $processFallbacks as $fallback)
+                            <div class="p-process__item u-stack-12" data-skeleton>
+                                <span class="p-process__index">{{ $fallback['step'] ?? __('cms::site.home.process.step_prefix') }}</span>
+                                <div class="u-stack-12">
+                                    <h3>{{ $fallback['title'] ?? __('cms::site.home.process.default_title') }}</h3>
+                                    <p class="u-text-secondary">{{ $fallback['description'] ?? __('cms::site.home.process.default_description') }}</p>
+                                </div>
                             </div>
                         @endforeach
                     @endforelse
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" data-module="reveal skeletons">
-        <div class="container">
-            <div class="pattern-product-grid">
-                <div class="section-head stack-sm">
+        <section class="p-section p-section--muted" data-module="reveal">
+            <div class="u-container u-stack-32">
+                <div class="p-section__head u-stack-12">
+                    <h2>{{ __('cms::site.home.stats.heading') }}</h2>
+                    <p>{{ __('cms::site.home.stats.subheading') }}</p>
+                </div>
+                <div class="p-home p-stats">
+                    @forelse($statsItems as $item)
+                        <div class="p-stats__card u-stack-8">
+                            <span class="p-stats__value">{{ $item['value'] ?? __('cms::site.home.stats.default_value') }}</span>
+                            <span>{{ $item['label'] ?? __('cms::site.home.stats.default_label') }}</span>
+                        </div>
+                    @empty
+                        @foreach((array) $statsFallbacks as $fallback)
+                            <div class="p-stats__card u-stack-8" data-skeleton>
+                                <span class="p-stats__value">{{ $fallback['value'] ?? __('cms::site.home.stats.default_value') }}</span>
+                                <span>{{ $fallback['label'] ?? __('cms::site.home.stats.default_label') }}</span>
+                            </div>
+                        @endforeach
+                    @endforelse
+                </div>
+            </div>
+        </section>
+
+        <section class="p-section" data-module="reveal skeletons">
+            <div class="u-container u-stack-32">
+                <div class="p-section__head u-stack-12">
                     <h2>{{ __('cms::site.home.products.heading') }}</h2>
                     <p>{{ __('cms::site.home.products.subheading') }}</p>
                 </div>
-                <div class="product-grid grid-auto">
+                <div class="p-product-grid">
                     @forelse($featuredProducts as $product)
-                        <article class="product-card stack-sm">
-                            <div class="product-card__media ratio-3x2">
+                        <article class="c-card" data-module="beacon" data-beacon-event="mini-product-view" data-beacon-payload="{{ $product['slug'] ?? '' }}">
+                            <div class="c-card__media u-ratio-4x3">
                                 @php $productCover = $product['cover_image'] ?? $placeholder('Product', 640, 480); @endphp
                                 <img src="{{ $productCover }}" srcset="{{ $productCover }} 640w" sizes="(min-width: 62rem) 240px, 50vw"
                                      width="640" height="480" alt="{{ $product['name'] ?? 'Product' }}" loading="lazy">
                             </div>
-                            <div class="stack-xs">
-                                <h3>{{ $product['name'] ?? __('cms::site.home.products.placeholder_title') }}</h3>
-                                <p>{{ $product['short_desc'] ?? __('cms::site.home.products.placeholder_description') }}</p>
-                                @php
-                                    $productUrl = !empty($product['slug'])
-                                        ? ($pageLocale === 'en' ? route('cms.en.product.show', $product['slug']) : route('cms.product.show', $product['slug']))
-                                        : ($pageLocale === 'en' ? route('cms.en.products') : route('cms.products'));
-                                @endphp
-                                <a class="btn btn-outline" data-module="beacon" data-beacon-event="mini-product-view"
-                                   data-beacon-payload="{{ $product['slug'] ?? 'product' }}" href="{{ $productUrl }}">
-                                    {{ __('cms::site.home.products.cta') }}
-                                </a>
+                            <div class="u-stack-8">
+                                <h3 class="c-card__title">{{ $product['name'] ?? $productFallbacks['title'] ?? 'Product' }}</h3>
+                                <p class="c-card__meta">{{ $product['short_desc'] ?? $productFallbacks['description'] ?? '' }}</p>
                             </div>
+                            <a class="c-button c-button--outline" href="{{ $product['slug'] ? route($pageLocale === 'en' ? 'cms.en.product.show' : 'cms.product.show', $product['slug']) : '#' }}">
+                                {{ __('cms::site.home.products.cta') }}
+                            </a>
                         </article>
                     @empty
                         @foreach((array) $productFallbacks as $fallback)
-                            <article class="product-card stack-sm placeholder" data-skeleton>
-                                <div class="product-card__media ratio-3x2 placeholder-block"></div>
-                                <div class="stack-xs">
-                                    <h3>{{ $fallback['title'] ?? __('cms::site.home.products.placeholder_title') }}</h3>
-                                    <p>{{ $fallback['description'] ?? __('cms::site.home.products.placeholder_description') }}</p>
-                                    <span class="btn btn-outline is-disabled">{{ __('cms::site.home.products.placeholder_cta') }}</span>
+                            <article class="c-card u-stack-12" data-skeleton>
+                                <div class="c-card__media u-ratio-4x3" aria-hidden="true"></div>
+                                <div class="u-stack-8">
+                                    <h3 class="c-card__title">{{ $fallback['title'] ?? 'Product' }}</h3>
+                                    <p class="c-card__meta">{{ $fallback['description'] ?? '' }}</p>
                                 </div>
+                                <span class="c-button c-button--outline is-disabled">{{ __('cms::site.home.products.cta') }}</span>
                             </article>
                         @endforeach
                     @endforelse
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" data-module="reveal skeletons">
-        <div class="container">
-            <div class="pattern-catalog-grid">
-                <div class="section-head stack-sm">
+        <section class="p-section" data-module="reveal skeletons">
+            <div class="u-container u-stack-32">
+                <div class="p-section__head u-stack-12">
                     <h2>{{ __('cms::site.home.catalogs.heading') }}</h2>
                     <p>{{ __('cms::site.home.catalogs.subheading') }}</p>
                 </div>
-                <div class="catalog-grid grid-auto">
-                    @forelse($catalogs as $catalog)
-                        <article class="catalog-card stack-sm">
-                            <div class="catalog-card__media ratio-4x3">
+                <div class="p-catalog-grid">
+                    @forelse($featuredCatalogs as $catalog)
+                        <article class="c-card u-stack-12" data-module="beacon" data-beacon-event="mini-catalog-open" data-beacon-payload="{{ $catalog['title'] ?? '' }}">
+                            <div class="c-card__media u-ratio-4x3">
                                 @php $catalogCover = $catalog['cover'] ?? $placeholder('Catalog', 640, 480); @endphp
-                                <img src="{{ $catalogCover }}" srcset="{{ $catalogCover }} 640w" sizes="(min-width: 62rem) 240px, 50vw"
-                                     width="640" height="480" alt="{{ $catalog['title'] ?? 'Catalog' }}" loading="lazy">
+                                <img src="{{ $catalogCover }}" width="640" height="480" alt="{{ $catalog['title'] ?? 'Catalog' }}" loading="lazy">
                             </div>
-                            <div class="stack-xs">
-                                <h3>{{ $catalog['title'] ?? __('cms::site.home.catalogs.placeholder_title') }}</h3>
-                                <a class="btn btn-outline" data-module="beacon" data-beacon-event="catalog-open" data-beacon-payload="home"
-                                   href="{{ $catalog['file'] ?? '#' }}" target="_blank" rel="noopener">
+                            <div class="u-stack-8">
+                                <h3 class="c-card__title">{{ $catalog['title'] ?? $catalogFallbacks['title'] ?? 'Catalog' }}</h3>
+                                <p class="c-card__meta">{{ $catalog['summary'] ?? $catalogFallbacks['description'] ?? '' }}</p>
+                            </div>
+                            @if(!empty($catalog['file']))
+                                <a class="c-button c-button--outline" href="{{ $catalog['file'] }}" target="_blank" rel="noopener">
                                     {{ __('cms::site.home.catalogs.cta') }}
                                 </a>
-                            </div>
+                            @else
+                                <span class="c-button c-button--outline is-disabled">{{ __('cms::site.home.catalogs.cta') }}</span>
+                            @endif
                         </article>
                     @empty
                         @foreach((array) $catalogFallbacks as $fallback)
-                            <article class="catalog-card stack-sm placeholder" data-skeleton>
-                                <div class="catalog-card__media ratio-4x3 placeholder-block"></div>
-                                <div class="stack-xs">
-                                    <h3>{{ $fallback['title'] ?? __('cms::site.home.catalogs.placeholder_title') }}</h3>
-                                    <span class="btn btn-outline is-disabled">{{ __('cms::site.home.catalogs.placeholder_cta') }}</span>
+                            <article class="c-card u-stack-12" data-skeleton>
+                                <div class="c-card__media u-ratio-4x3" aria-hidden="true"></div>
+                                <div class="u-stack-8">
+                                    <h3 class="c-card__title">{{ $fallback['title'] ?? 'Catalog' }}</h3>
+                                    <p class="c-card__meta">{{ $fallback['description'] ?? '' }}</p>
                                 </div>
+                                <span class="c-button c-button--outline is-disabled">{{ __('cms::site.home.catalogs.cta') }}</span>
                             </article>
                         @endforeach
                     @endforelse
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" data-module="reveal">
-        <div class="container">
-            <div class="pattern-partners">
-                <div class="section-head stack-sm">
+        <section class="p-section" data-module="reveal">
+            <div class="u-container u-stack-32">
+                <div class="p-section__head u-stack-12">
                     <h2>{{ __('cms::site.home.partners.heading') }}</h2>
                     <p>{{ __('cms::site.home.partners.subheading') }}</p>
                 </div>
-                <div class="partner-rail">
+                <div class="p-partners">
                     @forelse($partners as $partner)
-                        <a class="partner-logo"
-                           @if(!empty($partner['link'])) href="{{ $partner['link'] }}" target="_blank" rel="noopener"
-                           @else href="javascript:void(0)" aria-disabled="true" @endif>
-                            @php $logo = $partner['logo'] ?? null; @endphp
-                            @if($logo)
-                                <img src="{{ $logo }}" width="160" height="80" alt="{{ $partner['name'] ?? __('cms::site.home.partners.placeholder') }}" loading="lazy">
+                        <div class="p-partners__item">
+                            @if(!empty($partner['logo']))
+                                <img src="{{ $partner['logo'] }}" width="200" height="120" alt="{{ $partner['title'] ?? 'Partner' }}" loading="lazy">
                             @else
-                                <span>{{ $partner['name'] ?? __('cms::site.home.partners.placeholder') }}</span>
+                                <span>{{ $partner['title'] ?? 'Partner' }}</span>
                             @endif
-                        </a>
+                        </div>
                     @empty
-                        <span class="partner-logo placeholder" data-skeleton>{{ __('cms::site.home.partners.placeholder') }}</span>
+                        @foreach(range(1, 6) as $index)
+                            <div class="p-partners__item" data-skeleton>
+                                <span aria-hidden="true">Logo {{ $index }}</span>
+                            </div>
+                        @endforeach
                     @endforelse
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="section" data-module="reveal">
-        <div class="container container--wide">
-            <div class="pattern-feature">
-                <div class="feature-band stack-sm">
-                    <h2>{{ $ctaBand['title'] ?? __('cms::site.home.feature.title') }}</h2>
-                    <p>{{ __('cms::site.home.feature.subtitle') }}</p>
-                    <a class="btn btn-primary" data-module="beacon" data-beacon-event="home-cta"
-                       data-beacon-payload="cta-band"
-                       href="{{ $ctaBand['cta_link'] ?? ($pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact')) }}">
-                        {{ $ctaBand['cta_text'] ?? __('cms::site.home.feature.cta') }}
-                    </a>
+        <section class="p-section" data-module="reveal">
+            <div class="u-container u-stack-24">
+                <div class="c-band u-align-center u-stack-16">
+                    <h2>{{ $ctaBand['title'] ?? __('cms::site.home.cta.title') }}</h2>
+                    <div class="u-cluster u-cluster--lg">
+                        <a class="c-button c-button--primary" data-module="beacon" data-beacon-event="home-cta" data-beacon-payload="band"
+                           href="{{ !empty($ctaBand['cta_link']) && !empty($ctaBand['cta_text']) ? $ctaBand['cta_link'] : ($pageLocale === 'en' ? route('cms.en.contact') : route('cms.contact')) }}">
+                            {{ $ctaBand['cta_text'] ?? __('cms::site.home.cta.cta_text') }}
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 @endsection

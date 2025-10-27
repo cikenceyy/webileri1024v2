@@ -40,6 +40,10 @@ const ensurePanelAccessibility = (item, trigger, panel) => {
         trigger.setAttribute('aria-controls', panel.id);
     }
 
+    if (trigger.dataset.sidebarTarget !== panel.id) {
+        trigger.dataset.sidebarTarget = panel.id;
+    }
+
     if (panel.getAttribute('aria-labelledby') !== trigger.id) {
         panel.setAttribute('aria-labelledby', trigger.id);
     }
@@ -49,10 +53,27 @@ const ensurePanelAccessibility = (item, trigger, panel) => {
     }
 };
 
-const applySectionState = (item, expanded) => {
-    const trigger = item.querySelector('.ui-sidebar__trigger');
-    const panel = item.querySelector('.ui-sidebar__panel');
+const findTrigger = (item) =>
+    item.querySelector('[data-role="sidebar-trigger"]') || item.querySelector('.ui-sidebar__trigger');
 
+const resolvePanel = (item, trigger, ownerDocument) => {
+    if (trigger) {
+        const targetId = trigger.dataset.sidebarTarget || trigger.getAttribute('aria-controls');
+        if (targetId) {
+            const byId = ownerDocument.getElementById(targetId);
+            if (byId) {
+                return byId;
+            }
+        }
+    }
+
+    return (
+        item.querySelector('[data-role="sidebar-panel"]') ||
+        item.querySelector('.ui-sidebar__panel')
+    );
+};
+
+const applySectionState = (item, trigger, panel, expanded) => {
     if (!trigger || !panel) {
         return;
     }
@@ -61,8 +82,14 @@ const applySectionState = (item, expanded) => {
 
     item.classList.toggle('is-open', expanded);
     trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    panel.hidden = !expanded;
-    panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+
+    if (expanded) {
+        panel.removeAttribute('hidden');
+        panel.setAttribute('aria-hidden', 'false');
+    } else {
+        panel.setAttribute('hidden', '');
+        panel.setAttribute('aria-hidden', 'true');
+    }
 };
 
 export const initSidebarNavigation = () => {
@@ -72,7 +99,11 @@ export const initSidebarNavigation = () => {
     }
 
     const storedState = readStoredState();
-    const collapsibleItems = Array.from(sidebar.querySelectorAll('.ui-sidebar__item.has-children'));
+    const ownerDocument = sidebar.ownerDocument || document;
+    const collapsibleItems = Array.from(
+        sidebar.querySelectorAll('[data-sidebar-collapsible], .ui-sidebar__item.has-children')
+    );
+    const itemParts = new Map();
 
     const persistState = (id, value) => {
         if (!id) return;
@@ -80,7 +111,7 @@ export const initSidebarNavigation = () => {
         writeStoredState(storedState);
     };
 
-    const findPanelState = (item) => {
+    const findPanelState = (item, trigger) => {
         const id = item.dataset.sidebarId;
         const hasActiveChild = Boolean(item.querySelector('.ui-sidebar__subitem.is-active, .ui-sidebar__link[aria-current="page"]'));
         if (hasActiveChild) {
@@ -94,11 +125,19 @@ export const initSidebarNavigation = () => {
             return Boolean(storedState[id]);
         }
 
+        if (trigger) {
+            return trigger.getAttribute('aria-expanded') === 'true';
+        }
+
         return item.classList.contains('is-open');
     };
 
-    const setExpanded = (item, expanded) => {
-        applySectionState(item, expanded);
+    const setExpanded = (item, parts, expanded) => {
+        if (!parts) {
+            return;
+        }
+
+        applySectionState(item, parts.trigger, parts.panel, expanded);
         persistState(item.dataset.sidebarId, expanded);
     };
 
@@ -107,57 +146,37 @@ export const initSidebarNavigation = () => {
             item.dataset.sidebarId = item.dataset.sidebarId || item.id || `sidebar-node-${index}`;
         }
 
-        const expanded = findPanelState(item);
-        applySectionState(item, expanded);
-    });
+        const trigger = findTrigger(item);
+        const panel = resolvePanel(item, trigger, ownerDocument);
+        if (!trigger || !panel) {
+            return;
+        }
 
-    const collapseSiblings = (current) => {
-        collapsibleItems.forEach((item) => {
-            if (item !== current) {
-                setExpanded(item, false);
+        itemParts.set(item, { trigger, panel });
+
+        const expanded = findPanelState(item, trigger);
+        applySectionState(item, trigger, panel, expanded);
+
+        trigger.addEventListener('click', (event) => {
+            event.preventDefault();
+            const next = trigger.getAttribute('aria-expanded') !== 'true';
+            if (next) {
+                itemParts.forEach((parts, other) => {
+                    if (other !== item) {
+                        setExpanded(other, parts, false);
+                    }
+                });
             }
+            setExpanded(item, itemParts.get(item), next);
         });
-    };
 
-    const toggleItem = (item) => {
-        const expanded = item.classList.contains('is-open');
-        const next = !expanded;
-        if (next) {
-            collapseSiblings(item);
-        }
-        setExpanded(item, next);
-    };
+        trigger.addEventListener('keydown', (event) => {
+            if (event.key !== ' ' && event.key !== 'Enter') {
+                return;
+            }
 
-    const handleTrigger = (trigger) => {
-        const item = trigger.closest('.ui-sidebar__item.has-children');
-        if (!item) {
-            return;
-        }
-
-        toggleItem(item);
-    };
-
-    sidebar.addEventListener('click', (event) => {
-        const trigger = event.target.closest('.ui-sidebar__trigger');
-        if (!trigger || !sidebar.contains(trigger)) {
-            return;
-        }
-
-        event.preventDefault();
-        handleTrigger(trigger);
-    });
-
-    sidebar.addEventListener('keydown', (event) => {
-        if (event.key !== ' ' && event.key !== 'Enter') {
-            return;
-        }
-
-        const trigger = event.target.closest('.ui-sidebar__trigger');
-        if (!trigger || !sidebar.contains(trigger)) {
-            return;
-        }
-
-        event.preventDefault();
-        handleTrigger(trigger);
+            event.preventDefault();
+            trigger.click();
+        });
     });
 };

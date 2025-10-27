@@ -13,6 +13,7 @@ return [
         'primary' => 'Primary navigation',
         'lang_tr' => 'TR',
         'lang_en' => 'EN',
+        'contact_cta' => 'Get a quote',
     ],
     'footer' => [
         'tagline' => 'Innovative industrial solutions with human-centered technology.',
@@ -24,6 +25,7 @@ return [
         'linkedin' => 'LinkedIn',
         'instagram' => 'Instagram',
         'rights' => 'All rights reserved.',
+        'sitemap' => 'Sitemap',
     ],
     'home' => [
         'eyebrow' => 'Trusted by industry leaders',
@@ -328,6 +330,7 @@ return [
         'description' => 'Request full specifications from our team.',
         'sku' => 'SKU',
         'price_callout' => 'Price available on request',
+        'price_label' => 'Commercial model',
         'cta' => 'Contact for pricing',
         'gallery' => 'Product gallery',
         'bullets' => [
@@ -344,6 +347,9 @@ return [
             'heading' => 'Downloads',
             'subheading' => 'Technical documentation and compliance material.',
             'placeholder' => 'Document coming soon',
+        ],
+        'related' => [
+            'heading' => 'Related solutions',
         ],
     ],
 ];

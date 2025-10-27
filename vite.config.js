@@ -48,6 +48,7 @@ function moduleEntries(base = 'app/Modules') {
         }
     } catch (error) {
         // modules directory optional
+        // test
     }
 
     return entries;
@@ -68,6 +69,16 @@ export default defineConfig({
             ],
             refresh: true,
             buildDirectory: 'build/cms',
+            css: {
+                preprocessorOptions: {
+                    scss: {
+                        // Dart Sass opsiyonu — node_modules içinden gelen uyarıları susturur
+                        quietDeps: true,
+                        // bazen bazı ortamlar için aşağıdaki isimle kabul ediyor:
+                        // sassOptions: { quietDeps: true },
+                    },
+                },
+            },
         }),
     ],
     resolve: {

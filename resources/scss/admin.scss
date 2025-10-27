@@ -37,8 +37,9 @@ body {
   padding: var(--ui-space-4);
 }
 
-.card {
-  border-radius: var(--ui-radius-md);
+.card, .btn, .list-group, input, select, textarea, .form-control, .form-check-input[type=checkbox]{
+  border-radius: 0;
 }
+
 
 @import 'bootstrap-icons/font/bootstrap-icons.css';

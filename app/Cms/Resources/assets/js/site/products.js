@@ -7,8 +7,8 @@ bootPage('products', () => {
         return;
     }
 
-    const cards = Array.from(container.querySelectorAll('.product-card[data-category]'));
-    const buttons = Array.from(document.querySelectorAll('.filter-chip[data-filter]'));
+    const cards = Array.from(container.querySelectorAll('.c-card[data-category]'));
+    const buttons = Array.from(document.querySelectorAll('.c-chip[data-filter]'));
     const emptyState = document.querySelector('[data-empty-state]');
 
     const applyFilter = (slug) => {
@@ -17,7 +17,10 @@ bootPage('products', () => {
 
         cards.forEach((card) => {
             const raw = card.dataset.category || 'all';
-            const categories = raw.split(',').map((value) => value.trim().toLowerCase()).filter(Boolean);
+            const categories = raw
+                .split(',')
+                .map((value) => value.trim().toLowerCase())
+                .filter(Boolean);
             const match = activeSlug === 'all' || categories.includes(activeSlug);
             card.hidden = !match;
             if (match) {

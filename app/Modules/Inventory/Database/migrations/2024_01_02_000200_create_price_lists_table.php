@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
             $table->string('name');
             $table->string('currency', 3);
-            $table->enum('type', ['sale', 'purchase']);
+            $table->enum('type', ['sale', 'purchase', 'retail', 'wholesale', 'promo']);
             $table->boolean('active')->default(true);
             $table->softDeletes();
             $table->timestamps();

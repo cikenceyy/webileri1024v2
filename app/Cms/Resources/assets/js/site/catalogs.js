@@ -3,14 +3,14 @@ import { emitBeacon } from '../common/beacon';
 
 bootPage('catalogs', () => {
     const container = document.querySelector('[data-filter-target]');
-    const buttons = Array.from(document.querySelectorAll('.filter-chip[data-filter]'));
+    const buttons = Array.from(document.querySelectorAll('.c-chip[data-filter]'));
     const emptyState = document.querySelector('[data-empty-state]');
 
     if (!container) {
         return;
     }
 
-    const cards = Array.from(container.querySelectorAll('.catalog-card[data-year]'));
+    const cards = Array.from(container.querySelectorAll('.c-card[data-year]'));
 
     const applyFilter = (slug) => {
         const active = slug && slug !== 'all' ? slug : 'all';

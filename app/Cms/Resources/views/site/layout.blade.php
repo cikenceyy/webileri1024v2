@@ -40,10 +40,10 @@
         {!! $scripts['header'] !!}
     @endif
 </head>
-<body data-page="{{ $pageId ?? '' }}" data-beacon-endpoint="{{ config('cms.analytics.endpoint', '') }}" class="site-body" @if(request()->has('preview_token')) data-preview="true" @endif>
+<body data-page="{{ $pageId ?? '' }}" data-beacon-endpoint="{{ config('cms.analytics.endpoint', '') }}" class="c-site-body" @if(request()->has('preview_token')) data-preview="true" @endif>
     <a class="skip-link" href="#main">{{ __('cms::site.navigation.skip_to_content') }}</a>
     @include('cms::site.partials.header', ['pageId' => $pageId ?? null, 'locale' => $pageLocale])
-    <main id="main" class="site-main">
+    <main id="main">
         @yield('content')
     </main>
     @include('cms::site.partials.footer', ['locale' => $pageLocale])

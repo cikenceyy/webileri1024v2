@@ -1,0 +1,57 @@
+<?php
+
+return [
+    'allowed_extensions' => [
+        'pdf' => ['application/pdf'],
+        'doc' => ['application/msword'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        'xls' => ['application/vnd.ms-excel'],
+        'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        'csv' => ['text/csv', 'application/csv'],
+        'txt' => ['text/plain'],
+        'rtf' => ['application/rtf'],
+        'ppt' => ['application/vnd.ms-powerpoint'],
+        'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+        'zip' => ['application/zip', 'application/x-zip-compressed'],
+        'rar' => ['application/x-rar-compressed'],
+        '7z' => ['application/x-7z-compressed'],
+        'odt' => ['application/vnd.oasis.opendocument.text'],
+        'ods' => ['application/vnd.oasis.opendocument.spreadsheet'],
+        'odp' => ['application/vnd.oasis.opendocument.presentation'],
+        'jpg' => ['image/jpeg'],
+        'jpeg' => ['image/jpeg'],
+        'png' => ['image/png'],
+        'webp' => ['image/webp'],
+        'svg' => ['image/svg+xml'],
+    ],
+
+    'document_extensions' => [
+        'pdf',
+        'doc',
+        'docx',
+        'xls',
+        'xlsx',
+        'csv',
+        'txt',
+        'rtf',
+        'ppt',
+        'pptx',
+        'zip',
+        'rar',
+        '7z',
+        'odt',
+        'ods',
+        'odp',
+    ],
+
+    'media_extensions' => [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'svg',
+    ],
+
+    'max_upload_megabytes' => (int) env('DRIVE_MAX_UPLOAD_MB', 50),
+    'temporary_url_seconds' => (int) env('DRIVE_PRESIGN_TTL', 600),
+];

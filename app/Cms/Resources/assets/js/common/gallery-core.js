@@ -1,10 +1,13 @@
 export function galleryCore(element) {
-    if (!element) {
+    if (!element || element.dataset.galleryInitialized === 'true') {
         return;
     }
 
-    const mainImage = element.querySelector('.gallery-main img');
-    const buttons = Array.from(element.querySelectorAll('.gallery-thumbs .thumb'));
+    element.dataset.galleryInitialized = 'true';
+
+    const mainWrapper = element.querySelector('[data-gallery-main]');
+    const mainImage = mainWrapper ? mainWrapper.querySelector('img') : null;
+    const buttons = Array.from(element.querySelectorAll('.c-thumb'));
 
     if (!mainImage || !buttons.length) {
         return;
@@ -33,6 +36,7 @@ export function galleryCore(element) {
         }
 
         buttons.forEach((btn) => {
+            btn.classList.toggle('is-active', btn === button);
             btn.setAttribute('aria-selected', btn === button ? 'true' : 'false');
         });
 
@@ -61,6 +65,12 @@ export function galleryCore(element) {
                 button.dataset.galleryAlt = thumbAlt;
             }
         }
+
+        if (button.dataset.galleryBound === 'true') {
+            return;
+        }
+
+        button.dataset.galleryBound = 'true';
 
         button.addEventListener('click', (event) => {
             event.preventDefault();

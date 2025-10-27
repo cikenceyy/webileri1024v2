@@ -23,13 +23,13 @@
                 'İstek yolu' => $requestPath ?? request()->path(),
             ]"
         >
-            <x-ui-button href="{{ route('admin.dashboard') }}" variant="primary">
-                <i class="bi bi-speedometer2" aria-hidden="true"></i>
-                <span>Dashboard’a dön</span>
-            </x-ui-button>
             <x-ui-button tag="button" type="button" variant="ghost" data-action="history-back">
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
                 <span>Geri</span>
+            </x-ui-button>
+            <x-ui-button href="{{ route('admin.dashboard') }}" variant="primary">
+                <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                <span>Dashboard’a dön</span>
             </x-ui-button>
             <x-ui-button href="{{ url('admin/support/new-ticket') }}" variant="outline-secondary">
                 <i class="bi bi-life-preserver" aria-hidden="true"></i>
