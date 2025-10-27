@@ -1,1 +1,3 @@
+# Ignore generated SQLite databases but keep the base placeholder file.
 *.sqlite*
+!database.sqlite
