@@ -1,15 +1,32 @@
-APP_ENV=production
-APP_DEBUG=false
+# Laravel Cloud configuration for Webileri
+name: webileri
 
-CACHE_STORE=redis
-SESSION_DRIVER=redis
+# Define build and deploy steps (UI may override, but this file documents the intent)
+build:
+  commands:
+    - composer install --no-dev --prefer-dist --optimize-autoloader
+    - php artisan key:generate --force --ansi || true
+    - npm ci
+    - npm run build
+    - php artisan config:cache
+    - php artisan route:cache
+    - php artisan view:cache
 
-DB_CONNECTION=mysql
-DB_HOST=
-DB_PORT=
-DB_DATABASE=
-DB_USERNAME=
-DB_PASSWORD=
+deploy:
+  commands:
+    - php artisan migrate --force
 
-PERMISSION_CACHE_STORE=file
-FILESYSTEM_DISK=s3
+processes:
+  - name: queue
+    command: php artisan queue:work --sleep=1 --tries=1
+    quantity: 1
+
+scheduled:
+  - cron: "* * * * *"
+    command: php artisan schedule:run
+
+# Attach resources (fill IDs/names in Cloud UI; this is descriptive)
+resources:
+  database: "<cloud-db-id>"
+  kv: "<cloud-kv-id>"
+  object_storage: "<cloud-r2-bucket-id>"
