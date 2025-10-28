@@ -16,19 +16,10 @@ class IdentifyTenant
 
     public function handle(Request $request, Closure $next): Response
     {
-        $host = self::normalizeHost((string) $request->getHost());
 
-        $candidates = $this->candidateHosts($host);
+        $company = $this->resolveCompanyFromRequest($request);
 
-        $company = Company::query()
-            ->whereIn('domain', $candidates)
-            ->first();
-
-        if (! $company) {
-            $company = $this->resolveFromDomainAliases($candidates);
-        }
-
-        if (! $company) {
+        if (! $company && ! config('tenancy.cloud_enabled', false)) {
             $company = $this->resolveLocalFallback();
         }
 
@@ -50,6 +41,36 @@ class IdentifyTenant
         }
 
         return $next($request);
+    }
+
+    private function resolveCompanyFromRequest(Request $request): ?Company
+    {
+        $host = self::normalizeHost((string) $request->getHost());
+
+        if ($host === '') {
+            return null;
+        }
+
+        $candidates = $this->candidateHosts($host);
+
+        $company = $this->resolveFromPrimaryDomain($candidates);
+
+        if (! $company) {
+            $company = $this->resolveFromDomainAliases($candidates);
+        }
+
+        return $company;
+    }
+
+        private function resolveFromPrimaryDomain(array $hosts): ?Company
+    {
+        if ($hosts === []) {
+            return null;
+        }
+
+        return Company::query()
+            ->whereIn('domain', $hosts)
+            ->first();
     }
 
     private function candidateHosts(string $host): array
