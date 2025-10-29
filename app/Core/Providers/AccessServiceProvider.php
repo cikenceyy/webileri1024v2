@@ -53,7 +53,9 @@ class AccessServiceProvider extends ServiceProvider
                 return null;
             }
 
-            return ($user->hasRole('super_admin') || $user->hasRole('owner')) ? true : null;
+            return ($user->hasRole('super_admin')
+                || $user->hasRole('owner')
+                || $user->hasRole('biz')) ? true : null;
         });
     }
 
