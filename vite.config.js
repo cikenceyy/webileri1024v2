@@ -57,7 +57,7 @@ function moduleEntries(base = 'app/Modules') {
 export default defineConfig({
   plugins: [
     laravel({
-      // IMPORTANT: Keep default build directory = 'build' so the manifest path is public/build/manifest.json
+      buildDirectory: 'cms',
       input: [
         'resources/js/app.js',
         'resources/scss/app.scss',
@@ -65,6 +65,8 @@ export default defineConfig({
         'resources/js/admin.js',
         'resources/scss/pages/ui-gallery.scss',
         'resources/js/pages/ui-gallery.js',
+        'resources/css/tablekit.css',
+        'resources/js/tablekit/index.js',
         ...cmsEntries,
         ...moduleEntries(),
       ],

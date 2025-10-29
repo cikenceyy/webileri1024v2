@@ -1,11 +1,9 @@
-# Laravel Cloud configuration for Webileri
+# Clean Laravel Cloud config (no quotes, LF endings)
 name: webileri
 
-# Define build and deploy steps (UI may override, but this file documents the intent)
 build:
   commands:
     - composer install --no-dev --prefer-dist --optimize-autoloader
-    - php artisan key:generate --force --ansi || true
     - npm ci
     - npm run build
     - php artisan config:cache
@@ -20,10 +18,16 @@ processes:
   - name: queue
     command: php artisan queue:work --sleep=1 --tries=1
     quantity: 1
+    env:
+      QUEUE_CONNECTION: redis
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
 
 scheduled:
   - cron: "* * * * *"
     command: php artisan schedule:run
+    env:
+      QUEUE_CONNECTION: redis
 
 # Attach resources (fill IDs/names in Cloud UI; this is descriptive)
 resources:

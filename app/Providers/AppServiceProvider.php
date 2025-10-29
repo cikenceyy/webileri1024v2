@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Foundation\Vite;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,5 +27,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // UI components rely on Laravel's automatic anonymous component discovery.
         // No manual Blade aliases are needed for <x-ui-*> usage.
+        Vite::useBuildDirectory('cms');
     }
 }
