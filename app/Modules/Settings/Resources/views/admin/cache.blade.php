@@ -1,3 +1,4 @@
+{{-- Admin > Ayarlar > Önbellek Yönetimi sayfası: ısıtma/temizlik aksiyonlarının UI şeması. --}}
 @extends('layouts.admin')
 
 @section('title', __('Önbellek Yönetimi'))

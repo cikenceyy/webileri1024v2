@@ -5,6 +5,7 @@ use App\Modules\Settings\Http\Controllers\Admin\CacheController;
 use App\Modules\Settings\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
+// Önbellek yönetimi sayfası yalnızca admin/superadmin (SettingsPolicy update yetkisi) tarafından erişilir.
 Route::middleware(['web', 'tenant', 'auth', 'verified'])
     ->prefix('/admin/settings')
     ->as('admin.settings.')

@@ -9,6 +9,10 @@ use Illuminate\Support\Str;
  * Tenant bazlı önbellek anahtarlarını standartlaştırmak için yardımcı sınıf.
  * Tüm anahtarlar "tenant:{id}:..." formatını takip eder ve parçalar güvenli
  * karakter setine normalize edilir.
+ *
+ * Örnekler:
+ * - tenant:{id}:menu:main:v1 → admin menüsü
+ * - tenant:{id}:drive:list:folder_10:p1 → Drive klasör listelemesi
  */
 class Keys
 {

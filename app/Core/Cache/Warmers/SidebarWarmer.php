@@ -9,6 +9,7 @@ use App\Core\Views\AdminSidebar;
 /**
  * Yan menüde kullanılan navigasyon ağacını ısıtır; erişim kontrolleri sonucun
  * içinde saklandığı için render sırasında yeniden hesaplanmaz.
+ * Beklenen veri: AdminSidebar::navigation() koleksiyonu (section -> items).
  */
 class SidebarWarmer
 {

@@ -9,6 +9,7 @@ use App\Modules\Drive\Support\DriveStructure;
 
 /**
  * Drive modülündeki sayfa özetleri ve ilk sayfa listelerini sıcak tutar.
+ * Beklenen veri: istatistikler (array) ve son dosya listesi (array) ayrı anahtarlar olarak yazılır.
  */
 class DriveListingWarmer
 {

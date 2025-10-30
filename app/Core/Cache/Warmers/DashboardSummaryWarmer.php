@@ -13,6 +13,7 @@ use Carbon\CarbonImmutable;
 
 /**
  * Gösterge panelinde kullanılan özet verileri önceden hazırlar.
+ * Beklenen veri: 'kpis' dizisi ile son faturalar/gönderiler koleksiyonlarını içeren dashboard payload'ı.
  */
 class DashboardSummaryWarmer
 {

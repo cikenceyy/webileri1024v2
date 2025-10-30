@@ -1,3 +1,4 @@
+// Admin önbellek yönetim sayfası JS bloğu: ısıtma/temizlik butonlarını AJAX ile yönetir.
 import bus from '../lib/bus.js';
 
 const formatRelative = (iso) => {

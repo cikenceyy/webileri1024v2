@@ -8,6 +8,7 @@ use App\Core\Views\AdminSidebar;
 
 /**
  * Admin navigasyon menüsünü tenant bazlı olarak ısıtır.
+ * Beklenen veri: AdminSidebar::navigation() çıktısı (başlıklar, çocuk menüler).
  */
 class MenuWarmer
 {

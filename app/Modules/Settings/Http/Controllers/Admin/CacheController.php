@@ -14,6 +14,7 @@ use function currentCompanyId;
 
 /**
  * Yönetici tarafında önbellek ısıtma/temizleme aksiyonlarını sunar.
+ * Risk notu: Hatalı temizlik sonrası ilk istekler yavaşlayabileceği için sadece admin/superadmin erişebilir.
  */
 class CacheController extends Controller
 {

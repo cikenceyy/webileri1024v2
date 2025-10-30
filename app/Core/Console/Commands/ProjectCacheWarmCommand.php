@@ -76,7 +76,7 @@ class ProjectCacheWarmCommand extends Command
             $current = currentCompanyId();
 
             if ($current) {
-            return [$current];
+                return [$current];
             }
 
             $fallback = Company::query()->orderBy('id')->value('id');
