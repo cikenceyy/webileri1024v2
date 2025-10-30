@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Database\QueryException;
 
 /**
  * Gelen host bilgisinden şirketi tespit eder, cache kullanımını loglar ve teşhis verilerini paylaşır.
@@ -140,8 +141,33 @@ class IdentifyTenant
 
     private function lookupDomain(string $host): ?array
     {
+        try {
+            $domain = CompanyDomain::query()
+                ->where('host', $host)
+                ->first(['id', 'company_id', 'is_primary']);
+        } catch (QueryException $exception) {
+            if ($this->isMissingHostColumn($exception)) {
+                return $this->lookupLegacyDomain($host);
+            }
+
+            throw $exception;
+        }
+
+        if ($domain) {
+            return [
+                'company_id' => (int) $domain->company_id,
+                'domain_id' => (int) $domain->id,
+                'is_primary' => (bool) $domain->is_primary,
+            ];
+        }
+
+        return $this->lookupLegacyDomain($host);
+    }
+
+    private function lookupLegacyDomain(string $host): ?array
+    {
         $domain = CompanyDomain::query()
-            ->where('host', $host)
+            ->where('domain', $host)
             ->first(['id', 'company_id', 'is_primary']);
 
         if ($domain) {
@@ -149,6 +175,7 @@ class IdentifyTenant
                 'company_id' => (int) $domain->company_id,
                 'domain_id' => (int) $domain->id,
                 'is_primary' => (bool) $domain->is_primary,
+                'legacy' => true,
             ];
         }
 
@@ -166,6 +193,14 @@ class IdentifyTenant
         return null;
     }
 
+    private function isMissingHostColumn(QueryException $exception): bool
+    {
+        $message = $exception->getMessage();
+
+        return str_contains($message, "Unknown column 'host'")
+            || str_contains($message, 'column "host" does not exist');
+    }
+
     private function resolveLocalFallback(): ?Company
     {
         $fallbackId = (int) (config('tenancy.local_fallback_company_id') ?? 0);
@@ -175,6 +210,10 @@ class IdentifyTenant
             if ($company) {
                 return $company;
             }
+        }
+        
+        if (app()->environment('local', 'development', 'testing')) {
+            return Company::query()->orderBy('id')->first();
         }
 
         return null;

@@ -35,7 +35,8 @@ class MetricRollupService
         $grouped = $metrics->groupBy(fn ($item) => $item->company_id . '|' . $item->table_key);
 
         DB::transaction(function () use ($grouped, $date): void {
-            foreach ($grouped as $key => Collection $items) {
+            foreach ($grouped as $key => $items) {
+                /** @var Collection<int, TablekitMetric> $items */
                 [$companyId, $tableKey] = explode('|', $key, 2);
                 $companyId = (int) $companyId;
 

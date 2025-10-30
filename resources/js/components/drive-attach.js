@@ -3,7 +3,17 @@
  * Not: AJAX uçları modüller tarafından sağlanmalıdır; bu dosya sadece
  * debounced arama ve seçim mantığını sunar.
  */
-import debounce from 'lodash/debounce';
+const debounce = (fn, wait = 0) => {
+    let timeoutId;
+
+    return function debounced(...args) {
+        const context = this;
+        window.clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => {
+            fn.apply(context, args);
+        }, wait);
+    };
+};
 
 const translate = (key) => (typeof window !== 'undefined' && typeof window.__ === 'function' ? window.__(key) : key);
 

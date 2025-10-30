@@ -9,6 +9,7 @@ use App\Core\Settings\Models\CompanySetting;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -169,6 +170,12 @@ class SettingsRepository
 
     private function revalidate(int $companyId, string $key, ?array $currentPayload = null): ?array
     {
+        $table = (new CompanySetting())->getTable();
+
+        if (! Schema::hasTable($table)) {
+            return $this->cacheMissingRecord($companyId, $key, $currentPayload);
+        }
+
         $record = CompanySetting::query()
             ->where('company_id', $companyId)
             ->where('key', $key)
@@ -186,9 +193,8 @@ class SettingsRepository
                 'value' => null,
             ];
 
-        $this->storeInCache($companyId, $key, $payload['type'], $payload['value'], $payload['exists']);
+        return $this->storePayload($companyId, $key, $payload);
 
-        return $payload;
     }
 
     private function storeInCache(int $companyId, string $key, string $type, mixed $value, bool $exists): void
@@ -204,6 +210,25 @@ class SettingsRepository
 
         $this->cache->put($cacheKey, $payload, $ttl + self::STALE_SECONDS);
         $this->cacheInvalidation->attachKeyToTags($cacheKey, $this->cacheTags($companyId), $ttl + self::STALE_SECONDS);
+    }
+
+    private function cacheMissingRecord(int $companyId, string $key, ?array $currentPayload = null): array
+    {
+        $payload = $currentPayload ?? [
+            'type' => 'string',
+            'value' => null,
+        ];
+
+        $payload['exists'] = false;
+
+        return $this->storePayload($companyId, $key, $payload);
+    }
+
+    private function storePayload(int $companyId, string $key, array $payload): array
+    {
+        $this->storeInCache($companyId, $key, $payload['type'], $payload['value'], $payload['exists']);
+
+        return $payload;
     }
 
     private function cacheKey(int $companyId, string $key): string
