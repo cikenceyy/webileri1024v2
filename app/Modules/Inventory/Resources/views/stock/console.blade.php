@@ -1,136 +1,105 @@
+{{-- ConsoleKit stok ekranı: hızlı grid, komut çubuğu ve bulk işlemler. --}}
 @extends('layouts.admin')
 
-@section('title', 'Stok İşlem Konsolu')
+@section('title', 'Stok Konsolu')
 @section('module', 'Inventory')
 
 @push('page-styles')
-    @vite('app/Modules/Inventory/Resources/scss/stock_console.scss')
+    @vite('app/Modules/Inventory/Resources/scss/console.scss')
 @endpush
 
 @push('page-scripts')
-    @vite('app/Modules/Inventory/Resources/js/stock_console.js')
+    @vite('app/Modules/Inventory/Resources/js/console.js')
 @endpush
 
 @section('content')
-    <div class="inv-console"
-         data-mode="{{ $mode }}"
-         data-endpoint="{{ route('admin.inventory.stock.console.store') }}"
-         data-allow-negative="{{ $allowNegative ? 'true' : 'false' }}">
-        <header class="inv-console__tabs" role="tablist">
-            @foreach (['in' => 'Giriş', 'out' => 'Çıkış', 'transfer' => 'Transfer', 'adjust' => 'Düzeltme'] as $tabMode => $label)
-                <a href="{{ route('admin.inventory.stock.console', ['mode' => $tabMode]) }}"
-                   class="inv-console__tab {{ $mode === $tabMode ? 'is-active' : '' }}"
-                   role="tab"
-                   data-console-tab="{{ $tabMode }}">
-                    {{ $label }}
-                </a>
-            @endforeach
+    <div class="console-kit"
+         data-grid-endpoint="{{ route('admin.inventory.stock.console.grid') }}"
+         data-bulk-endpoint="{{ route('admin.inventory.stock.console.store') }}"
+         data-bulk-jobs="{{ route('admin.bulk-jobs.index') }}"
+         data-poll-interval="{{ $pollInterval }}"
+         data-commands='@json($commands)'
+         data-quick-filters='@json($quickFilters)'
+         data-columns='@json($grid->columns)'>
+        <header class="console-kit__header">
+            <div>
+                <h1 class="console-kit__title">Stok Konsolu</h1>
+                <p class="console-kit__subtitle">Depo bazlı stokları tek ekranda izleyin, hızlı komutlarla aksiyon alın.</p>
+            </div>
+            <div class="console-kit__actions">
+                <button type="button" class="btn btn-outline-light" data-console-command>
+                    <span class="me-1" aria-hidden="true">⌘</span> Komut Çubuğu (.)
+                </button>
+                <button type="button" class="btn btn-primary" data-console-refresh title="Grid verisini yenile">
+                    Yenile
+                </button>
+            </div>
         </header>
 
-        <section class="inv-console__filters" aria-label="İşlem parametreleri">
-            <form class="row g-3" data-console-form>
-                <div class="col-md-3">
-                    <label class="form-label">Kaynak Depo</label>
-                    <select class="form-select" name="source_warehouse_id">
-                        <option value="">Depo seçin</option>
+        <section class="console-kit__filters" aria-label="Hızlı filtreler">
+            <div class="console-kit__filter-row">
+                <div class="console-kit__quick">
+                    @foreach ($quickFilters as $filter)
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-filter-id="{{ $filter['id'] }}">
+                            {{ $filter['label'] }}
+                        </button>
+                    @endforeach
+                </div>
+                <div class="console-kit__search">
+                    <input type="search" class="form-control" placeholder="alan:değer veya ürün adı" data-console-search>
+                </div>
+                <div class="console-kit__warehouse">
+                    <label class="form-label mb-1">Depo</label>
+                    <select class="form-select form-select-sm" data-console-warehouse>
+                        <option value="">Hepsi</option>
                         @foreach ($warehouses as $warehouse)
                             <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Hedef Depo</label>
-                    <select class="form-select" name="target_warehouse_id">
-                        <option value="">Depo seçin</option>
-                        @foreach ($warehouses as $warehouse)
-                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Belge No</label>
-                    <input type="text" class="form-control" name="reference" placeholder="Opsiyonel">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Tarih / Saat</label>
-                    <input type="datetime-local" class="form-control" name="moved_at" value="{{ $defaultMovedAt }}">
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Ürün Ara / Barkod</label>
-                    <input type="search"
-                           class="form-control"
-                           data-action="product-search"
-                           placeholder="SKU, barkod ya da isim"
-                           autocomplete="off"
-                           inputmode="search"
-                           data-endpoint="{{ route('admin.inventory.stock.console.lookup') }}">
-                </div>
-                <div class="col-12">
-                    <div class="alert d-none" data-console-feedback role="alert" aria-live="assertive"></div>
-                </div>
-            </form>
+            </div>
+            <div class="alert alert-info console-kit__hint" role="note">
+                Filtre söz dizimi örnekleri: <code>qty:0..100</code>, <code>warehouse_id:5</code>, <code>updated_at:2024-01-01..2024-02-01</code>
+            </div>
         </section>
 
-        <section class="inv-console__body">
-            <div class="inv-console__cart" data-cart-region>
-                <p class="text-muted">Sepete ürün eklemek için arayın veya barkodu okutun.</p>
+        <section class="console-kit__body" aria-live="polite">
+            <div class="table-responsive console-kit__grid" data-console-grid>
+                <table class="table table-hover">
+                    <thead>
+                        <tr></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="text-muted">Veri yükleniyor…</td></tr>
+                    </tbody>
+                </table>
+                <div class="console-kit__pager" data-console-pager></div>
             </div>
-
-            <aside class="inv-console__keypad" aria-label="Sayısal tuş takımı">
-                <div class="inv-keypad">
-                    @foreach ([7,8,9,4,5,6,1,2,3,0,'.'] as $key)
-                        <button type="button" class="inv-keypad__key" data-key="{{ $key }}">{{ $key }}</button>
-                    @endforeach
-                    <button type="button" class="inv-keypad__key" data-key="plus">+1</button>
-                    <button type="button" class="inv-keypad__key" data-key="minus">-1</button>
-                    <button type="button" class="inv-keypad__key" data-key="del">Sil</button>
+            <aside class="console-kit__sidebar" aria-label="Toplu işlemler">
+                <h2 class="console-kit__sidebar-title">Toplu İşler</h2>
+                <div class="console-kit__jobs" data-console-jobs>
+                    <p class="text-muted mb-0">Henüz kuyrukta iş yok.</p>
                 </div>
-                <div class="inv-console__summary" data-summary-region>
-                    <dl class="inv-console__summary-list">
-                        <div>
-                            <dt>Kalem</dt>
-                            <dd data-summary-lines>0</dd>
-                        </div>
-                        <div>
-                            <dt>Toplam Miktar</dt>
-                            <dd data-summary-qty>0</dd>
-                        </div>
-                        <div>
-                            <dt>Tahmini Değer</dt>
-                            <dd data-summary-value>0</dd>
-                        </div>
-                    </dl>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-primary" data-action="console-submit">Kaydet</button>
-                        <button type="button" class="btn btn-outline-secondary" data-action="console-reset">Temizle</button>
-                        <button type="button" class="btn btn-outline-secondary" data-action="console-print">Yazdır</button>
-                        <button type="button" class="btn btn-outline-secondary" data-action="console-share">Paylaş</button>
-                    </div>
+                <div class="console-kit__footer" data-console-status>
+                    <span class="badge bg-success">●</span>
+                    <span class="ms-2">Son güncelleme: <span data-console-updated>—</span></span>
+                    <span class="ms-3">Seçili: <span data-console-selected>0</span></span>
                 </div>
             </aside>
         </section>
 
-        <section class="inv-console__suggestions" aria-label="Son eklenen ürünler">
-            <h2 class="inv-console__suggestions-title">Hızlı Seçim</h2>
-            <div class="inv-console__suggestion-grid">
-                @foreach ($recentProducts as $product)
-                    <button type="button"
-                            class="inv-console__suggestion"
-                            data-action="cart-select"
-                            data-item-id="{{ $product->id }}"
-                            data-item='@json([
-                                "id" => $product->id,
-                                "name" => $product->name,
-                                "sku" => $product->sku,
-                                "price" => (float) ($product->price ?? 0),
-                                "unit" => $product->baseUnit?->code,
-                                "onHand" => round($product->stockItems->sum("qty"), 2),
-                            ])'>
-                        <span class="inv-console__suggestion-name">{{ $product->name }}</span>
-                        <span class="inv-console__suggestion-meta">{{ $product->sku }}</span>
-                    </button>
-                @endforeach
+        <template id="console-command-template">
+            <div class="console-command" role="dialog" aria-modal="true" aria-label="Komut Çubuğu">
+                <div class="console-command__box">
+                    <div class="console-command__header">
+                        <input type="search" class="console-command__search" placeholder="Komut ara" />
+                        <button type="button" class="btn-close" data-close></button>
+                    </div>
+                    <div class="console-command__list" role="listbox"></div>
+                </div>
             </div>
-        </section>
+        </template>
     </div>
 @endsection

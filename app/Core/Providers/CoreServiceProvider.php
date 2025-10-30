@@ -2,6 +2,7 @@
 
 namespace App\Core\Providers;
 
+use App\Core\Bulk\BulkActionService;
 use App\Core\Cache\CacheEventLogger;
 use App\Core\Cache\InvalidationService;
 use App\Core\Cache\TenantCacheManager;
@@ -10,6 +11,9 @@ use App\Core\Console\Commands\ProjectCacheFlushCommand;
 use App\Core\Console\Commands\ProjectCacheWarmCommand;
 use App\Core\Console\Commands\TablekitScan;
 use App\Core\Exports\Console\ExportsPurgeCommand;
+use App\Core\Reports\Console\RunReportsCommand;
+use App\Core\Reports\ReportRegistry;
+use App\Core\Reports\ReportService;
 use App\Core\TableKit\Console\TablekitRollupCommand;
 use App\Core\TableKit\Services\MetricRecorder;
 use App\Core\TableKit\Services\MetricRollupService;
@@ -25,6 +29,9 @@ use App\Core\Support\Console\Commands\SequenceSeedCommand;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Çekirdek servisleri, console komutlarını ve admin rotalarını yükler.
+ */
 class CoreServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -36,6 +43,9 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(MetricRecorder::class);
         $this->app->singleton(MetricRollupService::class);
         $this->app->singleton(TableExporterRegistry::class);
+        $this->app->singleton(BulkActionService::class);
+        $this->app->singleton(ReportRegistry::class);
+        $this->app->singleton(ReportService::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -52,6 +62,7 @@ class CoreServiceProvider extends ServiceProvider
                 SettingsSetCommand::class,
                 TablekitRollupCommand::class,
                 ExportsPurgeCommand::class,
+                RunReportsCommand::class,
             ]);
         }
     }

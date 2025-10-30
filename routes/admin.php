@@ -1,7 +1,9 @@
 <?php
 
 use App\Core\Auth\Http\Controllers\AuthAuditController;
+use App\Core\Bulk\Http\Controllers\BulkJobController;
 use App\Core\Exports\Http\Controllers\ExportController as TableExportController;
+use App\Core\Reports\Http\Controllers\ReportController;
 use App\Core\TableKit\Http\Controllers\MetricsController;
 use App\Core\TableKit\Http\Controllers\SavedFilterController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -38,6 +40,24 @@ Route::prefix('admin')
                 Route::post('{tableKey}', [TableExportController::class, 'store'])->name('store');
                 Route::get('{export}/download', [TableExportController::class, 'download'])->name('download');
                 Route::delete('{export}', [TableExportController::class, 'destroy'])->name('destroy');
+            });
+
+            Route::prefix('bulk-jobs')->as('bulk-jobs.')->group(function (): void {
+                Route::get('/', [BulkJobController::class, 'index'])
+                    ->middleware('fresh')
+                    ->name('index');
+                Route::post('/', [BulkJobController::class, 'store'])->name('store');
+            });
+
+            Route::prefix('reports')->as('reports.')->group(function (): void {
+                Route::get('/', [ReportController::class, 'index'])->name('index');
+                Route::get('list', [ReportController::class, 'list'])
+                    ->middleware('fresh')
+                    ->name('list');
+                Route::post('{reportKey}/refresh', [ReportController::class, 'refresh'])->name('refresh');
+                Route::get('download/{snapshot}', [ReportController::class, 'download'])
+                    ->middleware('fresh')
+                    ->name('download');
             });
 
             Route::get('metrics/tablekit', [MetricsController::class, 'index'])

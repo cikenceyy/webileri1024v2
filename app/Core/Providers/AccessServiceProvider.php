@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\PermissionRegistrar;
 
+/**
+ * Yetki haritasını tenant bağlamında yapılandırır ve rapor görünüm iznini tanımlar.
+ */
 class AccessServiceProvider extends ServiceProvider
 {
     /**
@@ -56,6 +59,14 @@ class AccessServiceProvider extends ServiceProvider
             return ($user->hasRole('super_admin')
                 || $user->hasRole('owner')
                 || $user->hasRole('biz')) ? true : null;
+        });
+
+        Gate::define('viewReports', static function ($user) {
+            if (! method_exists($user, 'can')) {
+                return true;
+            }
+
+            return $user->can('inventory.report.view') || $user->can('settings.manage');
         });
     }
 
