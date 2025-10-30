@@ -1,7 +1,11 @@
 <?php
 
+use App\Core\Exports\Http\Controllers\ExportController as TableExportController;
+use App\Core\TableKit\Http\Controllers\MetricsController;
+use App\Core\TableKit\Http\Controllers\SavedFilterController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Modules\Settings\Domain\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
@@ -20,6 +24,24 @@ Route::prefix('admin')
         Route::middleware('auth')->group(function (): void {
             Route::get('/', DashboardController::class)->name('dashboard');
             Route::post('logout', [LoginController::class, 'logout'])->name('auth.logout');
+
+            Route::prefix('tablekit')->as('tablekit.')->group(function (): void {
+                Route::get('filters/{tableKey}', [SavedFilterController::class, 'index'])->name('filters.index');
+                Route::post('filters/{tableKey}', [SavedFilterController::class, 'store'])->name('filters.store');
+                Route::delete('filters/{tableKey}/{filter}', [SavedFilterController::class, 'destroy'])->name('filters.destroy');
+                Route::post('filters/{tableKey}/{filter}/default', [SavedFilterController::class, 'makeDefault'])->name('filters.default');
+            });
+
+            Route::prefix('exports')->as('exports.')->group(function (): void {
+                Route::get('/', [TableExportController::class, 'index'])->name('index');
+                Route::post('{tableKey}', [TableExportController::class, 'store'])->name('store');
+                Route::get('{export}/download', [TableExportController::class, 'download'])->name('download');
+                Route::delete('{export}', [TableExportController::class, 'destroy'])->name('destroy');
+            });
+
+            Route::get('metrics/tablekit', [MetricsController::class, 'index'])
+                ->middleware('can:update,' . Setting::class)
+                ->name('metrics.tablekit');
 
             if (config('features.legacy_routing.inventory_pricelists')) {
                 Route::get('inventory/pricelists', function () {

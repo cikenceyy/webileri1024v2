@@ -35,6 +35,7 @@ class WorkOrderController extends Controller
         private readonly WorkOrderCompleter $completer,
         private readonly SettingsReader $settingsReader,
     ) {
+        $this->middleware('throttle:tablekit-list')->only('index');
     }
 
     /**
@@ -62,7 +63,10 @@ class WorkOrderController extends Controller
                 'created_at',
             ])
             ->allowSorts(['number', 'planned_qty', 'status', 'due_date', 'created_at'])
-            ->allowFilters(['status'])
+            ->allowFilters([
+                'status' => ['type' => 'string'],
+                'due_date' => ['type' => 'date'],
+            ])
             ->defaultSort('-created_at')
             ->mapUsing(static function (WorkOrder $order): array {
                 $number = $order->number ?: sprintf('WO-%05d', $order->id);
@@ -86,7 +90,7 @@ class WorkOrderController extends Controller
             ['key' => 'status', 'label' => __('Durum'), 'sortable' => true, 'width' => '120px'],
             ['key' => 'due_date', 'label' => __('Termin'), 'sortable' => true, 'width' => '140px'],
         ], [
-            'id' => 'workorders',
+            'id' => 'production:workorders',
             'default_sort' => $payload['meta']['default_sort'],
             'data_count' => $payload['paginator']->count(),
             'row_actions' => [
@@ -97,8 +101,9 @@ class WorkOrderController extends Controller
 
         $tableKitRows = $payload['rows'];
         $tableKitPaginator = $payload['paginator'];
+        $tableKitState = $payload['meta']['state'] ?? [];
 
-        return view('production::admin.workorders.index', compact('tableKitConfig', 'tableKitRows', 'tableKitPaginator'));
+        return view('production::admin.workorders.index', compact('tableKitConfig', 'tableKitRows', 'tableKitPaginator', 'tableKitState'));
     }
 
 

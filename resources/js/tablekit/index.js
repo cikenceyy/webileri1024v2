@@ -1,5 +1,6 @@
 import { initDateRangeControls } from './plugins/date-range';
 import { TableVirtualizer } from './virtualize';
+import bus from '../lib/bus.js';
 
 const MODE_CLIENT = 'client';
 const MODE_SERVER = 'server';
@@ -44,10 +45,12 @@ class TableKit {
         this.perPageInput = element.querySelector('[data-tablekit-per-page]');
         this.sortInput = element.querySelector('[data-tablekit-sort-input]');
         this.datasetElement = element.querySelector('[data-tablekit-dataset]');
+        this.stateElement = element.querySelector('[data-tablekit-state]');
         this.headers = Array.from(element.querySelectorAll('[data-tablekit-sortable]'));
         this.filters = Array.from(element.querySelectorAll('[data-tablekit-filter]'));
         this.selectAllInputs = Array.from(element.querySelectorAll('[data-tablekit-select-all]'));
         this.rowMetaTemplate = element.querySelector('[data-tablekit-row-meta-template]');
+        this.tableKey = element.getAttribute('data-tablekit-key') || '';
 
         this.mode = element.getAttribute('data-tablekit-mode') || MODE_SERVER;
         this.count = parseInt(element.getAttribute('data-tablekit-count') || '0', 10);
@@ -75,6 +78,29 @@ class TableKit {
         this.selected = new Set();
         this.virtualizer = null;
         this.emptyPlaceholder = this.body ? (this.body.querySelector('.tablekit__empty')?.outerHTML || '') : '';
+        this.initialState = {};
+        if (this.stateElement) {
+            try {
+                this.initialState = JSON.parse(this.stateElement.textContent || '{}');
+            } catch (error) {
+                console.warn('[TableKit] State parse failed', error);
+                this.initialState = {};
+            }
+        }
+
+        this.savedFilters = [];
+        this.savedFilterContainer = this.form ? this.form.querySelector('[data-tablekit-saved]') : null;
+        this.savedFilterSelect = this.savedFilterContainer?.querySelector('[data-tablekit-saved-list]') ?? null;
+        this.savedFilterApplyButton = this.savedFilterContainer?.querySelector('[data-tablekit-saved-apply]') ?? null;
+        this.savedFilterDefaultButton = this.savedFilterContainer?.querySelector('[data-tablekit-saved-default]') ?? null;
+        this.savedFilterDeleteButton = this.savedFilterContainer?.querySelector('[data-tablekit-saved-delete]') ?? null;
+        this.savedFilterSaveButton = this.savedFilterContainer?.querySelector('[data-tablekit-saved-save]') ?? null;
+        this.advancedInput = this.form ? this.form.querySelector('[data-tablekit-advanced]') : null;
+        this.exportButton = this.form ? this.form.querySelector('[data-tablekit-export]') : null;
+        this.exportFormatSelect = this.form ? this.form.querySelector('[data-tablekit-export-format]') : null;
+        if (this.advancedInput && this.initialState.filter_text) {
+            this.advancedInput.value = this.initialState.filter_text;
+        }
 
         if (this.dense) {
             this.element.classList.add('tablekit--dense');
@@ -85,6 +111,11 @@ class TableKit {
         this.setupVirtualizer();
         this.attachEvents();
         initDateRangeControls(this.form);
+
+        if (this.savedFilterContainer && this.tableKey) {
+            this.initSavedFilterEvents();
+            this.loadSavedFilters();
+        }
 
         if (this.mode === MODE_CLIENT) {
             this.render(true);
@@ -257,6 +288,10 @@ class TableKit {
 
         this.shortcutHandler = (event) => this.handleShortcut(event);
         document.addEventListener('keydown', this.shortcutHandler);
+
+        if (this.exportButton) {
+            this.exportButton.addEventListener('click', () => this.startExport());
+        }
     }
 
     getSelectionColumn() {
@@ -974,6 +1009,284 @@ class TableKit {
 
         const newUrl = `${window.location.pathname}?${params.toString()}`;
         window.history.replaceState({}, '', newUrl);
+    }
+
+    async startExport() {
+        if (!this.tableKey || !this.exportButton) {
+            return;
+        }
+
+        const format = this.exportFormatSelect ? this.exportFormatSelect.value : 'csv';
+        this.exportButton.disabled = true;
+        this.exportButton.setAttribute('aria-busy', 'true');
+
+        try {
+            const statePayload = this.initialState && Object.keys(this.initialState).length > 0
+                ? this.initialState
+                : null;
+
+            const response = await fetch(`/admin/exports/${encodeURIComponent(this.tableKey)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': this.csrfToken(),
+                },
+                body: JSON.stringify({
+                    format,
+                    state: statePayload,
+                    query: this.currentQueryString(),
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Status ${response.status}`);
+            }
+
+            this.showToast('success', 'Export kuyruğa alındı', 'Export Geçmişi ekranından ilerlemeyi takip edebilirsiniz.');
+        } catch (error) {
+            console.warn('[TableKit] Export başlatılamadı', error);
+            this.showToast('danger', 'Export başlatılamadı', 'Export başlatılırken hata oluştu.');
+        } finally {
+            this.exportButton.disabled = false;
+            this.exportButton.removeAttribute('aria-busy');
+        }
+    }
+
+    initSavedFilterEvents() {
+        if (this.savedFilterSelect) {
+            this.savedFilterSelect.addEventListener('change', () => {
+                const hasSelection = Boolean(this.savedFilterSelect.value);
+                if (this.savedFilterApplyButton) {
+                    this.savedFilterApplyButton.disabled = !hasSelection;
+                }
+                if (this.savedFilterDefaultButton) {
+                    this.savedFilterDefaultButton.disabled = !hasSelection;
+                }
+                if (this.savedFilterDeleteButton) {
+                    this.savedFilterDeleteButton.disabled = !hasSelection;
+                }
+            });
+        }
+
+        if (this.savedFilterApplyButton) {
+            this.savedFilterApplyButton.addEventListener('click', () => this.applySelectedFilter());
+            this.savedFilterApplyButton.disabled = true;
+        }
+
+        if (this.savedFilterDefaultButton) {
+            this.savedFilterDefaultButton.addEventListener('click', () => this.markDefaultFilter());
+            this.savedFilterDefaultButton.disabled = true;
+        }
+
+        if (this.savedFilterDeleteButton) {
+            this.savedFilterDeleteButton.addEventListener('click', () => this.deleteSelectedFilter());
+            this.savedFilterDeleteButton.disabled = true;
+        }
+
+        if (this.savedFilterSaveButton) {
+            this.savedFilterSaveButton.addEventListener('click', () => this.saveCurrentFilter());
+        }
+    }
+
+    async loadSavedFilters() {
+        if (!this.tableKey || !this.savedFilterSelect) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/tablekit/filters/${encodeURIComponent(this.tableKey)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Status ${response.status}`);
+            }
+
+            const payload = await response.json();
+            this.savedFilters = Array.isArray(payload.filters) ? payload.filters : [];
+            this.renderSavedFilters();
+        } catch (error) {
+            console.warn('[TableKit] Kaydedilmiş filtreler yüklenemedi', error);
+        }
+    }
+
+    renderSavedFilters() {
+        if (!this.savedFilterSelect) {
+            return;
+        }
+
+        this.savedFilterSelect.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '—';
+        this.savedFilterSelect.appendChild(placeholder);
+
+        this.savedFilters.forEach((filter) => {
+            const option = document.createElement('option');
+            option.value = filter.id;
+            option.textContent = filter.is_default ? `${filter.name} ⭐` : filter.name;
+            option.dataset.payload = JSON.stringify(filter.payload || {});
+            this.savedFilterSelect.appendChild(option);
+        });
+
+        this.savedFilterSelect.dispatchEvent(new Event('change'));
+    }
+
+    getSelectedFilter() {
+        if (!this.savedFilterSelect) {
+            return null;
+        }
+
+        const id = this.savedFilterSelect.value;
+        if (!id) {
+            return null;
+        }
+
+        return this.savedFilters.find((filter) => String(filter.id) === String(id)) || null;
+    }
+
+    applySelectedFilter() {
+        const filter = this.getSelectedFilter();
+        if (!filter) {
+            return;
+        }
+
+        const query = filter.payload?.query || '';
+        const target = query ? `${window.location.pathname}${query.startsWith('?') ? query : `?${query}`}` : window.location.pathname;
+        window.location.href = target;
+    }
+
+    async markDefaultFilter() {
+        const filter = this.getSelectedFilter();
+        if (!filter) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/tablekit/filters/${encodeURIComponent(this.tableKey)}/${filter.id}/default`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': this.csrfToken(),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Status ${response.status}`);
+            }
+
+            await this.loadSavedFilters();
+            this.showToast('success', 'Varsayılan filtre güncellendi', 'Seçilen filtre varsayılan olarak işaretlendi.');
+        } catch (error) {
+            console.warn('[TableKit] Varsayılan filtre atanamadı', error);
+            this.showToast('danger', 'Varsayılan filtre atanamadı', 'Varsayılan filtre atanırken hata oluştu.');
+        }
+    }
+
+    async deleteSelectedFilter() {
+        const filter = this.getSelectedFilter();
+        if (!filter) {
+            return;
+        }
+
+        if (!window.confirm('Filtreyi silmek istediğinize emin misiniz?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/tablekit/filters/${encodeURIComponent(this.tableKey)}/${filter.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': this.csrfToken(),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Status ${response.status}`);
+            }
+
+            await this.loadSavedFilters();
+            this.showToast('success', 'Filtre silindi', 'Kaydedilmiş filtre listesi güncellendi.');
+        } catch (error) {
+            console.warn('[TableKit] Filtre silinemedi', error);
+            this.showToast('danger', 'Filtre silinemedi', 'Filtre silinirken hata oluştu.');
+        }
+    }
+
+    async saveCurrentFilter() {
+        if (!this.form || !this.tableKey) {
+            return;
+        }
+
+        const name = window.prompt('Filtre adı');
+        if (!name) {
+            return;
+        }
+
+        const query = this.currentQueryString();
+        try {
+            const response = await fetch(`/admin/tablekit/filters/${encodeURIComponent(this.tableKey)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': this.csrfToken(),
+                },
+                body: JSON.stringify({
+                    name,
+                    payload: { query },
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Status ${response.status}`);
+            }
+
+            await this.loadSavedFilters();
+            this.showToast('success', 'Filtre kaydedildi', 'Yeni filtre başarıyla kaydedildi.');
+        } catch (error) {
+            console.warn('[TableKit] Filtre kaydedilemedi', error);
+            this.showToast('danger', 'Filtre kaydedilemedi', 'Filtre kaydedilirken hata oluştu.');
+        }
+    }
+
+    showToast(variant, title, message) {
+        bus.emit('ui:toast:show', { variant, title, message });
+    }
+
+    csrfToken() {
+        const token = document.querySelector('meta[name="csrf-token"]');
+        return token ? token.getAttribute('content') : '';
+    }
+
+    currentQueryString() {
+        if (!this.form) {
+            return window.location.search || '';
+        }
+
+        const formData = new FormData(this.form);
+        const params = new URLSearchParams();
+        formData.forEach((value, key) => {
+            if (value instanceof File) {
+                return;
+            }
+            params.append(key, value);
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach((value, key) => {
+            if (!params.has(key)) {
+                params.append(key, value);
+            }
+        });
+
+        const query = params.toString();
+        return query ? `?${query}` : '';
     }
 
     escape(value) {

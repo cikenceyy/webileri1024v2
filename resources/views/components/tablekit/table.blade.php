@@ -6,6 +6,7 @@
     'emptyText' => __('Kayıt bulunamadı.'),
     'dense' => false,
     'filters' => null,
+    'state' => [],
 ])
 
 @php
@@ -35,6 +36,7 @@
     $isDense = filter_var($dense, FILTER_VALIDATE_BOOLEAN);
     $filterKeys = is_array($filters) ? implode(',', $filters) : (is_string($filters) ? $filters : '');
     $emptyContent = isset($empty) ? trim($empty) : '';
+    $initialState = is_array($state) ? $state : [];
 @endphp
 
 <div {{ $attributes->class(['tablekit', 'tablekit--dense' => $isDense])->merge([
@@ -49,9 +51,13 @@
     'data-tablekit-selectable' => $config->hasSelectionColumn() ? 'true' : 'false',
     'data-tablekit-dense' => $isDense ? 'true' : 'false',
     'data-tablekit-filters' => $filterKeys,
+    'data-tablekit-key' => $config->identifier() ?? '',
 ]) }}>
     <script type="application/json" data-tablekit-dataset>
         {!! json_encode($dataset, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
+    </script>
+    <script type="application/json" data-tablekit-state>
+        {!! json_encode($initialState, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
     </script>
 
     @if($rowMetaTemplate !== '')

@@ -30,7 +30,7 @@
         }
     @endphp
     <div class="card">
-        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator">
+        <x-table :config="$tableKitConfig" :rows="$tableKitRows" :paginator="$tableKitPaginator" :state="$tableKitState">
             <x-slot name="toolbar">
                 <x-table:toolbar :config="$tableKitConfig" :search-placeholder="__('İş emri ara…')" />
             </x-slot>

@@ -8,6 +8,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use function strip_tags;
 
+/**
+ * TableKit bileşeninin kolon, mod ve veri özet ayarlarını taşıyan yardımcı sınıf.
+ * Amaç: Sunucu tarafında yapılandırmayı merkezi tutarak Blade tarafına kolay aktarmak.
+ */
 class TableConfig implements Arrayable
 {
     public const DEFAULT_CLIENT_THRESHOLD = 500;
@@ -23,7 +27,8 @@ class TableConfig implements Arrayable
         protected ?string $defaultSort = null,
         protected ?int $dataCount = null,
         protected bool $virtual = false,
-        protected ?int $virtualRowHeight = null
+        protected ?int $virtualRowHeight = null,
+        protected ?string $identifier = null,
     ) {
         $this->columns = $columns;
     }
@@ -45,7 +50,8 @@ class TableConfig implements Arrayable
             Arr::get($options, 'default_sort'),
             Arr::get($options, 'data_count'),
             (bool) Arr::get($options, 'virtual', false),
-            Arr::get($options, 'row_height')
+            Arr::get($options, 'row_height'),
+            Arr::get($options, 'id')
         );
     }
 
@@ -80,6 +86,11 @@ class TableConfig implements Arrayable
     public function virtualRowHeight(): ?int
     {
         return $this->virtualRowHeight ? (int) $this->virtualRowHeight : null;
+    }
+
+    public function identifier(): ?string
+    {
+        return $this->identifier;
     }
 
     public function hasSelectionColumn(): bool
@@ -175,6 +186,7 @@ class TableConfig implements Arrayable
             'dataCount' => $this->dataCount,
             'virtual' => $this->virtual,
             'rowHeight' => $this->virtualRowHeight(),
+            'id' => $this->identifier,
         ];
     }
 }
