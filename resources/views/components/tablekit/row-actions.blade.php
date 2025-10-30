@@ -14,11 +14,24 @@
                 $variant = $action['variant'] ?? 'ghost';
                 $target = $action['target'] ?? null;
                 $rel = $target === '_blank' ? 'noopener noreferrer' : null;
+                $permission = $action['permission'] ?? null;
+                $ability = $action['ability'] ?? null;
+                $arguments = $action['arguments'] ?? [];
+                $tooltip = $action['tooltip'] ?? __('Bu işlem için yetkiniz yok');
                 $classes = 'tablekit__action tablekit__action--'.$variant;
             @endphp
-            <a href="{{ $href }}" class="{{ $classes }}" @if($target) target="{{ $target }}" @endif @if($rel) rel="{{ $rel }}" @endif>
+            <x-auth.action
+                class="{{ $classes }}"
+                href="{{ $href }}"
+                :permission="$permission"
+                :ability="$ability"
+                :arguments="$arguments"
+                :tooltip="$tooltip"
+                @if($target) target="{{ $target }}" @endif
+                @if($rel) rel="{{ $rel }}" @endif
+            >
                 {{ $label }}
-            </a>
+            </x-auth.action>
         @endforeach
     </div>
 @endif

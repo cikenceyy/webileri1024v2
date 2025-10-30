@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Auth\Http\Controllers\AuthAuditController;
 use App\Core\Exports\Http\Controllers\ExportController as TableExportController;
 use App\Core\TableKit\Http\Controllers\MetricsController;
 use App\Core\TableKit\Http\Controllers\SavedFilterController;
@@ -42,6 +43,10 @@ Route::prefix('admin')
             Route::get('metrics/tablekit', [MetricsController::class, 'index'])
                 ->middleware('can:update,' . Setting::class)
                 ->name('metrics.tablekit');
+
+            Route::get('metrics/auth-audit', [AuthAuditController::class, 'index'])
+                ->middleware('can:viewAuthAuditMetrics')
+                ->name('metrics.auth-audit');
 
             if (config('features.legacy_routing.inventory_pricelists')) {
                 Route::get('inventory/pricelists', function () {

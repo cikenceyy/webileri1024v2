@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Core\Auth\AuthorizationAuditLogger;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -43,6 +45,22 @@ class AppServiceProvider extends ServiceProvider
             $identifier = ($request->user()?->id ?? $request->ip()) . ':' . $companyId;
 
             return Limit::perMinute(5)->by($identifier);
+        });
+
+        Gate::define('viewAuthAuditMetrics', function ($user): bool {
+            if (! $user) {
+                return false;
+            }
+
+            if (method_exists($user, 'hasPermissionTo') && class_exists(\Spatie\Permission\Models\Permission::class)) {
+                return $user->hasPermissionTo('system.auth-audit.view') || $user->hasRole('superadmin');
+            }
+
+            return true;
+        });
+
+        Gate::after(function ($user, string $ability, bool $result, array $arguments = []) {
+            app(AuthorizationAuditLogger::class)->log($user, $ability, $result, $arguments);
         });
     }
 }
