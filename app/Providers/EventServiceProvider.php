@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Core\Bus\Events\GrnReceived;
+use App\Core\Cache\Listeners\FlushPermissionsCache;
 use App\Core\Bus\Events\InvoicePaid;
 use App\Core\Bus\Events\OrderCancelled;
 use App\Core\Bus\Events\OrderConfirmed;
@@ -38,5 +39,20 @@ class EventServiceProvider extends ServiceProvider
         Event::listen(InvoicePaid::class, [UpdateCustomerBalanceOnInvoicePaid::class, 'handle']);
 
         Event::listen(GrnReceived::class, [CreateApInvoiceFromGrn::class, 'handle']);
+
+        $permissionEvents = [
+            '\\Spatie\\Permission\\Events\\PermissionAssigned',
+            '\\Spatie\\Permission\\Events\\PermissionRemoved',
+            '\\Spatie\\Permission\\Events\\PermissionSynced',
+            '\\Spatie\\Permission\\Events\\RoleAssigned',
+            '\\Spatie\\Permission\\Events\\RoleRemoved',
+            '\\Spatie\\Permission\\Events\\RoleSynced',
+        ];
+
+        foreach ($permissionEvents as $permissionEvent) {
+            if (class_exists($permissionEvent)) {
+                Event::listen($permissionEvent, FlushPermissionsCache::class);
+            }
+        }
     }
 }

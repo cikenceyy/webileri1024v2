@@ -137,6 +137,7 @@ class AdminSidebar
                         'abilities' => ['settings.view'],
                         'children' => [
                             ['label' => 'Şirket Profili', 'route' => 'admin.settings.company.edit', 'pattern' => 'admin/settings/company*', 'abilities' => ['settings.view']],
+                            ['label' => 'Önbellek Yönetimi', 'route' => 'admin.settings.cache.index', 'pattern' => 'admin/settings/cache*', 'abilities' => ['settings.manage']],
                         ],
                     ],
                     [

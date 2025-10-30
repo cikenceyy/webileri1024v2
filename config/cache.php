@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Str;
 
+/**
+ * Uygulamanın önbellek yapılandırması: maliyeti düşürmek ve tenant bazlı
+ * standart anahtarlar kullanmak için varsayılanları burada yönetiyoruz.
+ */
+
 return [
 
     /*
@@ -103,6 +108,34 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
+    'prefix' => Str::finish(env('CACHE_PREFIX', 'webileri'), ':'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | TTL Profilleri
+    |--------------------------------------------------------------------------
+    |
+    | Isıtma komutları ve modül önbellekleri için standart süreler. "hot" kısa
+    | süreli, "warm" orta vadeli, "cold" ise günlük saklama içindir. Politika
+    | açıklaması için dosya üstündeki notlara bakınız.
+    |
+    */
+
+    'ttl_profiles' => [
+        'hot' => 60,
+        'warm' => 900,
+        'cold' => 86_400,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Isıtma ve Temizlik Notu
+    |--------------------------------------------------------------------------
+    |
+    | project:cache:* komutları ve admin panelindeki "Önbellek Yönetimi" ekranı
+    | bu değerleri kullanarak tenant bazlı anahtarları ısıtır ya da temizler.
+    | Hot => anlık listeler (1 dk), Warm => gösterge/menü (15 dk), Cold => gün boyu.
+    |
+    */
 
 ];

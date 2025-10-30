@@ -1,11 +1,23 @@
 @php
     use Illuminate\Support\Arr;
     use Illuminate\Support\Str;
+    use App\Core\Cache\InvalidationService;
+    use App\Core\Cache\Keys;
     use App\Core\Views\AdminSidebar;
 
     $routeName = request()->route()?->getName();
 
-    $navigation = AdminSidebar::navigation();
+    $companyId = currentCompanyId() ?? 0;
+    /** @var InvalidationService $cache */
+    $cache = app(InvalidationService::class);
+    $sidebarKey = Keys::forTenant($companyId, ['sidebar', 'navigation'], 'v1');
+    $sidebarTtl = (int) config('cache.ttl_profiles.warm', 900);
+    $navigation = $cache->rememberWithTags(
+        $sidebarKey,
+        [sprintf('tenant:%d', $companyId), 'sidebar', 'menu'],
+        $sidebarTtl,
+        static fn () => AdminSidebar::navigation(),
+    );
 
     $makeUrl = static function (array $item): string {
         if (isset($item['href'])) {
