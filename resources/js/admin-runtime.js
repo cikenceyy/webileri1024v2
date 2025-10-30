@@ -13,6 +13,7 @@ import { initSidebarNavigation } from './components/sidebar.js';
 import { initTableCore } from './components/table-core.js';
 import { initDrivePickerHost } from './components/drive-picker-host.js';
 import { initClientTables } from './table-client.js';
+import DriveAttachController from './components/drive-attach.js';
 
 
 
@@ -79,6 +80,20 @@ const initHeaderEffects = () => {
     window.addEventListener('scroll', () => window.requestAnimationFrame(update));
 };
 
+const initDriveAttach = () => {
+    document.querySelectorAll('[data-controller="drive-attach"]').forEach((element) => {
+        if (element.__driveAttach) {
+            return;
+        }
+
+        const controller = new DriveAttachController(element);
+        element.__driveAttach = controller;
+
+        element.addEventListener('change', (event) => controller.toggleSelection(event));
+        element.addEventListener('modal:open', () => controller.connect());
+    });
+};
+
 bootstrapRuntime();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -96,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initHeaderEffects();
     initSidebarNavigation();
     initDrivePickerHost();
+    initDriveAttach();
 });
 
 export { bus };

@@ -10,6 +10,7 @@
 
 @php
     use App\Core\Support\TableKit\TableConfig;
+    use Illuminate\Pagination\CursorPaginator;
     use Illuminate\Pagination\LengthAwarePaginator;
     use Illuminate\Support\Arr;
     use Illuminate\Support\Collection;
@@ -19,7 +20,8 @@
     $config = $config instanceof TableConfig ? $config : TableConfig::make([], []);
     $rowsCollection = $rows instanceof Collection ? $rows : collect($rows);
 
-    $totalCount = $config->dataCount() ?? ($paginator instanceof LengthAwarePaginator ? $paginator->total() : $rowsCollection->count());
+    $totalCount = $config->dataCount()
+        ?? ($paginator instanceof LengthAwarePaginator ? $paginator->total() : $rowsCollection->count());
     $mode = $config->determineMode($totalCount);
     $dataset = $config->prepareDataset($rowsCollection);
 
@@ -171,6 +173,29 @@
         <div class="tablekit__pager" data-tablekit-pager>
             @if($paginator instanceof LengthAwarePaginator)
                 {{ $paginator->links() }}
+            @elseif($paginator instanceof CursorPaginator)
+                <nav class="pagination" role="navigation" aria-label="{{ __('Sayfalama') }}">
+                    <ul class="pagination__list">
+                        <li class="pagination__item">
+                            <a
+                                class="pagination__link {{ $paginator->previousPageUrl() ? '' : 'is-disabled' }}"
+                                href="{{ $paginator->previousPageUrl() ?? '#' }}"
+                                aria-disabled="{{ $paginator->previousPageUrl() ? 'false' : 'true' }}"
+                            >
+                                {{ __('Önceki') }}
+                            </a>
+                        </li>
+                        <li class="pagination__item">
+                            <a
+                                class="pagination__link {{ $paginator->nextPageUrl() ? '' : 'is-disabled' }}"
+                                href="{{ $paginator->nextPageUrl() ?? '#' }}"
+                                aria-disabled="{{ $paginator->nextPageUrl() ? 'false' : 'true' }}"
+                            >
+                                {{ __('Sonraki') }}
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             @endif
         </div>
         @if($bulkContent !== '')

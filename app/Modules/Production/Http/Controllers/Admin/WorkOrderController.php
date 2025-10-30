@@ -3,6 +3,8 @@
 namespace App\Modules\Production\Http\Controllers\Admin;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Support\TableKit\TableConfig;
+use App\Core\TableKit\QueryAdapter;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\Warehouse;
@@ -35,66 +37,68 @@ class WorkOrderController extends Controller
     ) {
     }
 
-        public function index(Request $request)
+    /**
+     * İş emri listesini TableKit üzerinden düşük maliyetle sunar.
+     * Maliyet Notu: Tek sorgu + cursor pagination ile 1 dk sıcak cache kullanıyoruz.
+     */
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', WorkOrder::class);
         $companyId = currentCompanyId();
-        $status = $request->string('status')->toString();
 
-        $q = WorkOrder::query()
+        $builder = WorkOrder::query()
             ->where('company_id', $companyId)
-            ->with(['product:id,name,sku']) // ürün adını tabloya yazacağız
-            ->when($request->filled('status'), fn ($qq) => $qq->where('status', $request->string('status')))
-            ->when($request->filled('search'), function ($qq) use ($request) {
-                $s = trim((string) $request->get('search'));
-                $qq->where(function ($q2) use ($s) {
-                    $q2->where('number', 'like', "%{$s}%")
-                       ->orWhere('status', 'like', "%{$s}%");
-                });
+            ->with(['product:id,company_id,name']);
+
+        $adapter = QueryAdapter::make($builder, 'production:workorders')
+            ->select([
+                'id',
+                'company_id',
+                'product_id',
+                'number',
+                'planned_qty',
+                'status',
+                'due_date',
+                'created_at',
+            ])
+            ->allowSorts(['number', 'planned_qty', 'status', 'due_date', 'created_at'])
+            ->allowFilters(['status'])
+            ->defaultSort('-created_at')
+            ->mapUsing(static function (WorkOrder $order): array {
+                $number = $order->number ?: sprintf('WO-%05d', $order->id);
+
+                return [
+                    'id' => $order->id,
+                    'number' => $number,
+                    'product' => $order->product->name ?? '—',
+                    'planned_qty' => number_format((float) ($order->planned_qty ?? 0), 0, ',', '.'),
+                    'status' => $order->status ?? 'draft',
+                    'due_date' => optional($order->due_date)?->format('Y-m-d') ?? '—',
+                ];
             });
 
-        // sıralama (varsayılan)
-        $q->orderByDesc('created_at');
+        $payload = $adapter->toPayload($request);
 
-        $paginator = $q->paginate(15)->withQueryString();
-
-        // TableKit konfigürasyonu
-        $tableKitConfig = [
-            'id'     => 'workorders',
-            'route'  => 'admin.production.workorders',
-            'order'  => ['created_at', 'desc'],
-            'columns'=> [
-                ['key' => 'number',      'label' => __('İş Emri #'), 'sortable' => true, 'width' => '140px'],
-                ['key' => 'product',     'label' => __('Ürün'),      'sortable' => false],
-                ['key' => 'planned_qty', 'label' => __('Planlanan'), 'sortable' => true, 'class' => 'text-end', 'width' => '120px'],
-                ['key' => 'status',      'label' => __('Durum'),     'sortable' => true, 'width' => '120px'],
-                ['key' => 'due_date',    'label' => __('Termin'),    'sortable' => true, 'width' => '140px'],
-            ],
+        $tableKitConfig = TableConfig::make([
+            ['key' => 'number', 'label' => __('İş Emri #'), 'sortable' => true, 'width' => '140px'],
+            ['key' => 'product', 'label' => __('Ürün')],
+            ['key' => 'planned_qty', 'label' => __('Planlanan'), 'sortable' => true, 'class' => 'text-end', 'width' => '120px'],
+            ['key' => 'status', 'label' => __('Durum'), 'sortable' => true, 'width' => '120px'],
+            ['key' => 'due_date', 'label' => __('Termin'), 'sortable' => true, 'width' => '140px'],
+        ], [
+            'id' => 'workorders',
+            'default_sort' => $payload['meta']['default_sort'],
+            'data_count' => $payload['paginator']->count(),
             'row_actions' => [
-                ['type' => 'link', 'label' => __('Aç'),   'route' => 'admin.production.workorders.show', 'param' => 'id'],
-                ['type' => 'link', 'label' => __('Düzenle'),'route' => 'admin.production.workorders.edit', 'param' => 'id'],
+                ['type' => 'link', 'label' => __('Aç'), 'route' => 'admin.production.workorders.show', 'param' => 'id'],
+                ['type' => 'link', 'label' => __('Düzenle'), 'route' => 'admin.production.workorders.edit', 'param' => 'id'],
             ],
-        ];
+        ]);
 
-        // Satırları tabloya uygun biçime çevir
-        $tableKitRows = $paginator->getCollection()->map(function (WorkOrder $wo) {
-            $number = $wo->number ?: sprintf('WO-%05d', $wo->id);
-            return [
-                'id'          => $wo->id,
-                'number'      => $number,
-                'product'     => $wo->product->name ?? '—',
-                'planned_qty' => number_format((float)($wo->planned_qty ?? 0), 0, ',', '.'),
-                'status'      => $wo->status ?? 'draft',
-                'due_date'    => optional($wo->due_date)->format('Y-m-d') ?? '—',
-            ];
-        })->all();
+        $tableKitRows = $payload['rows'];
+        $tableKitPaginator = $payload['paginator'];
 
-        $tableKitPaginator = $paginator;
-
-        return view(
-            'production::admin.workorders.index',
-            compact('tableKitConfig', 'tableKitRows', 'tableKitPaginator')
-        );
+        return view('production::admin.workorders.index', compact('tableKitConfig', 'tableKitRows', 'tableKitPaginator'));
     }
 
 
