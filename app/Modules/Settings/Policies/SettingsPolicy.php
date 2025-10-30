@@ -8,7 +8,7 @@ class SettingsPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('settings.manage') || $user->can('settings.view');
+        return $user->can('settings.manage');
     }
 
     public function update(User $user): bool

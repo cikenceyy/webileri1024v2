@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Inventory modülünün admin rotaları: stok konsolu ve klasik CRUD uçları.
+ */
+
 use App\Modules\Inventory\Http\Controllers\HomeController;
 use App\Modules\Inventory\Http\Controllers\CategoryController;
 use App\Modules\Inventory\Http\Controllers\ProductController;
@@ -21,6 +25,9 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
         Route::get('home/lowstock', [HomeController::class, 'lowstock'])->name('home.lowstock');
 
         Route::get('stock/console', [StockConsoleController::class, 'index'])->name('stock.console');
+        Route::get('stock/console/grid', [StockConsoleController::class, 'grid'])
+            ->middleware('fresh')
+            ->name('stock.console.grid');
         Route::post('stock/console', [StockConsoleController::class, 'store'])->name('stock.console.store');
         Route::get('stock/lookup', [StockConsoleController::class, 'lookup'])->name('stock.console.lookup');
 

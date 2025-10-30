@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Log kanalları için temel yapılandırma; önbellek operasyonlarını ayrı bir
+ * günlükte tutarak ısıtma/temizlik aksiyonlarını izleyebiliriz.
+ */
+
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -56,6 +61,22 @@ return [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'daily')),
             'ignore_exceptions' => false,
+        ],
+
+        'cache' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/cache.log'),
+            'level' => env('LOG_CACHE_LEVEL', 'info'),
+            'days' => env('LOG_DAILY_DAYS', 7),
+            'replace_placeholders' => true,
+        ],
+
+        'notifications' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/notifications.log'),
+            'level' => env('LOG_NOTIFICATIONS_LEVEL', 'info'),
+            'days' => env('LOG_DAILY_DAYS', 7),
+            'replace_placeholders' => true,
         ],
 
         'single' => [

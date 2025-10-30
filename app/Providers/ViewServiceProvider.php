@@ -19,6 +19,20 @@ class ViewServiceProvider extends ServiceProvider
         Blade::component('components.tablekit.bulk', 'table:bulk');
         Blade::component('components.tablekit.row-meta', 'table:row-meta');
 
+        Blade::if('canp', function (string $permission): bool {
+            $user = auth()->user();
+
+            if (! $user) {
+                return false;
+            }
+
+            if (method_exists($user, 'hasPermissionTo') && class_exists(\Spatie\Permission\Models\Permission::class)) {
+                return $user->hasPermissionTo($permission);
+            }
+
+            return true;
+        });
+
         View::composer([
             'inventory::warehouses.index',
             'inventory::transfers.index',

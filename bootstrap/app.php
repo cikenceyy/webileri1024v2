@@ -6,6 +6,7 @@ use App\Core\Providers\AccessServiceProvider;
 use App\Core\Providers\CoreServiceProvider;
 use App\Core\Providers\OrchestrationServiceProvider;
 use App\Core\Providers\TenancyServiceProvider;
+use App\Core\Http\Middleware\FreshnessMiddleware;
 use App\Modules\ModuleLoaderServiceProvider;
 use App\Core\Http\Middleware\EnsureIdempotency;
 use App\Http\Middleware\HttpCacheHeaders;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'http.cache' => HttpCacheHeaders::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'idempotency' => EnsureIdempotency::class,
+            'fresh' => FreshnessMiddleware::class,
         ]);
     })
     ->withProviders([

@@ -2,6 +2,8 @@
 
 namespace App\Modules\Drive\Http\Controllers;
 
+use App\Core\Cache\InvalidationService;
+use App\Core\Cache\Keys;
 use App\Core\Support\Models\Company;
 use App\Http\Controllers\Controller;
 use App\Modules\Drive\Domain\DriveStorage;
@@ -434,78 +436,86 @@ class MediaController extends Controller
 
     protected function buildStats(int $companyId): array
     {
-        $base = Media::query()->where('company_id', $companyId);
-        $documentCategories = Media::documentCategories();
-        $mediaCategories = Media::mediaCategories();
+        /** @var InvalidationService $cache */
+        $cache = app(InvalidationService::class);
+        $key = Keys::forTenant($companyId, ['drive', 'stats'], 'v1');
+        $ttl = (int) config('cache.ttl_profiles.warm', 900);
 
-        $stats = [
-            'recent_documents' => [
-                'total' => (clone $base)->whereIn('category', $documentCategories)->count(),
-                'important' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
-            ],
-            'recent_media' => [
-                'total' => (clone $base)->whereIn('category', $mediaCategories)->count(),
-                'important' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
-            ],
-            'important_documents' => [
-                'total' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
-                'important' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
-            ],
-            'important_media' => [
-                'total' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
-                'important' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
-            ],
-        ];
+        return $cache->rememberWithTags(
+            $key,
+            [sprintf('tenant:%d', $companyId), 'drive', 'drive:stats'],
+            $ttl,
+            function () use ($companyId) {
+                $base = Media::query()->where('company_id', $companyId);
+                $documentCategories = Media::documentCategories();
+                $mediaCategories = Media::mediaCategories();
 
-        foreach (DriveStructure::folders() as $folder) {
-            $stats['folder_' . $folder['key']] = [
-                'total' => (clone $base)->where('category', $folder['key'])->count(),
-                'important' => (clone $base)->where('category', $folder['key'])->where('is_important', true)->count(),
-            ];
-        }
-
-        foreach (Media::moduleKeys() as $module) {
-            $stats['module_' . $module] = [
-                'total' => (clone $base)->where('module', $module)->count(),
-                'important' => (clone $base)->where('module', $module)->where('is_important', true)->count(),
-            ];
-
-            foreach (DriveStructure::moduleFolderDefinitions($module) as $folder) {
-                $key = 'module_' . $module . '__' . $folder['key'];
-                $stats[$key] = [
-                    'total' => (clone $base)->where('module', $module)->where('category', $folder['key'])->count(),
-                    'important' => (clone $base)->where('module', $module)->where('category', $folder['key'])->where('is_important', true)->count(),
+                $stats = [
+                    'recent_documents' => [
+                        'total' => (clone $base)->whereIn('category', $documentCategories)->count(),
+                        'important' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
+                    ],
+                    'recent_media' => [
+                        'total' => (clone $base)->whereIn('category', $mediaCategories)->count(),
+                        'important' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
+                    ],
+                    'important_documents' => [
+                        'total' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
+                        'important' => (clone $base)->whereIn('category', $documentCategories)->where('is_important', true)->count(),
+                    ],
+                    'important_media' => [
+                        'total' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
+                        'important' => (clone $base)->whereIn('category', $mediaCategories)->where('is_important', true)->count(),
+                    ],
                 ];
-            }
-        }
 
-        return $stats;
+                foreach (DriveStructure::folders() as $folder) {
+                    $stats['folder_' . $folder['key']] = [
+                        'total' => (clone $base)->where('category', $folder['key'])->count(),
+                        'important' => (clone $base)->where('category', $folder['key'])->where('is_important', true)->count(),
+                    ];
+                }
+
+                foreach (Media::moduleKeys() as $module) {
+                    $stats['module_' . $module] = [
+                        'total' => (clone $base)->where('module', $module)->count(),
+                        'important' => (clone $base)->where('module', $module)->where('is_important', true)->count(),
+                    ];
+
+                    foreach (DriveStructure::moduleFolderDefinitions($module) as $folder) {
+                        $key = 'module_' . $module . '__' . $folder['key'];
+                        $stats[$key] = [
+                            'total' => (clone $base)
+                                ->where('module', $module)
+                                ->where('category', $folder['key'])
+                                ->count(),
+                            'important' => (clone $base)
+                                ->where('module', $module)
+                                ->where('category', $folder['key'])
+                                ->where('is_important', true)
+                                ->count(),
+                        ];
+                    }
+                }
+
+                return $stats;
+            }
+        );
     }
 
     protected function buildPickerStats(int $companyId): array
     {
-        $key = array_key_first($this->pickerTabDefinitions());
+        $definitions = $this->pickerTabDefinitions();
+        $key = array_key_first($definitions);
 
         if (! $key) {
             return [];
         }
 
-        if (! str_contains($key, '__')) {
-            return [
-                $key => [
-                    'total' => Media::query()->where('company_id', $companyId)->count(),
-                    'important' => Media::query()->where('company_id', $companyId)->where('is_important', true)->count(),
-                ],
-            ];
-        }
-
-        [$module, $folder] = explode('__', Str::after($key, 'module_'), 2);
+        $stats = $this->buildStats($companyId);
 
         return [
-            $key => [
-                'total' => Media::query()->where('company_id', $companyId)->where('module', $module)->where('category', $folder)->count(),
-                'important' => Media::query()->where('company_id', $companyId)->where('module', $module)->where('category', $folder)->where('is_important', true)->count(),
-            ],
+            $key => $stats[$key] ?? ['total' => 0, 'important' => 0],
         ];
     }
 

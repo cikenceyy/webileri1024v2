@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Core\Cache\InvalidationService;
+use App\Core\Cache\Keys;
 use App\Http\Controllers\Controller;
 use App\Modules\Drive\Domain\Models\Media;
 use App\Modules\Finance\Domain\Models\Invoice;
@@ -12,7 +14,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
+use function currentCompanyId;
 
 class DashboardController extends Controller
 {
@@ -28,9 +30,11 @@ class DashboardController extends Controller
             'super_admin' => $user?->hasRole('super_admin'),
         ];
 
-        $cacheKey = sprintf('dashboard:data:v1:%s', $companyId ?: 'guest');
+        $cache = app(InvalidationService::class);
+        $cacheKey = Keys::forTenant($companyId ?: 0, ['dashboard', 'summary'], 'v1');
+        $ttl = (int) config('cache.ttl_profiles.warm', 900);
 
-        $payload = Cache::remember($cacheKey, 60, function () use ($companyId) {
+        $payload = $cache->rememberWithTags($cacheKey, [sprintf('tenant:%d', $companyId ?: 0), 'dashboard'], $ttl, function () use ($companyId) {
             $now = CarbonImmutable::now();
             $todayStart = $now->startOfDay();
             $todayEnd = $now->endOfDay();

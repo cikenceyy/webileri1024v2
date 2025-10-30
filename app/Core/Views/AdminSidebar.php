@@ -132,11 +132,15 @@ class AdminSidebar
                     [
                         'label' => 'Ayarlar',
                         'icon' => 'bi bi-gear',
-                        'route' => 'admin.settings.company.edit',
+                        'route' => 'admin.settings.general.show',
                         'pattern' => 'admin/settings*',
-                        'abilities' => ['settings.view'],
+                        'abilities' => ['settings.manage'],
                         'children' => [
-                            ['label' => 'Şirket Profili', 'route' => 'admin.settings.company.edit', 'pattern' => 'admin/settings/company*', 'abilities' => ['settings.view']],
+                            ['label' => 'Genel Ayarlar', 'route' => 'admin.settings.general.show', 'pattern' => 'admin/settings/general*', 'abilities' => ['settings.manage']],
+                            ['label' => 'E-posta Merkezi', 'route' => 'admin.settings.email.show', 'pattern' => 'admin/settings/email*', 'abilities' => ['settings.manage']],
+                            ['label' => 'Modül Ayarları', 'route' => 'admin.settings.modules.show', 'pattern' => 'admin/settings/modules*', 'abilities' => ['settings.manage']],
+                            ['label' => 'Önbellek Yönetimi', 'route' => 'admin.settings.cache.index', 'pattern' => 'admin/settings/cache*', 'abilities' => ['settings.manage']],
+                            ['label' => 'Domain Tanılama', 'route' => 'admin.settings.diagnostics.index', 'pattern' => 'admin/settings/diagnostics*', 'abilities' => ['settings.manage']],
                         ],
                     ],
                     [

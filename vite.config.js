@@ -65,6 +65,7 @@ export default defineConfig({
         'resources/js/admin.js',
         'resources/scss/pages/ui-gallery.scss',
         'resources/js/pages/ui-gallery.js',
+        'resources/js/pages/reports-index.js',
         'resources/css/tablekit.css',
         'resources/js/tablekit/index.js',
         ...cmsEntries,

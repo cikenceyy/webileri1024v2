@@ -2,6 +2,7 @@
 
 namespace App\Modules\Settings\Providers;
 
+use App\Core\Cache\Listeners\FlushSettingsCache;
 use App\Core\Contracts\SettingsReader;
 use App\Core\Support\Audit\SettingsAuditLogger;
 use App\Modules\Settings\Domain\Events\SettingsUpdated;
@@ -38,6 +39,7 @@ class SettingsServiceProvider extends ServiceProvider
         Gate::policy(Setting::class, SettingsPolicy::class);
 
         Event::listen(SettingsUpdated::class, SettingsAuditLogger::class);
+        Event::listen(SettingsUpdated::class, FlushSettingsCache::class);
     }
 
     protected function mergeModuleConfig(): void

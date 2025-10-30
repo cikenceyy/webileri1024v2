@@ -179,6 +179,16 @@ class CmsRepository
 
     public function emails(): array
     {
+        if (function_exists('settings')) {
+            $companyId = $this->companyId();
+            $repo = settings();
+
+            return array_filter([
+                'info_email' => (string) $repo->get($companyId, 'email.outbound.x', ''),
+                'notify_email' => (string) $repo->get($companyId, 'email.outbound.y', ''),
+            ]);
+        }
+
         $data = $this->read('_emails', 'tr');
 
         return $data['emails'] ?? config('cms.emails', []);
