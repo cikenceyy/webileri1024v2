@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Core\Bus\Events\GrnReceived;
 use App\Core\Cache\Listeners\FlushPermissionsCache;
+use App\Core\Cache\Listeners\FlushSettingsCache;
+use App\Core\Settings\Events\SettingsUpdated as CoreSettingsUpdated;
 use App\Core\Bus\Events\InvoicePaid;
 use App\Core\Bus\Events\OrderCancelled;
 use App\Core\Bus\Events\OrderConfirmed;
@@ -54,5 +56,7 @@ class EventServiceProvider extends ServiceProvider
                 Event::listen($permissionEvent, FlushPermissionsCache::class);
             }
         }
+
+        Event::listen(CoreSettingsUpdated::class, FlushSettingsCache::class);
     }
 }

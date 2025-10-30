@@ -6,15 +6,19 @@ use App\Cms\Mail\ContactMessageSubmitted;
 use App\Cms\Models\ContactMessage;
 use App\Cms\Support\CmsRepository;
 use App\Cms\Support\Seo;
+use App\Core\Mail\NotificationMailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 
 class ContactController extends Controller
 {
-    public function __construct(protected CmsRepository $repository, protected Seo $seo)
+    public function __construct(
+        protected CmsRepository $repository,
+        protected Seo $seo,
+        protected NotificationMailService $mailService,
+    )
     {
     }
 
@@ -80,17 +84,11 @@ class ContactController extends Controller
             'status' => 'new',
         ]);
 
-        $emails = $this->repository->emails();
-        $notify = $emails['notify_email'] ?? null;
-
-        if ($notify) {
-            $mailable = new ContactMessageSubmitted($record);
-            $message = Mail::to($notify);
-            if (!empty($emails['info_email'])) {
-                $message->cc($emails['info_email']);
-            }
-            $message->queue($mailable);
-        }
+        $this->mailService->send($this->repository->companyId(), new ContactMessageSubmitted($record), [
+            'subject' => $record->subject,
+            'channel' => 'cms.contact',
+            'ip' => $request->ip(),
+        ]);
 
         return redirect()->back()->with('status', __('Thank you! We will get back to you soon.'));
     }

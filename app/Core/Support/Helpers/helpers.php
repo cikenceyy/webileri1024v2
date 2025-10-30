@@ -62,3 +62,13 @@ if (! function_exists('next_number')) {
         return $action($companyId, $key, $options);
     }
 }
+
+if (! function_exists('settings')) {
+    /**
+     * Tenant ayar deposunu döndürür.
+     */
+    function settings(): \App\Core\Settings\SettingsRepository
+    {
+        return App::make(\App\Core\Settings\SettingsRepository::class);
+    }
+}

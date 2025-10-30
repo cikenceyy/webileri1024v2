@@ -71,6 +71,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'notifications' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/notifications.log'),
+            'level' => env('LOG_NOTIFICATIONS_LEVEL', 'info'),
+            'days' => env('LOG_DAILY_DAYS', 7),
+            'replace_placeholders' => true,
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),

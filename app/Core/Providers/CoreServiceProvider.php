@@ -9,6 +9,9 @@ use App\Core\Console\Commands\AssignRole;
 use App\Core\Console\Commands\ProjectCacheFlushCommand;
 use App\Core\Console\Commands\ProjectCacheWarmCommand;
 use App\Core\Console\Commands\TablekitScan;
+use App\Core\Settings\Console\SettingsGetCommand;
+use App\Core\Settings\Console\SettingsSetCommand;
+use App\Core\Settings\SettingsRepository;
 use App\Core\Support\Console\Commands\AppDoctorCommand;
 use App\Core\Support\Console\Commands\CloudPostdeployCommand;
 use App\Core\Support\Console\Commands\CloudPredeployCommand;
@@ -24,6 +27,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(CacheEventLogger::class);
         $this->app->singleton(InvalidationService::class);
         $this->app->singleton(TenantCacheManager::class);
+        $this->app->singleton(SettingsRepository::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -36,6 +40,8 @@ class CoreServiceProvider extends ServiceProvider
                 CloudPredeployCommand::class,
                 CloudPostdeployCommand::class,
                 TablekitScan::class,
+                SettingsGetCommand::class,
+                SettingsSetCommand::class,
             ]);
         }
     }
