@@ -12,7 +12,6 @@ use App\Core\Console\Commands\TablekitScan;
 use App\Core\Support\Console\Commands\AppDoctorCommand;
 use App\Core\Support\Console\Commands\CloudPostdeployCommand;
 use App\Core\Support\Console\Commands\CloudPredeployCommand;
-use App\Core\Support\Console\Commands\FlushTenantDomainCacheCommand;
 use App\Core\Support\Console\Commands\SequenceAuditCommand;
 use App\Core\Support\Console\Commands\SequenceSeedCommand;
 use Illuminate\Support\Facades\Route;
@@ -32,7 +31,6 @@ class CoreServiceProvider extends ServiceProvider
                 AssignRole::class,
                 ProjectCacheFlushCommand::class,
                 ProjectCacheWarmCommand::class,
-                FlushTenantDomainCacheCommand::class,
                 SequenceSeedCommand::class,
                 SequenceAuditCommand::class,
                 CloudPredeployCommand::class,

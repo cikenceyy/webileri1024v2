@@ -103,6 +103,9 @@ class CacheEventLogger
             'last_flush' => isset($record['last_flush'])
                 ? CarbonImmutable::parse($record['last_flush'])
                 : null,
+            'last_domain_flush' => isset($record['last_domain_flush'])
+                ? CarbonImmutable::parse($record['last_domain_flush'])
+                : null,
         ];
     }
 
@@ -142,6 +145,10 @@ class CacheEventLogger
 
             if ($action === 'flush') {
                 $meta[$companyId]['last_flush'] = $timestamp->toIso8601String();
+            }
+
+            if ($action === 'domain.flush') {
+                $meta[$companyId]['last_domain_flush'] = $timestamp->toIso8601String();
             }
 
             $this->ensureDirectory();

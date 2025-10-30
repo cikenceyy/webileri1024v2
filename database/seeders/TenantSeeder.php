@@ -44,7 +44,7 @@ class TenantSeeder extends Seeder
             );
 
             CompanyDomain::query()->updateOrCreate(
-                ['domain' => $data['domain']],
+                ['host' => $data['domain']],
                 [
                     'company_id' => $data['id'],
                     'is_primary' => true,
@@ -53,7 +53,7 @@ class TenantSeeder extends Seeder
 
             foreach ($data['extra_domains'] as $domain) {
                 CompanyDomain::query()->updateOrCreate(
-                    ['domain' => $domain],
+                    ['host' => $domain],
                     [
                         'company_id' => $data['id'],
                         'is_primary' => false,

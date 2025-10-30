@@ -94,6 +94,7 @@ class CacheController extends Controller
         return [
             'last_warm' => $meta['last_warm']?->toIso8601String(),
             'last_flush' => $meta['last_flush']?->toIso8601String(),
+            'last_domain_flush' => $meta['last_domain_flush']?->toIso8601String(),
         ];
     }
 

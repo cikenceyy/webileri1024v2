@@ -138,6 +138,7 @@ class AdminSidebar
                         'children' => [
                             ['label' => 'Şirket Profili', 'route' => 'admin.settings.company.edit', 'pattern' => 'admin/settings/company*', 'abilities' => ['settings.view']],
                             ['label' => 'Önbellek Yönetimi', 'route' => 'admin.settings.cache.index', 'pattern' => 'admin/settings/cache*', 'abilities' => ['settings.manage']],
+                            ['label' => 'Domain Tanılama', 'route' => 'admin.settings.diagnostics.index', 'pattern' => 'admin/settings/diagnostics*', 'abilities' => ['settings.view']],
                         ],
                     ],
                     [

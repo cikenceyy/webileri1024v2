@@ -2,6 +2,7 @@
 
 use App\Modules\Settings\Domain\Models\Setting;
 use App\Modules\Settings\Http\Controllers\Admin\CacheController;
+use App\Modules\Settings\Http\Controllers\Admin\DiagnosticsController;
 use App\Modules\Settings\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,4 +30,8 @@ Route::middleware(['web', 'tenant', 'auth', 'verified'])
         Route::post('/cache/flush', [CacheController::class, 'flush'])
             ->name('cache.flush')
             ->middleware('can:update,' . Setting::class);
+
+        Route::get('/diagnostics', [DiagnosticsController::class, 'index'])
+            ->name('diagnostics.index')
+            ->middleware('can:viewAny,' . Setting::class);
     });
