@@ -1,20 +1,3 @@
-{{--
-    Amaç: Üst gezinme çubuğunu TR dilinde, erişilebilir ve tutarlı davranışla sunmak.
-    İlişkiler: PROMPT-5 — Sidebar & Header İyileştirmeleri.
-    Notlar: Breadcrumb ve aktiflik göstergesi ortak şablonla yönetilir.
---}}
-@php
-    $moduleLinks = [
-        ['label' => 'Konsol', 'icon' => 'bi bi-kanban', 'href' => url('admin/console'), 'pattern' => 'admin/console*'],
-        ['label' => 'Akış', 'icon' => 'bi bi-lightning-charge', 'href' => url('admin/activity'), 'pattern' => 'admin/activity*'],
-        ['label' => 'Pazarlama', 'icon' => 'bi bi-bullseye', 'href' => url('admin/marketing'), 'pattern' => 'admin/marketing*'],
-        ['label' => 'Envanter', 'icon' => 'bi bi-boxes', 'href' => url('admin/inventory/console'), 'pattern' => 'admin/inventory*'],
-        ['label' => 'Drive', 'icon' => 'bi bi-cloud-arrow-down', 'href' => url('admin/drive'), 'pattern' => 'admin/drive*'],
-    ];
-
-    $breadcrumbs = trim($__env->yieldContent('breadcrumbs', ''));
-@endphp
-
 <header class="ui-header" data-ui="header">
     <div class="ui-header__inner">
         <button
@@ -32,53 +15,70 @@
         </button>
 
         <div class="ui-header__title">
-            <span class="ui-header__product">{{ config('app.name', 'Webileri') }}</span>
+            <span class="ui-header__product">Webileri</span>
             <span class="ui-header__section">@yield('section', 'Gösterge Paneli')</span>
         </div>
 
-        @if($breadcrumbs !== '')
+        @hasSection('breadcrumbs')
             <nav class="ui-header__breadcrumbs" aria-label="Gezinme izi">
-                {!! $breadcrumbs !!}
+                @yield('breadcrumbs')
             </nav>
         @endif
 
         <nav class="ui-header__nav" aria-label="Modül kısayolları">
             <ul class="ui-header__nav-list">
-                @foreach($moduleLinks as $link)
-                    @php
-                        $isActive = !empty($link['pattern']) ? request()->is($link['pattern']) : false;
-                    @endphp
-                    <li class="ui-header__nav-item">
-                        <a href="{{ $link['href'] }}" class="ui-header__nav-link {{ $isActive ? 'is-active' : '' }}">
-                            <span class="ui-header__nav-icon" aria-hidden="true"><i class="{{ $link['icon'] }}"></i></span>
-                            <span class="ui-header__nav-text">{{ $link['label'] }}</span>
-                        </a>
-                    </li>
-                @endforeach
+                <li class="ui-header__nav-item">
+                    <a href="/admin/console" class="ui-header__nav-link">
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-kanban"></i></span>
+                        <span class="ui-header__nav-text">Konsol</span>
+                    </a>
+                </li>
+                <li class="ui-header__nav-item">
+                    <a href="/admin/activity" class="ui-header__nav-link">
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-lightning-charge"></i></span>
+                        <span class="ui-header__nav-text">Akış</span>
+                    </a>
+                </li>
+                <li class="ui-header__nav-item">
+                    <a href="/admin/marketing" class="ui-header__nav-link">
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-bullseye"></i></span>
+                        <span class="ui-header__nav-text">Pazarlama</span>
+                    </a>
+                </li>
+                <li class="ui-header__nav-item">
+                    <a href="/admin/inventory/console" class="ui-header__nav-link">
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-boxes"></i></span>
+                        <span class="ui-header__nav-text">Envanter</span>
+                    </a>
+                </li>
+                <li class="ui-header__nav-item">
+                    <a href="/admin/drive" class="ui-header__nav-link">
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-cloud-arrow-down"></i></span>
+                        <span class="ui-header__nav-text">Drive</span>
+                    </a>
+                </li>
             </ul>
         </nav>
 
         <div class="ui-header__actions" role="toolbar" aria-label="Üst çubuk işlemleri">
             <div class="ui-header__action-group" role="group" aria-label="Kullanıcı işlemleri">
-                <a href="{{ url('admin/console/notifications') }}" class="ui-header__action is-ghost" aria-label="Bildirimler">
+                <a href="/admin/console/notifications" class="ui-header__action is-ghost" aria-label="Bildirimler">
                     <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
                     <span class="ui-header__action-label">Bildirimler</span>
                 </a>
 
-                <a href="{{ url('admin/profile') }}" class="ui-header__action is-ghost" aria-label="Profil">
+                <a href="/admin/profile" class="ui-header__action is-ghost" aria-label="Profil">
                     <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-person-circle"></i></span>
                     <span class="ui-header__action-label">Profil</span>
                 </a>
 
-                @auth
-                    <form method="POST" action="{{ route('admin.auth.logout') }}" class="ui-header__logout">
-                        @csrf
-                        <button type="submit" class="ui-header__action is-ghost">
-                            <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-box-arrow-right"></i></span>
-                            <span class="ui-header__action-label">Çıkış Yap</span>
-                        </button>
-                    </form>
-                @endauth
+                <form method="POST" action="/admin/auth/logout" class="ui-header__logout">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="ui-header__action is-ghost">
+                        <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-box-arrow-right"></i></span>
+                        <span class="ui-header__action-label">Çıkış Yap</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
