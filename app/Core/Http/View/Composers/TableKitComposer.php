@@ -25,10 +25,10 @@ class TableKitComposer
             'inventory::products.index' => $this->composeInventoryProducts($data),
             'finance::admin.invoices.index' => $this->composeFinanceInvoices($data),
             'finance::admin.receipts.index' => $this->composeFinanceReceipts($data),
-            'logistics::shipments.index' => $this->composeLogisticsShipments($data),
-            'logistics::receipts.index' => $this->composeLogisticsReceipts($data),
-            'marketing::customers.index' => $this->composeMarketingCustomers($data),
-            'marketing::orders.index' => $this->composeMarketingOrders($data),
+            'logistics::shipments.index', 'logistics::admin.shipments.index' => $this->composeLogisticsShipments($data),
+            'logistics::receipts.index', 'logistics::admin.receipts.index' => $this->composeLogisticsReceipts($data),
+            'marketing::customers.index', 'marketing::admin.customers.index' => $this->composeMarketingCustomers($data),
+            'marketing::orders.index', 'marketing::admin.orders.index' => $this->composeMarketingOrders($data),
             'production::admin.workorders.index' => $this->composeProductionWorkorders($data),
             default => null,
         };
@@ -277,18 +277,18 @@ class TableKitComposer
         }
 
         $columns = [
-            ['key' => 'doc_no', 'label' => __('Doc No'), 'type' => 'text', 'sortable' => true, 'filterable' => true],
-            ['key' => 'customer', 'label' => __('Customer'), 'type' => 'text', 'filterable' => true],
-            ['key' => 'status', 'label' => __('Status'), 'type' => 'badge', 'filterable' => true, 'enum' => [
-                'draft' => __('Draft'),
-                'issued' => __('Issued'),
-                'partially_paid' => __('Partially Paid'),
-                'paid' => __('Paid'),
+            ['key' => 'doc_no', 'label' => 'Belge No', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'customer', 'label' => 'Müşteri', 'type' => 'text', 'filterable' => true],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'draft' => 'Taslak',
+                'issued' => 'Düzenlendi',
+                'partially_paid' => 'Kısmi Ödendi',
+                'paid' => 'Ödendi',
             ]],
-            ['key' => 'grand_total', 'label' => __('Grand Total'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'paid_amount', 'label' => __('Paid'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'due_date', 'label' => __('Due Date'), 'type' => 'date', 'sortable' => true, 'filterable' => true],
-            ['key' => 'actions', 'label' => __('Actions'), 'type' => 'actions'],
+            ['key' => 'grand_total', 'label' => 'Genel Toplam', 'type' => 'money', 'sortable' => true],
+            ['key' => 'paid_amount', 'label' => 'Ödenen', 'type' => 'money', 'sortable' => true],
+            ['key' => 'due_date', 'label' => 'Vade Tarihi', 'type' => 'date', 'sortable' => true, 'filterable' => true],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
         ];
 
         $paginator = $data['invoices'];
@@ -298,7 +298,7 @@ class TableKitComposer
             return [
                 'id' => 'invoice-'.$invoice->id,
                 'cells' => [
-                    'doc_no' => $invoice->doc_no ?? __('(Draft)'),
+                    'doc_no' => $invoice->doc_no ?? 'Taslak',
                     'customer' => $invoice->customer?->name ?? '—',
                     'status' => $invoice->status ?? 'draft',
                     'grand_total' => ['amount' => $invoice->grand_total ?? 0, 'currency' => $invoice->currency ?? '₺'],
@@ -306,7 +306,7 @@ class TableKitComposer
                     'due_date' => $invoice->due_date,
                     'actions' => [
                         [
-                            'label' => __('Open'),
+                            'label' => 'Görüntüle',
                             'href' => route('admin.finance.invoices.show', $invoice),
                             'variant' => 'primary',
                         ],
@@ -336,17 +336,17 @@ class TableKitComposer
         }
 
         $columns = [
-            ['key' => 'doc_no', 'label' => __('Receipt No'), 'type' => 'text', 'sortable' => true, 'filterable' => true],
-            ['key' => 'customer', 'label' => __('Customer'), 'type' => 'text', 'filterable' => true],
-            ['key' => 'status', 'label' => __('Status'), 'type' => 'badge', 'filterable' => true, 'enum' => [
-                'draft' => __('Draft'),
-                'posted' => __('Posted'),
-                'reconciled' => __('Reconciled'),
+            ['key' => 'doc_no', 'label' => 'Makbuz No', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'customer', 'label' => 'Müşteri', 'type' => 'text', 'filterable' => true],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'draft' => 'Taslak',
+                'posted' => 'Kaydedildi',
+                'reconciled' => 'Mutabık',
             ]],
-            ['key' => 'amount', 'label' => __('Amount'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'applied_amount', 'label' => __('Applied'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'received_at', 'label' => __('Received At'), 'type' => 'date', 'sortable' => true, 'filterable' => true],
-            ['key' => 'actions', 'label' => __('Actions'), 'type' => 'actions'],
+            ['key' => 'amount', 'label' => 'Tutar', 'type' => 'money', 'sortable' => true],
+            ['key' => 'applied_amount', 'label' => 'Mahsup Edilen', 'type' => 'money', 'sortable' => true],
+            ['key' => 'received_at', 'label' => 'Tahsil Tarihi', 'type' => 'date', 'sortable' => true, 'filterable' => true],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
         ];
 
         $paginator = $data['receipts'];
@@ -364,7 +364,7 @@ class TableKitComposer
                     'received_at' => $receipt->received_at ?? $receipt->created_at,
                     'actions' => [
                         [
-                            'label' => __('Open'),
+                            'label' => 'Görüntüle',
                             'href' => route('admin.finance.receipts.show', $receipt),
                             'variant' => 'primary',
                         ],
