@@ -28,31 +28,67 @@
         <nav class="ui-header__nav" aria-label="Modül kısayolları">
             <ul class="ui-header__nav-list">
                 <li class="ui-header__nav-item">
-                    <a href="/admin/console" class="ui-header__nav-link">
+                    @php $isConsoleActive = request()->routeIs('admin.consoles.*'); @endphp
+                    <a
+                        href="{{ route('admin.consoles.o2c.index') }}"
+                        class="ui-header__nav-link{{ $isConsoleActive ? ' is-active' : '' }}"
+                        @if($isConsoleActive) aria-current="page" @endif
+                    >
                         <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-kanban"></i></span>
                         <span class="ui-header__nav-text">Konsol</span>
                     </a>
                 </li>
                 <li class="ui-header__nav-item">
-                    <a href="/admin/activity" class="ui-header__nav-link">
-                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-lightning-charge"></i></span>
-                        <span class="ui-header__nav-text">Akış</span>
+                    @php $isCustomersActive = request()->routeIs('admin.marketing.customers.*'); @endphp
+                    <a
+                        href="{{ route('admin.marketing.customers.index') }}"
+                        class="ui-header__nav-link{{ $isCustomersActive ? ' is-active' : '' }}"
+                        @if($isCustomersActive) aria-current="page" @endif
+                    >
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+                        <span class="ui-header__nav-text">Müşteriler</span>
                     </a>
                 </li>
                 <li class="ui-header__nav-item">
-                    <a href="/admin/marketing" class="ui-header__nav-link">
-                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-bullseye"></i></span>
-                        <span class="ui-header__nav-text">Pazarlama</span>
+                    @php $isOrdersActive = request()->routeIs('admin.marketing.orders.*'); @endphp
+                    <a
+                        href="{{ route('admin.marketing.orders.index') }}"
+                        class="ui-header__nav-link{{ $isOrdersActive ? ' is-active' : '' }}"
+                        @if($isOrdersActive) aria-current="page" @endif
+                    >
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-receipt-cutoff"></i></span>
+                        <span class="ui-header__nav-text">Siparişler</span>
                     </a>
                 </li>
                 <li class="ui-header__nav-item">
-                    <a href="/admin/inventory/console" class="ui-header__nav-link">
-                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-boxes"></i></span>
+                    @php $isInventoryActive = request()->routeIs('admin.inventory.*'); @endphp
+                    <a
+                        href="{{ route('admin.inventory.home') }}"
+                        class="ui-header__nav-link{{ $isInventoryActive ? ' is-active' : '' }}"
+                        @if($isInventoryActive) aria-current="page" @endif
+                    >
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
                         <span class="ui-header__nav-text">Envanter</span>
                     </a>
                 </li>
                 <li class="ui-header__nav-item">
-                    <a href="/admin/drive" class="ui-header__nav-link">
+                    @php $isInvoicesActive = request()->routeIs('admin.finance.invoices.*'); @endphp
+                    <a
+                        href="{{ route('admin.finance.invoices.index') }}"
+                        class="ui-header__nav-link{{ $isInvoicesActive ? ' is-active' : '' }}"
+                        @if($isInvoicesActive) aria-current="page" @endif
+                    >
+                        <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-cash-stack"></i></span>
+                        <span class="ui-header__nav-text">Faturalar</span>
+                    </a>
+                </li>
+                <li class="ui-header__nav-item">
+                    @php $isDriveActive = request()->routeIs('admin.drive.media.*'); @endphp
+                    <a
+                        href="{{ route('admin.drive.media.index') }}"
+                        class="ui-header__nav-link{{ $isDriveActive ? ' is-active' : '' }}"
+                        @if($isDriveActive) aria-current="page" @endif
+                    >
                         <span class="ui-header__nav-icon" aria-hidden="true"><i class="bi bi-cloud-arrow-down"></i></span>
                         <span class="ui-header__nav-text">Drive</span>
                     </a>
@@ -72,8 +108,8 @@
                     <span class="ui-header__action-label">Profil</span>
                 </a>
 
-                <form method="POST" action="/admin/auth/logout" class="ui-header__logout">
-                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <form method="POST" action="{{ route('admin.auth.logout') }}" class="ui-header__logout">
+                    @csrf
                     <button type="submit" class="ui-header__action is-ghost">
                         <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-box-arrow-right"></i></span>
                         <span class="ui-header__action-label">Çıkış Yap</span>
