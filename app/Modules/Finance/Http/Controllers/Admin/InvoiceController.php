@@ -3,6 +3,7 @@
 namespace App\Modules\Finance\Http\Controllers\Admin;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Finance\Domain\Models\Invoice;
 use App\Modules\Finance\Domain\Models\InvoiceLine;
@@ -37,6 +38,12 @@ class InvoiceController extends Controller
             ->where('company_id', currentCompanyId())
             ->latest('created_at');
 
+        $statusFilters = Filters::multi($request, 'status');
+        $docNoFilter = Filters::scalar($request, 'doc_no');
+        $customerFilter = Filters::scalar($request, 'customer');
+        [$dueFrom, $dueTo] = Filters::range($request, 'due_date');
+        [$issuedFrom, $issuedTo] = Filters::range($request, 'created_at');
+
         if ($search = trim((string) $request->string('q'))) {
             $query->where(function ($builder) use ($search): void {
                 $builder->where('doc_no', 'like', '%' . $search . '%')
@@ -46,12 +53,51 @@ class InvoiceController extends Controller
             });
         }
 
-        if ($status = $request->string('status')->trim()->value()) {
-            $query->where('status', $status);
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, [
+                Invoice::STATUS_DRAFT,
+                Invoice::STATUS_ISSUED,
+                Invoice::STATUS_PARTIALLY_PAID,
+                Invoice::STATUS_PAID,
+            ], true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('status', $normalizedStatuses->first());
+        } elseif ($normalizedStatuses->count() > 1) {
+            $query->whereIn('status', $normalizedStatuses->all());
+        } elseif ($request->filled('status')) {
+            $legacyStatus = $request->string('status')->trim()->value();
+            if (in_array($legacyStatus, [Invoice::STATUS_DRAFT, Invoice::STATUS_ISSUED, Invoice::STATUS_PARTIALLY_PAID, Invoice::STATUS_PAID], true)) {
+                $query->where('status', $legacyStatus);
+                $statusFilters = [$legacyStatus];
+            }
         }
 
-        if ($customer = $request->integer('customer_id')) {
-            $query->where('customer_id', $customer);
+        if ($docNoFilter) {
+            $query->where('doc_no', 'like', '%' . $docNoFilter . '%');
+        }
+
+        if ($customerFilter) {
+            $query->whereHas('customer', function ($customerQuery) use ($customerFilter): void {
+                $customerQuery->where('name', 'like', '%' . $customerFilter . '%');
+            });
+        }
+
+        if ($dueFrom) {
+            $query->whereDate('due_date', '>=', $dueFrom);
+        }
+
+        if ($dueTo) {
+            $query->whereDate('due_date', '<=', $dueTo);
+        }
+
+        if ($issuedFrom) {
+            $query->whereDate('created_at', '>=', $issuedFrom);
+        }
+
+        if ($issuedTo) {
+            $query->whereDate('created_at', '<=', $issuedTo);
         }
 
         $invoices = $query->paginate(20)->withQueryString();
@@ -65,7 +111,10 @@ class InvoiceController extends Controller
 
         return view('finance::admin.invoices.index', [
             'invoices' => $invoices,
-            'filters' => $request->only(['q', 'status', 'customer_id']),
+            'filters' => [
+                'q' => $search,
+                'status' => $statusFilters,
+            ],
             'metrics' => $metrics,
             'customers' => Customer::where('company_id', currentCompanyId())->orderBy('name')->get(['id', 'name']),
         ]);

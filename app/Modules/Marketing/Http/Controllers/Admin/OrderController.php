@@ -15,6 +15,7 @@ use App\Modules\Marketing\Http\Requests\Admin\CancelSalesOrderRequest;
 use App\Modules\Marketing\Http\Requests\Admin\ConfirmSalesOrderRequest;
 use App\Modules\Marketing\Http\Requests\Admin\StoreSalesOrderRequest;
 use App\Modules\Marketing\Http\Requests\Admin\UpdateSalesOrderRequest;
+use App\Core\Support\TableKit\Filters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,14 +38,60 @@ class OrderController extends Controller
 
         $query = SalesOrder::query()->with('customer')->latest();
         $search = trim((string) $request->query('q', ''));
-        $status = $request->query('status');
+        $statusFilters = Filters::multi($request, 'status');
+        $docNoFilter = Filters::scalar($request, 'doc_no');
+        $customerFilter = Filters::scalar($request, 'customer');
+        [$dueFrom, $dueTo] = Filters::range($request, 'due_date');
+        [$createdFrom, $createdTo] = Filters::range($request, 'created_at');
 
         if ($search !== '') {
             $query->search($search);
         }
 
-        if ($status && in_array($status, SalesOrder::statuses(), true)) {
-            $query->where('status', $status);
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, SalesOrder::statuses(), true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('status', $normalizedStatuses->first());
+        } elseif ($normalizedStatuses->count() > 1) {
+            $query->whereIn('status', $normalizedStatuses->all());
+        } elseif ($normalizedStatuses->isEmpty() && $request->filled('status')) {
+            $legacyStatus = $request->query('status');
+
+            if (in_array($legacyStatus, SalesOrder::statuses(), true)) {
+                $query->where('status', $legacyStatus);
+                $statusFilters = [$legacyStatus];
+            }
+        }
+
+        if ($docNoFilter) {
+            $query->where(function ($builder) use ($docNoFilter): void {
+                $builder->where('doc_no', 'like', "%{$docNoFilter}%")
+                    ->orWhere('order_no', 'like', "%{$docNoFilter}%");
+            });
+        }
+
+        if ($customerFilter) {
+            $query->whereHas('customer', function ($customerQuery) use ($customerFilter): void {
+                $customerQuery->where('name', 'like', "%{$customerFilter}%");
+            });
+        }
+
+        if ($dueFrom) {
+            $query->whereDate('due_date', '>=', $dueFrom);
+        }
+
+        if ($dueTo) {
+            $query->whereDate('due_date', '<=', $dueTo);
+        }
+
+        if ($createdFrom) {
+            $query->whereDate('created_at', '>=', $createdFrom);
+        }
+
+        if ($createdTo) {
+            $query->whereDate('created_at', '<=', $createdTo);
         }
 
         /** @var LengthAwarePaginator $orders */
@@ -54,7 +101,7 @@ class OrderController extends Controller
             'orders' => $orders,
             'filters' => [
                 'q' => $search,
-                'status' => $status,
+                'status' => $statusFilters,
             ],
         ]);
     }

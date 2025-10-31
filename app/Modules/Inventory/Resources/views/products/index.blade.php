@@ -1,7 +1,12 @@
+{{--
+    Amaç: Ürün listesindeki tablo görünümünü TableKit ile standardize etmek, filtre yongaları ve grid görünümünü korumak.
+    İlişkiler: PROMPT-1, PROMPT-2, PROMPT-3 — TR Dil Birliği, Blade İskeleti, TableKit’e Geçiş.
+    Notlar: Grid görünümü mevcut yapısını korur; tablo görünümü TableKit bileşeniyle güncellendi.
+--}}
 @extends('layouts.admin')
 
 @section('title', 'Ürünler')
-@section('module', 'Inventory')
+@section('module', 'Envanter')
 
 @push('page-styles')
     @vite('app/Modules/Inventory/Resources/scss/products_index.scss')
@@ -12,10 +17,8 @@
 @endpush
 
 @section('content')
-    @php
-        use Illuminate\Support\Str;
-    @endphp
-    <div>test</div>
+    @php use Illuminate\Support\Str; @endphp
+
     <div class="inv-products-list" data-view="{{ $filters['view'] }}">
         <header class="inv-products-list__filters">
             <form method="get" class="inv-products-list__filter-form">
@@ -91,30 +94,25 @@
         </div>
 
         <div class="inv-products-list__table" data-view-panel="table">
-            <table class="table align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Ürün</th>
-                        <th>SKU</th>
-                        <th>Stok</th>
-                        <th>Fiyat</th>
-                        <th class="text-end">İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($products as $product)
-                        <tr>
-                            <td>{{ $product->name }}</td>
-                            <td>{{ $product->sku }}</td>
-                            <td>{{ number_format($product->stockItems->sum('qty') ?? 0, 2) }}</td>
-                            <td>{{ number_format($product->price ?? 0, 2) }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.inventory.products.show', $product) }}" class="btn btn-sm btn-outline-primary">Detay</a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <x-tablekit.table
+                :config="$tableKitConfig"
+                :rows="$tableKitRows"
+                :paginator="$tableKitPaginator"
+                empty-text="Bu filtrelerle ürün bulunamadı."
+                dense="true"
+            >
+                <x-slot name="toolbar">
+                    <x-tablekit.toolbar
+                        :config="$tableKitConfig"
+                        search-placeholder="Ürün veya SKU ara"
+                        :search-value="request('q')"
+                    >
+                        <button type="submit" class="tablekit__btn tablekit__btn--secondary">
+                            Listeyi Güncelle
+                        </button>
+                    </x-tablekit.toolbar>
+                </x-slot>
+            </x-tablekit.table>
         </div>
 
         <div class="inv-products-list__pagination" data-pagination>

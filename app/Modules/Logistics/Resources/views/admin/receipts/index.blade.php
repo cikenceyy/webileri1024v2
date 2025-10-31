@@ -1,64 +1,46 @@
+{{--
+    Amaç: Mal kabul kayıtlarını TableKit tablosu ve standart iskelet ile sunmak.
+    İlişkiler: PROMPT-1, PROMPT-2, PROMPT-3 — TR Dil Birliği, Blade İskeleti, TableKit’e Geçiş.
+    Notlar: Durum, depo ve tedarikçi filtreleri TableKit toolbar üzerinden sağlanır.
+--}}
 @extends('layouts.admin')
 
-@section('title', 'Mal Kabul (GRN)')
-@section('module', 'Logistics')
+@section('title', 'Mal Kabulleri')
+@section('module', 'Lojistik')
+@section('page', 'Mal Kabulleri')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Mal Kabul (GRN)</h1>
-        <a href="{{ route('admin.logistics.receipts.create') }}" class="btn btn-primary">Yeni GRN</a>
-    </div>
+    <x-ui-content class="py-4">
+        <x-ui-page-header
+            title="Mal Kabul İşlemleri"
+            description="Taslak, teslim alınan ve mutabık mal kabullerini tek tablo üzerinden takip edin."
+        >
+            <x-slot name="actions">
+                <a href="{{ route('admin.logistics.receipts.create') }}" class="btn btn-primary">Yeni Mal Kabul</a>
+            </x-slot>
+        </x-ui-page-header>
 
-    <form method="get" class="row g-2 mb-3">
-        <div class="col-md-4">
-            <select name="status" class="form-select">
-                <option value="">Durum (Tümü)</option>
-                @foreach (['draft' => 'Taslak', 'received' => 'Alındı', 'reconciled' => 'Uzlaşıldı', 'closed' => 'Kapandı', 'cancelled' => 'İptal'] as $key => $label)
-                    <option value="{{ $key }}" @selected(($filters['status'] ?? '') === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
+        <div class="mt-4">
+            <x-ui-card title="Mal Kabul Listesi" subtitle="Belge, tedarikçi ve depoya göre filtreleyin.">
+                <x-tablekit.table
+                    :config="$tableKitConfig"
+                    :rows="$tableKitRows"
+                    :paginator="$tableKitPaginator"
+                    empty-text="Kayıtlı mal kabul bulunmuyor."
+                >
+                    <x-slot name="toolbar">
+                        <x-tablekit.toolbar
+                            :config="$tableKitConfig"
+                            search-placeholder="Belge veya tedarikçi ara"
+                            :search-value="request('q')"
+                        >
+                            <button type="submit" class="tablekit__btn tablekit__btn--secondary">
+                                Listeyi Güncelle
+                            </button>
+                        </x-tablekit.toolbar>
+                    </x-slot>
+                </x-tablekit.table>
+            </x-ui-card>
         </div>
-        <div class="col-md-2">
-            <button class="btn btn-outline-secondary w-100">Filtrele</button>
-        </div>
-    </form>
-
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th>Belge No</th>
-                        <th>Tedarikçi</th>
-                        <th>Durum</th>
-                        <th>Depo</th>
-                        <th>Tarih</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($receipts as $receipt)
-                        <tr>
-                            <td class="fw-semibold">{{ $receipt->doc_no }}</td>
-                            <td>{{ $receipt->vendor_id ? ('#' . $receipt->vendor_id) : '—' }}</td>
-                            <td><span class="badge bg-light text-dark text-capitalize">{{ $receipt->status }}</span></td>
-                            <td>{{ $receipt->warehouse?->name ?? '—' }}</td>
-                            <td>{{ optional($receipt->received_at)->format('d.m.Y H:i') ?? '—' }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.logistics.receipts.show', $receipt) }}" class="btn btn-sm btn-outline-primary">Görüntüle</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Henüz kayıt bulunmuyor.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="mt-3">
-        {{ $receipts->links() }}
-    </div>
+    </x-ui-content>
 @endsection

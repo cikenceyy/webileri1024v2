@@ -3,6 +3,7 @@
 namespace App\Modules\Inventory\Http\Controllers;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\StockLedgerEntry;
 use App\Modules\Inventory\Domain\Models\StockTransfer;
@@ -12,6 +13,7 @@ use App\Modules\Inventory\Http\Requests\SaveStockTransferRequest;
 use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -24,18 +26,62 @@ class StockTransferController extends Controller
     ) {
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', StockTransfer::class);
 
+        $companyId = Auth::user()->company_id;
+        $statusFilters = Filters::multi($request, 'status');
+        $docNoFilter = Filters::scalar($request, 'doc_no');
+        $fromFilter = Filters::scalar($request, 'from');
+        $toFilter = Filters::scalar($request, 'to');
+        [$createdFrom, $createdTo] = Filters::range($request, 'created_at');
+
+        $allowedStatuses = ['draft', 'posted'];
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, $allowedStatuses, true))
+            ->values();
+
         $transfers = StockTransfer::query()
             ->with(['fromWarehouse', 'toWarehouse'])
-            ->where('company_id', Auth::user()->company_id)
+            ->where('company_id', $companyId)
+            ->when(
+                $normalizedStatuses->isNotEmpty(),
+                fn ($query) => $query->whereIn('status', $normalizedStatuses->all())
+            )
+            ->when(
+                $normalizedStatuses->isEmpty() && $request->filled('status'),
+                function ($query) use ($request, $allowedStatuses, &$statusFilters, $normalizedStatuses): void {
+                    $legacy = $request->string('status')->trim()->value();
+                    if ($legacy !== '' && in_array($legacy, $allowedStatuses, true)) {
+                        $query->where('status', $legacy);
+                        $statusFilters = [$legacy];
+                        $normalizedStatuses->push($legacy);
+                    }
+                }
+            )
+            ->when($docNoFilter !== null, fn ($query) => $query->where('doc_no', 'like', "%{$docNoFilter}%"))
+            ->when($fromFilter !== null, function ($query) use ($fromFilter): void {
+                $query->whereHas('fromWarehouse', function ($warehouseQuery) use ($fromFilter): void {
+                    $warehouseQuery->where('name', 'like', "%{$fromFilter}%");
+                });
+            })
+            ->when($toFilter !== null, function ($query) use ($toFilter): void {
+                $query->whereHas('toWarehouse', function ($warehouseQuery) use ($toFilter): void {
+                    $warehouseQuery->where('name', 'like', "%{$toFilter}%");
+                });
+            })
+            ->when($createdFrom !== null, fn ($query) => $query->whereDate('created_at', '>=', $createdFrom))
+            ->when($createdTo !== null, fn ($query) => $query->whereDate('created_at', '<=', $createdTo))
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('inventory::transfers.index', [
             'transfers' => $transfers,
+            'filters' => [
+                'status' => $normalizedStatuses->isNotEmpty() ? $normalizedStatuses->all() : $statusFilters,
+            ],
         ]);
     }
 

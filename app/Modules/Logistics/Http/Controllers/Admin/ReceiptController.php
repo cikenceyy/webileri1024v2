@@ -3,6 +3,7 @@
 namespace App\Modules\Logistics\Http\Controllers\Admin;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\Warehouse;
@@ -40,18 +41,55 @@ class ReceiptController extends Controller
         $this->authorize('viewAny', GoodsReceipt::class);
 
         $companyId = currentCompanyId();
-        $status = $request->string('status')->toString();
+        $statusFilters = Filters::multi($request, 'status');
+        $docNoFilter = Filters::scalar($request, 'doc_no');
+        $supplierFilter = Filters::scalar($request, 'supplier');
+        $warehouseFilter = Filters::scalar($request, 'warehouse');
+        [$receivedFrom, $receivedTo] = Filters::range($request, 'received_at');
+
+        $allowedStatuses = ['draft', 'receiving', 'received', 'reconciled', 'closed', 'cancelled'];
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, $allowedStatuses, true))
+            ->values();
 
         $receipts = GoodsReceipt::query()
             ->where('company_id', $companyId)
-            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when(
+                $normalizedStatuses->isNotEmpty(),
+                fn ($query) => $query->whereIn('status', $normalizedStatuses->all())
+            )
+            ->when(
+                $normalizedStatuses->isEmpty() && $request->filled('status'),
+                function ($query) use ($request, $allowedStatuses, &$statusFilters, $normalizedStatuses): void {
+                    $legacy = $request->string('status')->trim()->value();
+                    if ($legacy !== '' && in_array($legacy, $allowedStatuses, true)) {
+                        $query->where('status', $legacy);
+                        $statusFilters = [$legacy];
+                        $normalizedStatuses->push($legacy);
+                    }
+                }
+            )
+            ->when($docNoFilter !== null, fn ($query) => $query->where('doc_no', 'like', "%{$docNoFilter}%"))
+            ->when(
+                $supplierFilter !== null,
+                fn ($query) => $query->where('vendor_id', (int) $supplierFilter)
+            )
+            ->when($warehouseFilter !== null, function ($query) use ($warehouseFilter): void {
+                $query->whereHas('warehouse', function ($warehouseQuery) use ($warehouseFilter): void {
+                    $warehouseQuery->where('name', 'like', "%{$warehouseFilter}%");
+                });
+            })
+            ->when($receivedFrom !== null, fn ($query) => $query->whereDate('received_at', '>=', $receivedFrom))
+            ->when($receivedTo !== null, fn ($query) => $query->whereDate('received_at', '<=', $receivedTo))
             ->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();
 
         return view('logistics::admin.receipts.index', [
             'receipts' => $receipts,
-            'filters' => ['status' => $status],
+            'filters' => [
+                'status' => $normalizedStatuses->isNotEmpty() ? $normalizedStatuses->all() : $statusFilters,
+            ],
         ]);
     }
 

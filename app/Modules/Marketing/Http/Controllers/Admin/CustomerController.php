@@ -9,6 +9,7 @@ use App\Modules\Marketing\Http\Requests\Admin\StoreCustomerRequest;
 use App\Modules\Marketing\Http\Requests\Admin\UpdateCustomerRequest;
 use App\Modules\Marketing\Http\Resources\CustomerResource;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Core\Support\TableKit\Filters;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class CustomerController extends Controller
 
         $query = Customer::query()->with('priceList')->latest();
         $search = trim((string) $request->query('q', ''));
-        $status = $request->query('status');
+        $statusFilters = Filters::multi($request, 'status');
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {
@@ -33,8 +34,25 @@ class CustomerController extends Controller
             });
         }
 
-        if (in_array($status, ['active', 'inactive'], true)) {
-            $query->where('is_active', $status === 'active');
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, ['active', 'inactive'], true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('is_active', $normalizedStatuses->first() === 'active');
+        } elseif ($normalizedStatuses->count() === 2) {
+            // Her iki durum da seçildiyse filtre uygulamaya gerek yok.
+        } elseif ($normalizedStatuses->count() === 0) {
+            $legacyStatus = $request->query('status');
+
+            if (in_array($legacyStatus, ['active', 'inactive'], true)) {
+                $query->where('is_active', $legacyStatus === 'active');
+                $statusFilters = [$legacyStatus];
+            }
+        }
+
+        if ($normalizedStatuses->count() > 1 && $normalizedStatuses->count() < 2) {
+            // tek eleman hariç, mantıksal olarak yukarıda yakalanır; burada ek işlem yok.
         }
 
         /** @var LengthAwarePaginator $customers */
@@ -48,7 +66,7 @@ class CustomerController extends Controller
             'customers' => $customers,
             'filters' => [
                 'q' => $search,
-                'status' => $status,
+                'status' => $statusFilters,
             ],
         ]);
     }
