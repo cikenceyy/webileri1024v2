@@ -3,8 +3,7 @@
 namespace App\Modules\Production\Http\Controllers\Admin;
 
 use App\Core\Contracts\SettingsReader;
-use App\Core\Support\TableKit\TableConfig;
-use App\Core\TableKit\QueryAdapter;
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\Warehouse;
@@ -38,72 +37,60 @@ class WorkOrderController extends Controller
         $this->middleware('throttle:tablekit-list')->only('index');
     }
 
-    /**
-     * İş emri listesini TableKit üzerinden düşük maliyetle sunar.
-     * Maliyet Notu: Tek sorgu + cursor pagination ile 1 dk sıcak cache kullanıyoruz.
-     */
     public function index(Request $request): View
     {
         $this->authorize('viewAny', WorkOrder::class);
         $companyId = currentCompanyId();
 
-        $builder = WorkOrder::query()
+        $query = WorkOrder::query()
             ->where('company_id', $companyId)
-            ->with(['product:id,company_id,name']);
+            ->with(['product:id,company_id,name'])
+            ->orderByDesc('created_at');
 
-        $adapter = QueryAdapter::make($builder, 'production:workorders')
-            ->select([
-                'id',
-                'company_id',
-                'product_id',
-                'number',
-                'planned_qty',
-                'status',
-                'due_date',
-                'created_at',
-            ])
-            ->allowSorts(['number', 'planned_qty', 'status', 'due_date', 'created_at'])
-            ->allowFilters([
-                'status' => ['type' => 'string'],
-                'due_date' => ['type' => 'date'],
-            ])
-            ->defaultSort('-created_at')
-            ->mapUsing(static function (WorkOrder $order): array {
-                $number = $order->number ?: sprintf('WO-%05d', $order->id);
+        $search = trim((string) $request->query('q', ''));
+        $statusFilters = Filters::multi($request, 'status');
+        [$dueFrom, $dueTo] = Filters::range($request, 'due_date');
 
-                return [
-                    'id' => $order->id,
-                    'number' => $number,
-                    'product' => $order->product->name ?? '—',
-                    'planned_qty' => number_format((float) ($order->planned_qty ?? 0), 0, ',', '.'),
-                    'status' => $order->status ?? 'draft',
-                    'due_date' => optional($order->due_date)?->format('Y-m-d') ?? '—',
-                ];
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('number', 'like', "%{$search}%")
+                    ->orWhere('doc_no', 'like', "%{$search}%");
             });
+        }
 
-        $payload = $adapter->toPayload($request);
+        $validStatuses = collect(['draft', 'released', 'in_progress', 'completed', 'closed', 'cancelled']);
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn (string $status) => $validStatuses->contains($status))
+            ->values();
 
-        $tableKitConfig = TableConfig::make([
-            ['key' => 'number', 'label' => __('İş Emri #'), 'sortable' => true, 'width' => '140px'],
-            ['key' => 'product', 'label' => __('Ürün')],
-            ['key' => 'planned_qty', 'label' => __('Planlanan'), 'sortable' => true, 'class' => 'text-end', 'width' => '120px'],
-            ['key' => 'status', 'label' => __('Durum'), 'sortable' => true, 'width' => '120px'],
-            ['key' => 'due_date', 'label' => __('Termin'), 'sortable' => true, 'width' => '140px'],
-        ], [
-            'id' => 'production:workorders',
-            'default_sort' => $payload['meta']['default_sort'],
-            'data_count' => $payload['paginator']->count(),
-            'row_actions' => [
-                ['type' => 'link', 'label' => __('Aç'), 'route' => 'admin.production.workorders.show', 'param' => 'id'],
-                ['type' => 'link', 'label' => __('Düzenle'), 'route' => 'admin.production.workorders.edit', 'param' => 'id'],
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('status', $normalizedStatuses->first());
+        } elseif ($normalizedStatuses->count() > 1) {
+            $query->whereIn('status', $normalizedStatuses->all());
+        }
+
+        if ($dueFrom) {
+            $query->whereDate('due_date', '>=', $dueFrom);
+        }
+
+        if ($dueTo) {
+            $query->whereDate('due_date', '<=', $dueTo);
+        }
+
+        $perPage = (int) $request->integer('perPage', 25);
+        $perPage = max(10, min(100, $perPage));
+
+        return view('production::admin.workorders.index', [
+            'workorders' => $query->paginate($perPage)->withQueryString(),
+            'filters' => [
+                'q' => $search,
+                'status' => $normalizedStatuses->all(),
+                'due_date' => [
+                    'from' => $dueFrom,
+                    'to' => $dueTo,
+                ],
             ],
         ]);
-
-        $tableKitRows = $payload['rows'];
-        $tableKitPaginator = $payload['paginator'];
-        $tableKitState = $payload['meta']['state'] ?? [];
-
-        return view('production::admin.workorders.index', compact('tableKitConfig', 'tableKitRows', 'tableKitPaginator', 'tableKitState'));
     }
 
 

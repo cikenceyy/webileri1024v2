@@ -1,8 +1,13 @@
+{{--
+    Amaç: Onay bileşeni varsayılan metinlerini TR diline taşımak ve erişilebilirlik niteliklerini hizalamak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği.
+    Notlar: Varsayılan başlık ve etiketler TR olarak ayarlandı.
+--}}
 @props([
-    'title' => 'Are you sure?',
-    'message' => 'This action cannot be undone.',
-    'confirmLabel' => 'Confirm',
-    'cancelLabel' => 'Cancel',
+    'title' => 'Emin misiniz?',
+    'message' => 'Bu işlem geri alınamaz.',
+    'confirmLabel' => 'Onayla',
+    'cancelLabel' => 'İptal',
     'type' => 'primary',
 ])
 
@@ -13,7 +18,7 @@
 <x-ui-modal {{ $attributes }} :title="$title" size="sm" :esc-closable="!$danger">
     <p>{{ $message }}</p>
     <x-slot name="footer">
-        <div class="ui-confirm__actions" role="group" aria-label="Confirmation actions">
+        <div class="ui-confirm__actions" role="group" aria-label="Onaylama işlemleri">
             <x-ui-button type="button" variant="ghost" data-action="close" data-intent="cancel">{{ $cancelLabel }}</x-ui-button>
             <x-ui-button
                 type="button"

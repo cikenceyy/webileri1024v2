@@ -1,7 +1,12 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
-import { readdirSync, statSync } from 'node:fs';
+
+/**
+ * Amaç: Vite girişlerini sadeleştirip yalnız kullanılan varlıkları derlemek.
+ * İlişkiler: PROMPT-6 — Vite Girişlerinin Sadeleştirilmesi.
+ * Notlar: Gereksiz tarama kaldırıldı, manifest manuel listelerle yönetiliyor.
+ */
 
 const projectRoot = path.resolve();
 
@@ -24,35 +29,33 @@ const cmsEntries = [
   'app/Cms/Resources/assets/js/admin/editor/index.js',
 ];
 
-function moduleEntries(base = 'app/Modules') {
-  const entries = [];
-  const root = path.resolve(projectRoot, base);
+const moduleEntries = [
+  'app/Modules/Drive/Resources/scss/drive.scss',
+  'app/Modules/Drive/Resources/js/drive.js',
+  'app/Modules/Inventory/Resources/scss/home.scss',
+  'app/Modules/Inventory/Resources/js/home.js',
+  'app/Modules/Inventory/Resources/scss/settings.scss',
+  'app/Modules/Inventory/Resources/js/settings.js',
+  'app/Modules/Inventory/Resources/scss/components.scss',
+  'app/Modules/Inventory/Resources/js/components.js',
+  'app/Modules/Inventory/Resources/scss/products_index.scss',
+  'app/Modules/Inventory/Resources/js/products_index.js',
+  'app/Modules/Inventory/Resources/scss/products_show.scss',
+  'app/Modules/Inventory/Resources/js/products_show.js',
+  'app/Modules/Inventory/Resources/scss/console.scss',
+  'app/Modules/Inventory/Resources/js/console.js',
+  'app/Modules/Marketing/Resources/scss/pricelists.scss',
+  'app/Modules/Marketing/Resources/js/pricelists.js',
+  'app/Modules/Marketing/Resources/scss/marketing.scss',
+  'app/Modules/Marketing/Resources/js/marketing.js',
+];
 
-  const walk = (current) => {
-    readdirSync(current, { withFileTypes: true }).forEach((item) => {
-      const fullPath = path.join(current, item.name);
-
-      if (item.isDirectory()) {
-        walk(fullPath);
-        return;
-      }
-
-      if (fullPath.endsWith('.js') || fullPath.endsWith('.scss')) {
-        entries.push(path.relative(projectRoot, fullPath).split(path.sep).join('/'));
-      }
-    });
-  };
-
-  try {
-    if (statSync(root).isDirectory()) {
-      walk(root);
-    }
-  } catch (error) {
-    // optional modules directory
-  }
-
-  return entries;
-}
+const pageEntries = [
+  'resources/js/pages/settings-cache.js',
+  'resources/js/pages/settings-email.js',
+  'resources/js/pages/settings-general.js',
+  'resources/js/pages/settings-modules.js',
+];
 
 export default defineConfig({
   plugins: [
@@ -68,8 +71,9 @@ export default defineConfig({
         'resources/js/pages/reports-index.js',
         'resources/css/tablekit.css',
         'resources/js/tablekit/index.js',
+        ...pageEntries,
         ...cmsEntries,
-        ...moduleEntries(),
+        ...moduleEntries,
       ],
       refresh: true,
     }),

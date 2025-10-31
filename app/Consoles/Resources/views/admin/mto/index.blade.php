@@ -1,3 +1,8 @@
+{{--
+    Amaç: Make to Order konsolu tablolarını TableKit görünümüyle uyumlu hale getirmek.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Veri ve JS davranışları değişmeden görsel kancalar eklendi.
+--}}
 @extends('layouts.admin')
 
 @php($module = 'Consoles')
@@ -72,14 +77,14 @@
                         </div>
                         <div class="card-body p-0">
                             @if(!empty($step['items']))
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0 align-middle">
-                                        <thead class="table-light">
+                                <div class="table-responsive tablekit-surface__wrapper">
+                                    <table class="table table-hover mb-0 align-middle tablekit-surface">
+                                        <thead>
                                         <tr>
-                                            <th style="width:40px;"><input type="checkbox" class="form-check-input" data-console-select-all="{{ $step['key'] }}"></th>
-                                            <th>Belge</th>
-                                            <th>Durum</th>
-                                            <th>Detay</th>
+                                            <th scope="col" class="tablekit-surface__select"><input type="checkbox" class="form-check-input" data-console-select-all="{{ $step['key'] }}"></th>
+                                            <th scope="col">Belge</th>
+                                            <th scope="col">Durum</th>
+                                            <th scope="col">Detay</th>
                                         </tr>
                                         </thead>
                                         <tbody>

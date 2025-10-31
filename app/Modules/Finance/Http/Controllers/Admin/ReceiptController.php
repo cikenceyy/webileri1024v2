@@ -2,6 +2,7 @@
 
 namespace App\Modules\Finance\Http\Controllers\Admin;
 
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Finance\Domain\Models\Invoice;
 use App\Modules\Finance\Domain\Models\Receipt;
@@ -31,6 +32,11 @@ class ReceiptController extends Controller
             ->where('company_id', currentCompanyId())
             ->latest('received_at');
 
+        $statusFilters = Filters::multi($request, 'status');
+        $docNoFilter = Filters::scalar($request, 'doc_no');
+        $customerFilter = Filters::scalar($request, 'customer');
+        [$receivedFrom, $receivedTo] = Filters::range($request, 'received_at');
+
         if ($search = trim((string) $request->string('q'))) {
             $query->where(function ($builder) use ($search): void {
                 $builder->where('doc_no', 'like', '%' . $search . '%')
@@ -40,8 +46,38 @@ class ReceiptController extends Controller
             });
         }
 
-        if ($customer = $request->integer('customer_id')) {
-            $query->where('customer_id', $customer);
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, ['draft', 'posted', 'reconciled'], true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('status', $normalizedStatuses->first());
+        } elseif ($normalizedStatuses->count() > 1) {
+            $query->whereIn('status', $normalizedStatuses->all());
+        } elseif ($request->filled('status')) {
+            $legacyStatus = $request->string('status')->trim()->value();
+            if (in_array($legacyStatus, ['draft', 'posted', 'reconciled'], true)) {
+                $query->where('status', $legacyStatus);
+                $statusFilters = [$legacyStatus];
+            }
+        }
+
+        if ($docNoFilter) {
+            $query->where('doc_no', 'like', '%' . $docNoFilter . '%');
+        }
+
+        if ($customerFilter) {
+            $query->whereHas('customer', function ($customerQuery) use ($customerFilter): void {
+                $customerQuery->where('name', 'like', '%' . $customerFilter . '%');
+            });
+        }
+
+        if ($receivedFrom) {
+            $query->whereDate('received_at', '>=', $receivedFrom);
+        }
+
+        if ($receivedTo) {
+            $query->whereDate('received_at', '<=', $receivedTo);
         }
 
         $receipts = $query->paginate(20)->withQueryString();
@@ -49,7 +85,10 @@ class ReceiptController extends Controller
         return view('finance::admin.receipts.index', [
             'receipts' => $receipts,
             'customers' => Customer::where('company_id', currentCompanyId())->orderBy('name')->get(['id', 'name']),
-            'filters' => $request->only(['q', 'customer_id']),
+            'filters' => [
+                'q' => $search,
+                'status' => $statusFilters,
+            ],
         ]);
     }
 

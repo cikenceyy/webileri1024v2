@@ -1,11 +1,18 @@
+{{--
+    Amaç: Üst gezinme çubuğunu TR dilinde, erişilebilir ve tutarlı davranışla sunmak.
+    İlişkiler: PROMPT-5 — Sidebar & Header İyileştirmeleri.
+    Notlar: Breadcrumb ve aktiflik göstergesi ortak şablonla yönetilir.
+--}}
 @php
     $moduleLinks = [
-        ['label' => 'Console', 'icon' => 'bi bi-kanban', 'href' => url('admin/console'), 'pattern' => 'admin/console*'],
+        ['label' => 'Konsol', 'icon' => 'bi bi-kanban', 'href' => url('admin/console'), 'pattern' => 'admin/console*'],
         ['label' => 'Akış', 'icon' => 'bi bi-lightning-charge', 'href' => url('admin/activity'), 'pattern' => 'admin/activity*'],
-        ['label' => 'Marketing', 'icon' => 'bi bi-bullseye', 'href' => url('admin/marketing'), 'pattern' => 'admin/marketing*'],
-        ['label' => 'Inventory', 'icon' => 'bi bi-boxes', 'href' => url('admin/inventory/console'), 'pattern' => 'admin/inventory*'],
+        ['label' => 'Pazarlama', 'icon' => 'bi bi-bullseye', 'href' => url('admin/marketing'), 'pattern' => 'admin/marketing*'],
+        ['label' => 'Envanter', 'icon' => 'bi bi-boxes', 'href' => url('admin/inventory/console'), 'pattern' => 'admin/inventory*'],
         ['label' => 'Drive', 'icon' => 'bi bi-cloud-arrow-down', 'href' => url('admin/drive'), 'pattern' => 'admin/drive*'],
     ];
+
+    $breadcrumbs = trim($__env->yieldContent('breadcrumbs', ''));
 @endphp
 
 <header class="ui-header" data-ui="header">
@@ -16,7 +23,7 @@
             data-action="toggle"
             data-target="#sidebar"
             aria-controls="sidebar"
-            aria-expanded="true"
+            aria-expanded="false"
         >
             <span class="ui-header__toggle-icon" aria-hidden="true">
                 <i class="bi bi-list"></i>
@@ -28,6 +35,12 @@
             <span class="ui-header__product">{{ config('app.name', 'Webileri') }}</span>
             <span class="ui-header__section">@yield('section', 'Gösterge Paneli')</span>
         </div>
+
+        @if($breadcrumbs !== '')
+            <nav class="ui-header__breadcrumbs" aria-label="Gezinme izi">
+                {!! $breadcrumbs !!}
+            </nav>
+        @endif
 
         <nav class="ui-header__nav" aria-label="Modül kısayolları">
             <ul class="ui-header__nav-list">
@@ -45,7 +58,7 @@
             </ul>
         </nav>
 
-        <div class="ui-header__actions" role="toolbar" aria-label="Header actions">
+        <div class="ui-header__actions" role="toolbar" aria-label="Üst çubuk işlemleri">
             <div class="ui-header__action-group" role="group" aria-label="Kullanıcı işlemleri">
                 <a href="{{ url('admin/console/notifications') }}" class="ui-header__action is-ghost" aria-label="Bildirimler">
                     <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
@@ -62,7 +75,7 @@
                         @csrf
                         <button type="submit" class="ui-header__action is-ghost">
                             <span class="ui-header__action-icon" aria-hidden="true"><i class="bi bi-box-arrow-right"></i></span>
-                            <span class="ui-header__action-label">{{ __('Çıkış Yap') }}</span>
+                            <span class="ui-header__action-label">Çıkış Yap</span>
                         </button>
                     </form>
                 @endauth

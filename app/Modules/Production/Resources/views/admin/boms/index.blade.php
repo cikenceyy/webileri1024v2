@@ -1,59 +1,46 @@
+{{--
+    Amaç: Ürün reçetelerini tek TableKit hattında yönetmek ve filtreleri sadeleştirmek.
+    İlişkiler: PROMPT-1, PROMPT-2, PROMPT-3 — TR Dil Birliği, Blade İskeleti, TableKit’e Geçiş.
+    Notlar: Aktif/pasif filtreleri toolbar alanına taşındı; tablo varsayılan 25 satır yükler.
+--}}
 @extends('layouts.admin')
 
-@section('title', 'BOM Listesi')
+@section('title', 'Ürün Reçeteleri')
 @section('module', 'Production')
+@section('page', 'Ürün Reçeteleri')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Ürün Reçeteleri</h1>
-        @can('create', \App\Modules\Production\Domain\Models\Bom::class)
-            <a href="{{ route('admin.production.boms.create') }}" class="btn btn-primary">Yeni BOM</a>
-        @endcan
-    </div>
+    <x-ui-content class="py-4">
+        <x-ui-page-header
+            title="Ürün Reçeteleri"
+            description="Aktif üretim reçetelerini kod, ürün ve versiyon bazında inceleyin."
+        >
+            @can('create', \App\Modules\Production\Domain\Models\Bom::class)
+                <x-slot name="actions">
+                    <a href="{{ route('admin.production.boms.create') }}" class="btn btn-primary">Yeni Reçete</a>
+                </x-slot>
+            @endcan
+        </x-ui-page-header>
 
-    <div class="card">
-        <div class="card-body p-0">
-            <table class="table table-striped mb-0">
-                <thead>
-                <tr>
-                    <th>Kod</th>
-                    <th>Ürün</th>
-                    <th>Versiyon</th>
-                    <th>Çıktı Miktarı</th>
-                    <th class="text-end">İşlemler</th>
-                </tr>
-                </thead>
-                <tbody>
-                @forelse($boms as $bom)
-                    <tr>
-                        <td>{{ $bom->code }}</td>
-                        <td>{{ $bom->product?->name ?? 'Ürün' }}</td>
-                        <td>{{ $bom->version }}</td>
-                        <td>{{ number_format($bom->output_qty, 3) }} {{ $bom->product?->unit ?? 'pcs' }}</td>
-                        <td class="text-end">
-                            <a href="{{ route('admin.production.boms.show', $bom) }}" class="btn btn-sm btn-outline-primary">Görüntüle</a>
-                            @can('update', $bom)
-                                <a href="{{ route('admin.production.boms.edit', $bom) }}" class="btn btn-sm btn-outline-secondary">Düzenle</a>
-                            @endcan
-                            @can('create', \App\Modules\Production\Domain\Models\Bom::class)
-                                <form action="{{ route('admin.production.boms.duplicate', $bom) }}" method="post" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-info">Kopyala</button>
-                                </form>
-                            @endcan
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center py-4">Henüz tanımlı reçete yok.</td>
-                    </tr>
-                @endforelse
-                </tbody>
-            </table>
+        <div class="mt-4">
+            <x-ui-card title="Kayıtlar" subtitle="Kod, ürün ve durum bazlı filtreleme">
+                <x-tablekit.table
+                    :config="$tableKitConfig"
+                    :rows="$tableKitRows"
+                    :paginator="$tableKitPaginator"
+                    empty-text="Henüz reçete kaydı bulunmuyor."
+                >
+                    <x-slot name="toolbar">
+                        <x-tablekit.toolbar
+                            :config="$tableKitConfig"
+                            search-placeholder="Reçete veya ürün ara"
+                            :search-value="$filters['q'] ?? request('q')"
+                        >
+                            <button type="submit" class="tablekit__btn tablekit__btn--secondary">Listeyi Güncelle</button>
+                        </x-tablekit.toolbar>
+                    </x-slot>
+                </x-tablekit.table>
+            </x-ui-card>
         </div>
-    </div>
-
-    <div class="mt-3">
-        {{ $boms->links() }}
-    </div>
+    </x-ui-content>
 @endsection

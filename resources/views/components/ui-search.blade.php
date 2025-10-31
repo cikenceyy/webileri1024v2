@@ -1,7 +1,12 @@
+{{--
+    Amaç: Arama bileşeni varsayılanlarını TR diline çekmek.
+    İlişkiler: PROMPT-1 — TR Dil Birliği.
+    Notlar: Etiket ve placeholder TR karşılıkları ile güncellendi.
+--}}
 @props([
-    'label' => 'Search',
+    'label' => 'Ara',
     'name' => 'search',
-    'placeholder' => 'Search…',
+    'placeholder' => 'Ara…',
 ])
 
 <x-ui-input

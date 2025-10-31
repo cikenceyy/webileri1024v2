@@ -1,46 +1,48 @@
+{{--
+    Amaç: Stok sayımlarını TableKit tablosu ve standart sayfa iskeletiyle listelemek.
+    İlişkiler: PROMPT-1, PROMPT-2, PROMPT-3 — TR Dil Birliği, Blade İskeleti, TableKit’e Geçiş.
+    Notlar: Liste TableKit’e taşındı, sayfa başlığı ve aksiyon korunarak güncellendi.
+--}}
 @extends('layouts.admin')
 
 @section('title', 'Stok Sayımları')
-@section('module', 'Inventory')
+@section('module', 'Envanter')
+@section('page', 'Stok Sayımları')
 
 @section('content')
-    <section class="inv-card">
-        <header class="inv-card__header d-flex justify-content-between align-items-center">
-            <h1 class="inv-card__title">Stok Sayımları</h1>
+    <x-ui-content class="py-4">
+        <x-ui-page-header
+            title="Stok Sayımları"
+            description="Depo bazlı sayımları ve mutabakat durumlarını tek tablo üzerinden takip edin."
+        >
             @can('create', \App\Modules\Inventory\Domain\Models\StockCount::class)
-                <a href="{{ route('admin.inventory.counts.create') }}" class="btn btn-primary btn-sm">Yeni Sayım</a>
+                <x-slot name="actions">
+                    <a href="{{ route('admin.inventory.counts.create') }}" class="btn btn-primary btn-sm">Yeni Sayım</a>
+                </x-slot>
             @endcan
-        </header>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Belge No</th>
-                    <th>Depo</th>
-                    <th>Durum</th>
-                    <th>Sayım Tarihi</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($counts as $count)
-                    <tr>
-                        <td>{{ $count->doc_no }}</td>
-                        <td>{{ $count->warehouse?->name }}</td>
-                        <td><span class="badge bg-{{ $count->status === 'reconciled' ? 'success' : ($count->status === 'counted' ? 'warning' : 'secondary') }}">{{ ucfirst($count->status) }}</span></td>
-                        <td>{{ optional($count->counted_at ?? $count->created_at)->format('d.m.Y H:i') }}</td>
-                        <td class="text-end">
-                            <a href="{{ route('admin.inventory.counts.show', $count) }}" class="btn btn-sm btn-outline-secondary">Görüntüle</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">Henüz sayım kaydı yok.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-        <div class="mt-3">
-            {{ $counts->links() }}
+        </x-ui-page-header>
+
+        <div class="mt-4">
+            <x-ui-card title="Sayım Listesi" subtitle="Belge, depo ve duruma göre filtreleyin.">
+                <x-tablekit.table
+                    :config="$tableKitConfig"
+                    :rows="$tableKitRows"
+                    :paginator="$tableKitPaginator"
+                    empty-text="Henüz sayım kaydı yok."
+                >
+                    <x-slot name="toolbar">
+                        <x-tablekit.toolbar
+                            :config="$tableKitConfig"
+                            search-placeholder="Belge veya depo ara"
+                            :search-value="request('q')"
+                        >
+                            <button type="submit" class="tablekit__btn tablekit__btn--secondary">
+                                Listeyi Güncelle
+                            </button>
+                        </x-tablekit.toolbar>
+                    </x-slot>
+                </x-tablekit.table>
+            </x-ui-card>
         </div>
-    </section>
+    </x-ui-content>
 @endsection

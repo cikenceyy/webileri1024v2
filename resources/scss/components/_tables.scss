@@ -179,6 +179,100 @@
   box-shadow: inset -12px 0 16px -12px rgba(15, 23, 42, 0.18);
 }
 
+.tablekit-surface__wrapper,
+.layout-main .table-responsive:not(.tablekit__table-wrapper) {
+  border: 1px solid var(--ui-color-border, #d5dbe8);
+  border-radius: var(--ui-radius-lg, 0.75rem);
+  background: var(--ui-color-surface, #ffffff);
+  overflow: auto;
+}
+
+.tablekit-surface,
+.layout-main .table:not(.tablekit__table) {
+  width: 100%;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--ui-color-surface, #ffffff);
+}
+
+.tablekit-surface thead th,
+.layout-main .table-responsive:not(.tablekit__table-wrapper) .table:not(.tablekit__table) thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ui-color-surface, #f4f7fc);
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ui-color-text-subtle, #475066);
+  border-bottom: 1px solid var(--ui-color-border-subtle, rgba(206, 215, 231, 0.6));
+  white-space: nowrap;
+}
+
+.layout-main .table:not(.tablekit__table) thead th {
+  background: var(--ui-color-surface, #f4f7fc);
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ui-color-text-subtle, #475066);
+  border-bottom: 1px solid var(--ui-color-border-subtle, rgba(206, 215, 231, 0.6));
+  white-space: nowrap;
+}
+
+.tablekit-surface tbody tr,
+.layout-main .table:not(.tablekit__table) tbody tr {
+  transition: background 0.15s ease;
+}
+
+.tablekit-surface tbody tr:hover,
+.layout-main .table:not(.tablekit__table) tbody tr:hover {
+  background: rgba(29, 111, 225, 0.05);
+}
+
+.tablekit-surface tbody td,
+.layout-main .table:not(.tablekit__table) tbody td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--ui-color-text, #1c2436);
+  border-bottom: 1px solid var(--ui-color-border-subtle, rgba(206, 215, 231, 0.6));
+  vertical-align: middle;
+}
+
+.tablekit-surface__select {
+  width: 3rem;
+  text-align: center;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.tablekit-surface__actions {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.tablekit-surface [data-type='number'],
+.layout-main .table:not(.tablekit__table) [data-type='number'] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tablekit-surface [data-type='date'],
+.layout-main .table:not(.tablekit__table) [data-type='date'] {
+  white-space: nowrap;
+}
+
+.tablekit-surface tbody td > .badge,
+.layout-main .table:not(.tablekit__table) tbody td > .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .ui-table__element {
   width: 100%;
   min-width: 100%;

@@ -1,3 +1,8 @@
+{{--
+    Amaç: Drawer bileşeninde varsayılan TR dil birliğini ve erişilebilirlik metinlerini sağlamak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği.
+    Notlar: Kapatma düğmesi aria etiketi TR olarak güncellendi.
+--}}
 @props([
     'title' => null,
     'id' => 'drawer',
@@ -36,7 +41,7 @@
             @if($title)
                 <h2 id="{{ $labelId }}" class="ui-drawer__title">{{ $title }}</h2>
             @endif
-            <button type="button" class="ui-drawer__close" data-action="close" aria-label="Close drawer">×</button>
+            <button type="button" class="ui-drawer__close" data-action="close" aria-label="Çekmeceyi kapat">×</button>
         </header>
         <div class="ui-drawer__body">
             {{ $slot }}

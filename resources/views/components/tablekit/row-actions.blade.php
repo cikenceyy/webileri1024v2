@@ -1,3 +1,9 @@
+{{--
+    Amaç: TableKit satır aksiyonlarını TR dilinde ve güvenli öznitelik bağlarıyla sunmak.
+    İlişkiler: PROMPT-1, PROMPT-3 — TR Dil Birliği, TableKit’e Geçiş.
+    Notlar: Null öznitelikler bağlanmıyor; varsayılan ipucu metni doğrudan TR.
+--}}
+
 @props(['actions' => []])
 
 @php
@@ -9,7 +15,7 @@
         @foreach($actions as $action)
             @php
                 $action = Arr::wrap($action);
-                $label = $action['label'] ?? 'Aksiyon';
+                $label = $action['label'] ?? 'İşlem';
                 $href = $action['href'] ?? '#';
                 $variant = $action['variant'] ?? 'ghost';
                 $target = $action['target'] ?? null;
@@ -17,7 +23,7 @@
                 $permission = $action['permission'] ?? null;
                 $ability = $action['ability'] ?? null;
                 $arguments = $action['arguments'] ?? [];
-                $tooltip = $action['tooltip'] ?? __('Bu işlem için yetkiniz yok');
+                $tooltip = $action['tooltip'] ?? 'Bu işlem için yetkiniz yok.';
                 $classes = 'tablekit__action tablekit__action--'.$variant;
             @endphp
             <x-auth.action
@@ -27,8 +33,8 @@
                 :ability="$ability"
                 :arguments="$arguments"
                 :tooltip="$tooltip"
-                @if($target) target="{{ $target }}" @endif
-                @if($rel) rel="{{ $rel }}" @endif
+                :target="$target"
+                :rel="$rel"
             >
                 {{ $label }}
             </x-auth.action>

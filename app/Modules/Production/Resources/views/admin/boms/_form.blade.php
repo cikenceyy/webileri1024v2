@@ -1,3 +1,8 @@
+{{--
+    Amaç: BOM formundaki satır tablosunu TableKit görünümüne yaklaştırmak.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Yalnızca tablo sınıf kancaları ve sarıcı yapısı eklendi.
+--}}
 @php
     $existingItems = collect(old('items', $bom->items->map(fn ($item) => [
         'component_product_id' => $item->component_product_id,
@@ -62,7 +67,8 @@
         <button type="button" class="btn btn-sm btn-outline-primary" id="bom-add-row">Satır Ekle</button>
     </div>
     <div class="card-body p-0">
-        <table class="table mb-0" id="bom-items-table">
+        <div class="table-responsive tablekit-surface__wrapper">
+            <table class="table mb-0 tablekit-surface" id="bom-items-table">
             <thead>
             <tr>
                 <th style="width: 25%">Malzeme</th>
@@ -70,7 +76,7 @@
                 <th style="width: 10%">Fire %</th>
                 <th style="width: 20%">Varsayılan Depo</th>
                 <th style="width: 20%">Varsayılan Raf</th>
-                <th class="text-end"></th>
+                <th class="text-end tablekit-surface__actions"></th>
             </tr>
             </thead>
             <tbody id="bom-items-body">
@@ -106,13 +112,14 @@
                             @endforeach
                         </select>
                     </td>
-                    <td class="text-end">
+                    <td class="text-end tablekit-surface__actions">
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove();">Sil</button>
                     </td>
                 </tr>
             @endforeach
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -153,7 +160,7 @@
                         @endforeach
                     </select>
                 </td>
-                <td class="text-end">
+                <td class="text-end tablekit-surface__actions">
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove();">Sil</button>
                 </td>
             `;

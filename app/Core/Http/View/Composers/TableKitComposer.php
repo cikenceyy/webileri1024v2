@@ -25,11 +25,16 @@ class TableKitComposer
             'inventory::products.index' => $this->composeInventoryProducts($data),
             'finance::admin.invoices.index' => $this->composeFinanceInvoices($data),
             'finance::admin.receipts.index' => $this->composeFinanceReceipts($data),
-            'logistics::shipments.index' => $this->composeLogisticsShipments($data),
-            'logistics::receipts.index' => $this->composeLogisticsReceipts($data),
-            'marketing::customers.index' => $this->composeMarketingCustomers($data),
-            'marketing::orders.index' => $this->composeMarketingOrders($data),
+            'finance::admin.cashbook.index' => $this->composeFinanceCashbook($data),
+            'logistics::shipments.index', 'logistics::admin.shipments.index' => $this->composeLogisticsShipments($data),
+            'logistics::receipts.index', 'logistics::admin.receipts.index' => $this->composeLogisticsReceipts($data),
+            'marketing::customers.index', 'marketing::admin.customers.index' => $this->composeMarketingCustomers($data),
+            'marketing::orders.index', 'marketing::admin.orders.index' => $this->composeMarketingOrders($data),
+            'procurement::pos.index', 'procurement::admin.pos.index' => $this->composeProcurementPurchaseOrders($data),
+            'procurement::grns.index', 'procurement::admin.grns.index' => $this->composeProcurementGoodsReceipts($data),
+            'hr::admin.employees.index' => $this->composeHumanResourcesEmployees($data),
             'production::admin.workorders.index' => $this->composeProductionWorkorders($data),
+            'production::boms.index','production::admin.boms.index' => $this->composeProductionBoms($data),
             default => null,
         };
 
@@ -277,18 +282,18 @@ class TableKitComposer
         }
 
         $columns = [
-            ['key' => 'doc_no', 'label' => __('Doc No'), 'type' => 'text', 'sortable' => true, 'filterable' => true],
-            ['key' => 'customer', 'label' => __('Customer'), 'type' => 'text', 'filterable' => true],
-            ['key' => 'status', 'label' => __('Status'), 'type' => 'badge', 'filterable' => true, 'enum' => [
-                'draft' => __('Draft'),
-                'issued' => __('Issued'),
-                'partially_paid' => __('Partially Paid'),
-                'paid' => __('Paid'),
+            ['key' => 'doc_no', 'label' => 'Belge No', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'customer', 'label' => 'Müşteri', 'type' => 'text', 'filterable' => true],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'draft' => 'Taslak',
+                'issued' => 'Düzenlendi',
+                'partially_paid' => 'Kısmi Ödendi',
+                'paid' => 'Ödendi',
             ]],
-            ['key' => 'grand_total', 'label' => __('Grand Total'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'paid_amount', 'label' => __('Paid'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'due_date', 'label' => __('Due Date'), 'type' => 'date', 'sortable' => true, 'filterable' => true],
-            ['key' => 'actions', 'label' => __('Actions'), 'type' => 'actions'],
+            ['key' => 'grand_total', 'label' => 'Genel Toplam', 'type' => 'money', 'sortable' => true],
+            ['key' => 'paid_amount', 'label' => 'Ödenen', 'type' => 'money', 'sortable' => true],
+            ['key' => 'due_date', 'label' => 'Vade Tarihi', 'type' => 'date', 'sortable' => true, 'filterable' => true],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
         ];
 
         $paginator = $data['invoices'];
@@ -298,7 +303,7 @@ class TableKitComposer
             return [
                 'id' => 'invoice-'.$invoice->id,
                 'cells' => [
-                    'doc_no' => $invoice->doc_no ?? __('(Draft)'),
+                    'doc_no' => $invoice->doc_no ?? 'Taslak',
                     'customer' => $invoice->customer?->name ?? '—',
                     'status' => $invoice->status ?? 'draft',
                     'grand_total' => ['amount' => $invoice->grand_total ?? 0, 'currency' => $invoice->currency ?? '₺'],
@@ -306,7 +311,7 @@ class TableKitComposer
                     'due_date' => $invoice->due_date,
                     'actions' => [
                         [
-                            'label' => __('Open'),
+                            'label' => 'Görüntüle',
                             'href' => route('admin.finance.invoices.show', $invoice),
                             'variant' => 'primary',
                         ],
@@ -336,17 +341,17 @@ class TableKitComposer
         }
 
         $columns = [
-            ['key' => 'doc_no', 'label' => __('Receipt No'), 'type' => 'text', 'sortable' => true, 'filterable' => true],
-            ['key' => 'customer', 'label' => __('Customer'), 'type' => 'text', 'filterable' => true],
-            ['key' => 'status', 'label' => __('Status'), 'type' => 'badge', 'filterable' => true, 'enum' => [
-                'draft' => __('Draft'),
-                'posted' => __('Posted'),
-                'reconciled' => __('Reconciled'),
+            ['key' => 'doc_no', 'label' => 'Makbuz No', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'customer', 'label' => 'Müşteri', 'type' => 'text', 'filterable' => true],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'draft' => 'Taslak',
+                'posted' => 'Kaydedildi',
+                'reconciled' => 'Mutabık',
             ]],
-            ['key' => 'amount', 'label' => __('Amount'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'applied_amount', 'label' => __('Applied'), 'type' => 'money', 'sortable' => true],
-            ['key' => 'received_at', 'label' => __('Received At'), 'type' => 'date', 'sortable' => true, 'filterable' => true],
-            ['key' => 'actions', 'label' => __('Actions'), 'type' => 'actions'],
+            ['key' => 'amount', 'label' => 'Tutar', 'type' => 'money', 'sortable' => true],
+            ['key' => 'applied_amount', 'label' => 'Mahsup Edilen', 'type' => 'money', 'sortable' => true],
+            ['key' => 'received_at', 'label' => 'Tahsil Tarihi', 'type' => 'date', 'sortable' => true, 'filterable' => true],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
         ];
 
         $paginator = $data['receipts'];
@@ -364,7 +369,7 @@ class TableKitComposer
                     'received_at' => $receipt->received_at ?? $receipt->created_at,
                     'actions' => [
                         [
-                            'label' => __('Open'),
+                            'label' => 'Görüntüle',
                             'href' => route('admin.finance.receipts.show', $receipt),
                             'variant' => 'primary',
                         ],
@@ -634,7 +639,7 @@ class TableKitComposer
                 'closed' => 'Kapalı',
                 'cancelled' => 'İptal',
             ]],
-            ['key' => 'target', 'label' => 'Hedef', 'type' => 'text', 'sortable' => true],
+            ['key' => 'planned', 'label' => 'Planlanan', 'type' => 'number', 'sortable' => true, 'options' => ['precision' => 0]],
             ['key' => 'due_date', 'label' => 'Termin', 'type' => 'date', 'sortable' => true, 'filterable' => true],
             ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
         ];
@@ -643,22 +648,362 @@ class TableKitComposer
         $items = $paginator instanceof LengthAwarePaginator ? $paginator->getCollection() : collect($paginator);
 
         $rows = $items->map(function ($workorder) {
+            $quantity = $workorder->planned_qty ?? $workorder->target_qty ?? 0;
+            $uom = $workorder->uom ?? ($workorder->product?->unit ?? '');
+
             return [
                 'id' => 'workorder-'.$workorder->id,
                 'cells' => [
                     'doc_no' => $workorder->doc_no ?? $workorder->order_no ?? '—',
                     'product' => $workorder->product?->name ?? '—',
                     'status' => $workorder->status ?? 'draft',
-                    'target' => [
-                        'html' => e(number_format($workorder->target_qty ?? 0, 3) . ' ' . ($workorder->uom ?? '')),
-                        'display' => number_format($workorder->target_qty ?? 0, 3) . ' ' . ($workorder->uom ?? ''),
-                        'raw' => $workorder->target_qty ?? 0,
+                    'planned' => [
+                        'raw' => (float) $quantity,
+                        'display' => number_format((float) $quantity, 0, ',', '.'),
+                        'html' => e(number_format((float) $quantity, 0, ',', '.').' '.$uom),
                     ],
                     'due_date' => $workorder->due_date ?? $workorder->created_at,
                     'actions' => [
                         [
                             'label' => 'Detay',
                             'href' => route('admin.production.workorders.show', $workorder),
+                            'variant' => 'secondary',
+                        ],
+                        [
+                            'label' => 'Düzenle',
+                            'href' => route('admin.production.workorders.edit', $workorder),
+                            'variant' => 'ghost',
+                        ],
+                    ],
+                ],
+            ];
+        });
+
+        $config = TableConfig::make($columns, [
+            'data_count' => $paginator instanceof LengthAwarePaginator ? $paginator->total() : $rows->count(),
+        ]);
+
+        return [
+            'tableKitConfig' => $config,
+            'tableKitRows' => $rows->values()->all(),
+            'tableKitPaginator' => $paginator instanceof LengthAwarePaginator ? $paginator : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function composeProductionBoms(array $data): ?array
+    {
+        if (! isset($data['boms'])) {
+            return null;
+        }
+
+        $columns = [
+            ['key' => 'code', 'label' => 'Kod', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'product', 'label' => 'Ürün', 'type' => 'text', 'filterable' => true],
+            ['key' => 'version', 'label' => 'Versiyon', 'type' => 'text', 'sortable' => true],
+            ['key' => 'output', 'label' => 'Çıktı', 'type' => 'number', 'sortable' => true, 'options' => ['precision' => 3]],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'active' => 'Aktif',
+                'inactive' => 'Pasif',
+            ]],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
+        ];
+
+        $paginator = $data['boms'];
+        $items = $paginator instanceof LengthAwarePaginator ? $paginator->getCollection() : collect($paginator);
+
+        $rows = $items->map(function ($bom) {
+            $product = $bom->product;
+            $unit = $product?->unit ?? 'adet';
+
+            return [
+                'id' => 'bom-'.$bom->id,
+                'cells' => [
+                    'code' => $bom->code ?? '—',
+                    'product' => $product?->name ?? '—',
+                    'version' => $bom->version ?? '—',
+                    'output' => [
+                        'raw' => (float) ($bom->output_qty ?? 0),
+                        'display' => number_format((float) ($bom->output_qty ?? 0), 3, ',', '.').' '.$unit,
+                        'html' => e(number_format((float) ($bom->output_qty ?? 0), 3, ',', '.').' '.$unit),
+                    ],
+                    'status' => $bom->is_active ? 'active' : 'inactive',
+                    'actions' => [
+                        [
+                            'label' => 'Görüntüle',
+                            'href' => route('admin.production.boms.show', $bom),
+                            'variant' => 'secondary',
+                        ],
+                        [
+                            'label' => 'Düzenle',
+                            'href' => route('admin.production.boms.edit', $bom),
+                            'variant' => 'ghost',
+                        ],
+                    ],
+                ],
+            ];
+        });
+
+        $config = TableConfig::make($columns, [
+            'data_count' => $paginator instanceof LengthAwarePaginator ? $paginator->total() : $rows->count(),
+        ]);
+
+        return [
+            'tableKitConfig' => $config,
+            'tableKitRows' => $rows->values()->all(),
+            'tableKitPaginator' => $paginator instanceof LengthAwarePaginator ? $paginator : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function composeHumanResourcesEmployees(array $data): ?array
+    {
+        if (! isset($data['employees'])) {
+            return null;
+        }
+
+        $departmentOptions = collect($data['departments'] ?? [])->mapWithKeys(function ($label, $id) {
+            return [(string) $id => (string) $label];
+        });
+        $titleOptions = collect($data['titles'] ?? [])->mapWithKeys(function ($label, $id) {
+            return [(string) $id => (string) $label];
+        });
+        $employmentOptions = collect($data['employmentTypes'] ?? [])->mapWithKeys(function ($label, $id) {
+            return [(string) $id => (string) $label];
+        });
+
+        $columns = [
+            ['key' => 'code', 'label' => 'Kod', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'name', 'label' => 'Ad Soyad', 'type' => 'text', 'filterable' => true],
+            ['key' => 'department', 'label' => 'Departman', 'type' => 'enum', 'filterable' => true, 'enum' => $departmentOptions->all()],
+            ['key' => 'title', 'label' => 'Ünvan', 'type' => 'enum', 'filterable' => true, 'enum' => $titleOptions->all()],
+            ['key' => 'employment_type', 'label' => 'Çalışma Tipi', 'type' => 'enum', 'filterable' => true, 'enum' => $employmentOptions->all()],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'active' => 'Aktif',
+                'inactive' => 'Pasif',
+            ]],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
+        ];
+
+        $paginator = $data['employees'];
+        $items = $paginator instanceof LengthAwarePaginator ? $paginator->getCollection() : collect($paginator);
+
+        $rows = $items->map(function ($employee) {
+            $nameHtml = sprintf(
+                '<div class="tablekit__cell-stack"><span class="tablekit__cell-strong">%s</span><span class="tablekit__cell-subtle">%s</span></div>',
+                e($employee->name ?? '—'),
+                e($employee->email ?? '—')
+            );
+
+            return [
+                'id' => 'employee-'.$employee->id,
+                'cells' => [
+                    'code' => $employee->code ?? '—',
+                    'name' => [
+                        'raw' => $employee->name ?? '—',
+                        'display' => strip_tags($nameHtml),
+                        'html' => $nameHtml,
+                    ],
+                    'department' => (string) ($employee->department?->id ?? ''),
+                    'title' => (string) ($employee->title?->id ?? ''),
+                    'employment_type' => (string) ($employee->employmentType?->id ?? ''),
+                    'status' => $employee->is_active ? 'active' : 'inactive',
+                    'actions' => [
+                        [
+                            'label' => 'Görüntüle',
+                            'href' => route('admin.hr.employees.show', $employee),
+                            'variant' => 'secondary',
+                        ],
+                        [
+                            'label' => 'Düzenle',
+                            'href' => route('admin.hr.employees.edit', $employee),
+                            'variant' => 'ghost',
+                        ],
+                    ],
+                ],
+            ];
+        });
+
+        $config = TableConfig::make($columns, [
+            'data_count' => $paginator instanceof LengthAwarePaginator ? $paginator->total() : $rows->count(),
+        ]);
+
+        return [
+            'tableKitConfig' => $config,
+            'tableKitRows' => $rows->values()->all(),
+            'tableKitPaginator' => $paginator instanceof LengthAwarePaginator ? $paginator : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function composeFinanceCashbook(array $data): ?array
+    {
+        if (! isset($data['entries'])) {
+            return null;
+        }
+
+        $directionOptions = collect($data['directions'] ?? [])->mapWithKeys(function ($direction) {
+            return [$direction => Str::headline($direction)];
+        });
+
+        $columns = [
+            ['key' => 'occurred_at', 'label' => 'Tarih', 'type' => 'date', 'sortable' => true, 'filterable' => true],
+            ['key' => 'direction', 'label' => 'Yön', 'type' => 'badge', 'filterable' => true, 'enum' => $directionOptions->all()],
+            ['key' => 'account', 'label' => 'Hesap', 'type' => 'text', 'filterable' => true],
+            ['key' => 'reference', 'label' => 'Referans', 'type' => 'text', 'filterable' => true],
+            ['key' => 'amount', 'label' => 'Tutar', 'type' => 'money', 'sortable' => true, 'options' => ['currency' => 'TRY']],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
+        ];
+
+        $paginator = $data['entries'];
+        $items = $paginator instanceof LengthAwarePaginator ? $paginator->getCollection() : collect($paginator);
+
+        $rows = $items->map(function ($entry) {
+            $reference = $entry->reference_type
+                ? sprintf('%s #%s', Str::headline($entry->reference_type), $entry->reference_id)
+                : '—';
+
+            return [
+                'id' => 'cashbook-'.$entry->id,
+                'cells' => [
+                    'occurred_at' => $entry->occurred_at ?? $entry->created_at,
+                    'direction' => $entry->direction ?? 'in',
+                    'account' => $entry->account ?? '—',
+                    'reference' => $reference,
+                    'amount' => [
+                        'raw' => (float) ($entry->amount ?? 0),
+                        'display' => number_format((float) ($entry->amount ?? 0), 2, ',', '.'),
+                        'html' => e(number_format((float) ($entry->amount ?? 0), 2, ',', '.').' '.($entry->currency ?? 'TRY')),
+                    ],
+                    'actions' => [
+                        [
+                            'label' => 'Görüntüle',
+                            'href' => route('admin.finance.cashbook.show', $entry),
+                            'variant' => 'secondary',
+                        ],
+                    ],
+                ],
+            ];
+        });
+
+        $config = TableConfig::make($columns, [
+            'data_count' => $paginator instanceof LengthAwarePaginator ? $paginator->total() : $rows->count(),
+        ]);
+
+        return [
+            'tableKitConfig' => $config,
+            'tableKitRows' => $rows->values()->all(),
+            'tableKitPaginator' => $paginator instanceof LengthAwarePaginator ? $paginator : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function composeProcurementPurchaseOrders(array $data): ?array
+    {
+        if (! isset($data['purchaseOrders'])) {
+            return null;
+        }
+
+        $columns = [
+            ['key' => 'po_number', 'label' => 'Sipariş', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'supplier', 'label' => 'Tedarikçi', 'type' => 'text', 'filterable' => true],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'draft' => 'Taslak',
+                'approved' => 'Onaylandı',
+                'closed' => 'Kapandı',
+            ]],
+            ['key' => 'total', 'label' => 'Toplam', 'type' => 'money', 'sortable' => true, 'options' => ['currency' => 'TRY']],
+            ['key' => 'created_at', 'label' => 'Oluşturulma', 'type' => 'date', 'sortable' => true, 'filterable' => true],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
+        ];
+
+        $paginator = $data['purchaseOrders'];
+        $items = $paginator instanceof LengthAwarePaginator ? $paginator->getCollection() : collect($paginator);
+
+        $rows = $items->map(function ($purchaseOrder) {
+            $supplierRelation = $purchaseOrder->supplier ?? null;
+            $supplierName = is_object($supplierRelation) && isset($supplierRelation->name)
+                ? $supplierRelation->name
+                : null;
+            $supplierLabel = $supplierName ?: ('Tedarikçi #'.$purchaseOrder->supplier_id);
+
+            return [
+                'id' => 'po-'.$purchaseOrder->id,
+                'cells' => [
+                    'po_number' => $purchaseOrder->po_number ?? ('#'.$purchaseOrder->id),
+                    'supplier' => $supplierLabel,
+                    'status' => $purchaseOrder->status ?? 'draft',
+                    'total' => [
+                        'raw' => (float) ($purchaseOrder->total ?? 0),
+                        'display' => number_format((float) ($purchaseOrder->total ?? 0), 2, ',', '.').' '.($purchaseOrder->currency ?? 'TRY'),
+                        'html' => e(number_format((float) ($purchaseOrder->total ?? 0), 2, ',', '.').' '.($purchaseOrder->currency ?? 'TRY')),
+                    ],
+                    'created_at' => $purchaseOrder->created_at,
+                    'actions' => [
+                        [
+                            'label' => 'Görüntüle',
+                            'href' => route('admin.procurement.pos.show', $purchaseOrder),
+                            'variant' => 'secondary',
+                        ],
+                    ],
+                ],
+            ];
+        });
+
+        $config = TableConfig::make($columns, [
+            'data_count' => $paginator instanceof LengthAwarePaginator ? $paginator->total() : $rows->count(),
+        ]);
+
+        return [
+            'tableKitConfig' => $config,
+            'tableKitRows' => $rows->values()->all(),
+            'tableKitPaginator' => $paginator instanceof LengthAwarePaginator ? $paginator : null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function composeProcurementGoodsReceipts(array $data): ?array
+    {
+        if (! isset($data['goodsReceipts'])) {
+            return null;
+        }
+
+        $columns = [
+            ['key' => 'grn', 'label' => 'Mal Kabul', 'type' => 'text', 'sortable' => true, 'filterable' => true],
+            ['key' => 'purchase_order', 'label' => 'Sipariş', 'type' => 'text', 'filterable' => true],
+            ['key' => 'status', 'label' => 'Durum', 'type' => 'badge', 'filterable' => true, 'enum' => [
+                'partial' => 'Kısmi',
+                'received' => 'Tamamlandı',
+            ]],
+            ['key' => 'received_at', 'label' => 'Teslim Tarihi', 'type' => 'date', 'sortable' => true, 'filterable' => true],
+            ['key' => 'actions', 'label' => 'İşlemler', 'type' => 'actions'],
+        ];
+
+        $paginator = $data['goodsReceipts'];
+        $items = $paginator instanceof LengthAwarePaginator ? $paginator->getCollection() : collect($paginator);
+
+        $rows = $items->map(function ($grn) {
+            return [
+                'id' => 'grn-'.$grn->id,
+                'cells' => [
+                    'grn' => '#'.$grn->id,
+                    'purchase_order' => $grn->purchaseOrder?->po_number ?? ('#'.$grn->purchase_order_id),
+                    'status' => $grn->status ?? 'partial',
+                    'received_at' => $grn->received_at ?? $grn->created_at,
+                    'actions' => [
+                        [
+                            'label' => 'Görüntüle',
+                            'href' => route('admin.procurement.grns.show', $grn),
                             'variant' => 'secondary',
                         ],
                     ],
