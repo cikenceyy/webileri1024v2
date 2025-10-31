@@ -1,3 +1,8 @@
+{{--
+    Amaç: Modal bileşeninde varsayılan dil ve erişilebilirlik metinlerini TR standartlarına uyarlamak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği.
+    Notlar: Kapatma düğmesi aria etiketi TR olarak güncellendi.
+--}}
 @props([
     'title' => null,
     'id' => 'modal',
@@ -34,7 +39,7 @@
             @if($title)
                 <h2 id="{{ $labelId }}" class="ui-modal__title">{{ $title }}</h2>
             @endif
-            <button type="button" class="ui-modal__close" data-action="close" aria-label="Close modal">×</button>
+            <button type="button" class="ui-modal__close" data-action="close" aria-label="Pencereyi kapat">×</button>
         </header>
         <div class="ui-modal__body">
             {{ $slot }}
