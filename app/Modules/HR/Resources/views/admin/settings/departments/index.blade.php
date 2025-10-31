@@ -1,3 +1,8 @@
+{{--
+    Amaç: İK departman listesi tablosunu TableKit yüzeyiyle hizalamak.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Görsel birlik için tablo sınıf kancaları eklendi.
+--}}
 @extends('layouts.admin')
 
 @section('title', 'Departmanlar')
@@ -34,14 +39,14 @@
     </form>
 
     <div class="card">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
+        <div class="table-responsive tablekit-surface__wrapper">
+            <table class="table align-middle mb-0 tablekit-surface">
                 <thead>
                     <tr>
-                        <th>Kod</th>
-                        <th>Ad</th>
-                        <th>Durum</th>
-                        <th class="text-end">İşlemler</th>
+                        <th scope="col">Kod</th>
+                        <th scope="col">Ad</th>
+                        <th scope="col">Durum</th>
+                        <th scope="col" class="tablekit-surface__actions">İşlemler</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,7 +59,7 @@
                                     {{ $department->is_active ? 'Aktif' : 'Pasif' }}
                                 </span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end tablekit-surface__actions">
                                 @can('update', $department)
                                     <a href="{{ route('admin.hr.settings.departments.edit', $department) }}" class="btn btn-sm btn-outline-secondary">Düzenle</a>
                                 @endcan

@@ -1,3 +1,8 @@
+{{--
+    Amaç: Replenish konsolu tablolarını TableKit görünümüyle hizalamak.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Console veri akışı korunurken yalnızca görsel sınıflar eklendi.
+--}}
 @extends('layouts.admin')
 
 @php($module = 'Consoles')
@@ -32,15 +37,17 @@
             </div>
             <div class="card-body p-0">
                 @if(!empty($state['low_stock']))
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead class="table-light">
+                    <div class="table-responsive tablekit-surface__wrapper">
+                        <table class="table table-hover mb-0 align-middle tablekit-surface">
+                            <thead>
                             <tr>
-                                <th style="width:40px;"><input type="checkbox" class="form-check-input" data-console-select-all="low"></th>
-                                <th>Ürün</th>
-                                <th>Depo</th>
-                                <th>Mevcut</th>
-                                <th>Transfer Miktarı</th>
+                                <th scope="col" class="tablekit-surface__select">
+                                    <input type="checkbox" class="form-check-input" data-console-select-all="low">
+                                </th>
+                                <th scope="col">Ürün</th>
+                                <th scope="col">Depo</th>
+                                <th scope="col">Mevcut</th>
+                                <th scope="col">Transfer Miktarı</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -49,8 +56,8 @@
                                     <td><input class="form-check-input" type="checkbox" value="{{ $item['product_id'] }}:{{ $item['warehouse_id'] ?? 0 }}" data-console-checkbox></td>
                                     <td class="fw-semibold">{{ $item['product'] ?? __('Ürün #:id', ['id' => $item['product_id']]) }} <span class="text-muted small">{{ $item['sku'] ?? '' }}</span></td>
                                     <td>{{ $item['warehouse_id'] ? __('Depo #:id', ['id' => $item['warehouse_id']]) : '—' }}</td>
-                                    <td class="small text-muted">{{ number_format($item['balance'] ?? 0, 2) }}</td>
-                                    <td style="width:160px;">
+                                    <td class="small text-muted" data-type="number">{{ number_format($item['balance'] ?? 0, 2) }}</td>
+                                    <td style="width:160px;" class="tablekit-surface__actions">
                                         <input type="number" class="form-control form-control-sm" step="0.01" min="0" data-console-qty value="{{ max(0, ($item['threshold'] ?? 0) - ($item['balance'] ?? 0)) }}">
                                     </td>
                                 </tr>

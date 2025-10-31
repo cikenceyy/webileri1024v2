@@ -1,3 +1,8 @@
+{{--
+    Amaç: Procure to Pay konsolu tablolarını TableKit görünümüyle eşleştirmek.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Console aksiyon akışı korunarak yalnız tablo sınıfları güncellendi.
+--}}
 @extends('layouts.admin')
 
 @php($module = 'Consoles')
@@ -90,14 +95,14 @@
                         </div>
                         <div class="card-body p-0">
                             @if(!empty($step['items']))
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0 align-middle">
-                                        <thead class="table-light">
+                                <div class="table-responsive tablekit-surface__wrapper">
+                                    <table class="table table-hover mb-0 align-middle tablekit-surface">
+                                        <thead>
                                         <tr>
-                                            <th style="width: 40px;"><input type="checkbox" class="form-check-input" data-console-select-all="{{ $step['key'] }}"></th>
-                                            <th>Belge</th>
-                                            <th>Durum</th>
-                                            <th>Detay</th>
+                                            <th scope="col" class="tablekit-surface__select"><input type="checkbox" class="form-check-input" data-console-select-all="{{ $step['key'] }}"></th>
+                                            <th scope="col">Belge</th>
+                                            <th scope="col">Durum</th>
+                                            <th scope="col">Detay</th>
                                         </tr>
                                         </thead>
                                         <tbody>
