@@ -3,6 +3,7 @@
 namespace App\Modules\Procurement\Http\Controllers;
 
 use App\Core\Bus\Events\GrnReceived;
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Procurement\Domain\Models\Grn;
 use App\Modules\Procurement\Domain\Models\GrnLine;
@@ -15,14 +16,58 @@ use Illuminate\View\View;
 
 class GrnController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $goodsReceipts = Grn::query()
+        $query = Grn::query()
             ->with('purchaseOrder')
-            ->latest()
-            ->paginate(15);
+            ->whereHas('purchaseOrder', fn ($builder) => $builder->where('company_id', currentCompanyId()))
+            ->orderByDesc('created_at');
 
-        return view('procurement::grns.index', compact('goodsReceipts'));
+        $search = trim((string) $request->query('q', ''));
+        $statusFilters = Filters::multi($request, 'status');
+        [$receivedFrom, $receivedTo] = Filters::range($request, 'received_at');
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('id', (int) $search)
+                    ->orWhereHas('purchaseOrder', function ($poQuery) use ($search): void {
+                        $poQuery->where('po_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn (string $status) => in_array($status, ['partial', 'received'], true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('status', $normalizedStatuses->first());
+        } elseif ($normalizedStatuses->count() > 1) {
+            $query->whereIn('status', $normalizedStatuses->all());
+        }
+
+        if ($receivedFrom) {
+            $query->whereDate('received_at', '>=', $receivedFrom);
+        }
+
+        if ($receivedTo) {
+            $query->whereDate('received_at', '<=', $receivedTo);
+        }
+
+        $perPage = (int) $request->integer('perPage', 25);
+        $perPage = max(10, min(100, $perPage));
+
+        return view('procurement::grns.index', [
+            'goodsReceipts' => $query->paginate($perPage)->withQueryString(),
+            'filters' => [
+                'q' => $search,
+                'status' => $normalizedStatuses->all(),
+                'received_at' => [
+                    'from' => $receivedFrom,
+                    'to' => $receivedTo,
+                ],
+            ],
+        ]);
     }
 
     public function create(Request $request): View

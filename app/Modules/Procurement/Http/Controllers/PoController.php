@@ -2,6 +2,7 @@
 
 namespace App\Modules\Procurement\Http\Controllers;
 
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Procurement\Domain\Models\PoLine;
 use App\Modules\Procurement\Domain\Models\PurchaseOrder;
@@ -22,14 +23,56 @@ class PoController extends Controller
         $this->authorizeResource(PurchaseOrder::class, 'po');
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $purchaseOrders = PurchaseOrder::query()
+        $query = PurchaseOrder::query()
             ->withCount('lines')
-            ->latest()
-            ->paginate(15);
+            ->where('company_id', currentCompanyId())
+            ->orderByDesc('created_at');
 
-        return view('procurement::pos.index', compact('purchaseOrders'));
+        $search = trim((string) $request->query('q', ''));
+        $statusFilters = Filters::multi($request, 'status');
+        [$createdFrom, $createdTo] = Filters::range($request, 'created_at');
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('po_number', 'like', "%{$search}%")
+                    ->orWhere('id', (int) $search);
+            });
+        }
+
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn (string $status) => in_array($status, ['draft', 'approved', 'closed'], true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('status', $normalizedStatuses->first());
+        } elseif ($normalizedStatuses->count() > 1) {
+            $query->whereIn('status', $normalizedStatuses->all());
+        }
+
+        if ($createdFrom) {
+            $query->whereDate('created_at', '>=', $createdFrom);
+        }
+
+        if ($createdTo) {
+            $query->whereDate('created_at', '<=', $createdTo);
+        }
+
+        $perPage = (int) $request->integer('perPage', 25);
+        $perPage = max(10, min(100, $perPage));
+
+        return view('procurement::pos.index', [
+            'purchaseOrders' => $query->paginate($perPage)->withQueryString(),
+            'filters' => [
+                'q' => $search,
+                'status' => $normalizedStatuses->all(),
+                'created_at' => [
+                    'from' => $createdFrom,
+                    'to' => $createdTo,
+                ],
+            ],
+        ]);
     }
 
     public function create(): View

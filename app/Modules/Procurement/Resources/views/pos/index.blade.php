@@ -1,62 +1,49 @@
+{{--
+    Amaç: Satınalma siparişlerini TableKit ile ortak tablo hattında sunmak ve filtreleri sadeleştirmek.
+    İlişkiler: PROMPT-1, PROMPT-2, PROMPT-3 — TR Dil Birliği, Blade İskeleti, TableKit’e Geçiş.
+    Notlar: Durum ve tarih filtreleri toolbar alanına taşındı; grid yapısı kart + tablo biçiminde düzenlendi.
+--}}
 @extends('layouts.admin')
 
 @section('title', 'Satınalma Siparişleri')
+@section('module', 'Procurement')
+@section('page', 'Satınalma Siparişleri')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1">Satınalma Siparişleri</h1>
-            <p class="text-muted mb-0">Tedarik siparişlerinizi ve durumlarını izleyin.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.procurement.pos.index') }}" class="btn btn-outline-secondary">Yenile</a>
-            <a href="{{ route('admin.procurement.pos.create') }}" class="btn btn-primary">Yeni Sipariş</a>
-        </div>
-    </div>
+    <x-ui-content class="py-4">
+        <x-ui-page-header
+            title="Satınalma Siparişleri"
+            description="Tedarik siparişlerinin durumunu, toplamlarını ve teslimat süreçlerini izleyin."
+        >
+            <x-slot name="actions">
+                <a href="{{ route('admin.procurement.pos.index') }}" class="btn btn-outline-secondary">Listeyi Yenile</a>
+                <a href="{{ route('admin.procurement.pos.create') }}" class="btn btn-primary">Yeni Sipariş</a>
+            </x-slot>
+        </x-ui-page-header>
 
-    @if(session('status'))
-        <div class="alert alert-success">{{ session('status') }}</div>
-    @endif
+        @if (session('status'))
+            <x-ui-alert variant="success" class="mt-3">{{ session('status') }}</x-ui-alert>
+        @endif
 
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-striped mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th scope="col">Sipariş</th>
-                        <th scope="col">Tedarikçi</th>
-                        <th scope="col">Durum</th>
-                        <th scope="col" class="text-end">Toplam</th>
-                        <th scope="col">Oluşturulma</th>
-                        <th scope="col" class="text-end">İşlem</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($purchaseOrders as $purchaseOrder)
-                        <tr>
-                            <td>{{ $purchaseOrder->po_number ?? ('#' . $purchaseOrder->id) }}</td>
-                            <td>{{ $purchaseOrder->supplier_id }}</td>
-                            <td>
-                                <span class="badge rounded-pill text-bg-{{ $purchaseOrder->status === 'closed' ? 'success' : ($purchaseOrder->status === 'approved' ? 'primary' : 'secondary') }}">
-                                    {{ strtoupper($purchaseOrder->status) }}
-                                </span>
-                            </td>
-                            <td class="text-end">{{ number_format((float) $purchaseOrder->total, 2, ',', '.') }} {{ $purchaseOrder->currency }}</td>
-                            <td>{{ $purchaseOrder->created_at?->format('d.m.Y H:i') }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('admin.procurement.pos.show', $purchaseOrder) }}" class="btn btn-sm btn-outline-primary">Görüntüle</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">Henüz satınalma siparişi bulunmuyor.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <div class="mt-4">
+            <x-ui-card title="Kayıtlar" subtitle="Durum, tarih ve tedarikçi bazlı filtreleme">
+                <x-tablekit.table
+                    :config="$tableKitConfig"
+                    :rows="$tableKitRows"
+                    :paginator="$tableKitPaginator"
+                    empty-text="Henüz satınalma siparişi bulunmuyor."
+                >
+                    <x-slot name="toolbar">
+                        <x-tablekit.toolbar
+                            :config="$tableKitConfig"
+                            search-placeholder="Sipariş numarası ara"
+                            :search-value="$filters['q'] ?? request('q')"
+                        >
+                            <button type="submit" class="tablekit__btn tablekit__btn--secondary">Listeyi Güncelle</button>
+                        </x-tablekit.toolbar>
+                    </x-slot>
+                </x-tablekit.table>
+            </x-ui-card>
         </div>
-        <div class="card-footer">
-            {{ $purchaseOrders->links() }}
-        </div>
-    </div>
+    </x-ui-content>
 @endsection
