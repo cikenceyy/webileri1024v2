@@ -1,7 +1,7 @@
 {{--
-    Amaç: E-posta merkezi ekranında TR dil birliğini sağlamak.
-    İlişkiler: PROMPT-1 — TR Dil Birliği.
-    Notlar: Form etiketleri ve başlıklar TR metinlerle güncellendi.
+    Amaç: E-posta merkezi ekranında TR dil birliği ve ortak sayfa iskeletini sağlamak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği, PROMPT-2 — Blade İskeleti.
+    Notlar: Toolbar, bölümler ve aside kartı standart düzenle hizalandı.
 --}}
 @extends('layouts.admin')
 
@@ -10,8 +10,8 @@
 @section('page', 'E-posta Merkezi')
 
 @section('content')
-    <div
-        class="container-fluid py-4"
+    <x-ui-content
+        class="py-4"
         data-settings-email
         data-update-url="{{ route('admin.settings.email.update') }}"
         data-test-url="{{ route('admin.settings.email.test') }}"
@@ -20,12 +20,28 @@
         <x-ui-page-header
             title="E-posta Merkezi"
             description="Çıkış adreslerini, teslim politikalarını ve marka bilgilerini tek yerden yönetin."
-        ></x-ui-page-header>
+        />
 
         <div class="row g-4 mt-1">
             <div class="col-12 col-lg-8">
-                <x-ui-card>
-                    <form class="vstack gap-3" data-email-form>
+                <x-ui-card title="Gönderim Ayarları" subtitle="Adresler, kimlikler ve marka bilgileri">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4" role="toolbar" aria-label="Gönderim araçları">
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge text-bg-light">{{ strtoupper(config('app.env')) }} ortamı</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary" form="settings-email-form" data-email-test>
+                                <span class="spinner-border spinner-border-sm align-middle me-2 d-none" role="status"></span>
+                                Deneme Gönder
+                            </button>
+                            <button type="submit" class="btn btn-primary" form="settings-email-form" data-email-submit>
+                                <span class="spinner-border spinner-border-sm align-middle me-2 d-none" role="status"></span>
+                                Ayarları Kaydet
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="settings-email-form" class="vstack gap-3" data-email-form>
                         @csrf
                         <div class="row g-3">
                             <div class="col-sm-6">
@@ -75,28 +91,16 @@
                                 <input type="email" class="form-control" id="email_brand_address" name="email_brand_address" value="{{ $values['email.brand.address'] }}" placeholder="noreply@firma.com">
                             </div>
                         </div>
-
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                            <button type="button" class="btn btn-outline-secondary" data-email-test>
-                                <span class="spinner-border spinner-border-sm align-middle me-2 d-none" role="status"></span>
-                                Kendime Deneme Gönder
-                            </button>
-
-                            <button type="submit" class="btn btn-primary" data-email-submit>
-                                <span class="spinner-border spinner-border-sm align-middle me-2 d-none" role="status"></span>
-                                Kaydet
-                            </button>
-                        </div>
                     </form>
                 </x-ui-card>
             </div>
 
             <div class="col-12 col-lg-4">
-                <x-ui-card>
-                    <header class="d-flex justify-content-between align-items-center mb-3">
-                        <h2 class="h6 mb-0">Son 10 Gönderim</h2>
+                <x-ui-card title="Son Gönderimler" subtitle="İlk 10 kayıt">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small">Canlı log</span>
                         <span class="badge text-bg-light">{{ $logs->count() }}</span>
-                    </header>
+                    </div>
                     <ul class="list-group" data-email-log aria-live="polite">
                         @forelse($logs as $log)
                             <li class="list-group-item d-flex flex-column gap-1">
@@ -113,7 +117,7 @@
                 </x-ui-card>
             </div>
         </div>
-    </div>
+    </x-ui-content>
 @endsection
 
 @push('page-scripts')

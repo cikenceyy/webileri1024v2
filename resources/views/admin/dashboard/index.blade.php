@@ -1,7 +1,7 @@
 {{--
-    Amaç: Gösterge paneli sayfasını TR dilinde sunmak ve bileşen metinlerini standardize etmek.
-    İlişkiler: PROMPT-1 — TR Dil Birliği.
-    Notlar: Başlık, filtre ve kart metinleri TR olarak düzenlendi.
+    Amaç: Gösterge paneli sayfasını TR dilinde ve ortak içerik iskeletiyle sunmak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği, PROMPT-2 — Blade İskeleti.
+    Notlar: Başlık, toolbar ve bölümler ortak şema ile yeniden düzenlendi.
 --}}
 @extends('layouts.admin')
 
@@ -37,56 +37,66 @@
 @endphp
 
 @section('content')
-    <div class="container-fluid py-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
-            <div>
-                <h1 class="h3 mb-1">Gösterge Paneli</h1>
-                <p class="text-muted mb-0">Rolünüze göre kritik iş akışlarını buradan izleyin.</p>
-            </div>
-            <div class="btn-group" role="group" aria-label="Tarih filtresi">
-                <a href="{{ request()->fullUrlWithQuery(['range' => 'today']) }}" class="btn btn-outline-secondary btn-sm @if(request('range', 'today') === 'today') active @endif">Bugün</a>
-                <a href="{{ request()->fullUrlWithQuery(['range' => '7d']) }}" class="btn btn-outline-secondary btn-sm @if(request('range') === '7d') active @endif">Son 7 Gün</a>
-                <a href="{{ request()->fullUrlWithQuery(['range' => '30d']) }}" class="btn btn-outline-secondary btn-sm @if(request('range') === '30d') active @endif">Son 30 Gün</a>
-            </div>
-        </div>
+    @php
+        $selectedRange = request('range', 'today');
+        $rangeLabel = match ($selectedRange) {
+            '7d' => 'Son 7 Gün',
+            '30d' => 'Son 30 Gün',
+            default => 'Bugün',
+        };
+    @endphp
 
-        <div class="row g-3">
-            @foreach($kpiCards as $card)
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-start justify-content-between">
-                                <div>
-                                    <p class="text-muted text-uppercase fw-semibold small mb-1">{{ $card['label'] }}</p>
-                                    <div class="d-flex align-items-baseline gap-2">
-                                        <span class="display-6 fw-bold">{{ number_format($card['today']) }}</span>
-                                        <span class="badge text-bg-soft-primary">Bugün</span>
+    <x-ui-content class="py-4">
+        <x-ui-page-header
+            title="Gösterge Paneli"
+            description="Rolünüze göre kritik iş akışlarını buradan izleyin."
+        />
+
+        <div class="d-flex flex-column gap-4 mt-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3" role="toolbar" aria-label="Gösterge araçları">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="badge text-bg-light">Seçilen aralık: {{ $rangeLabel }}</span>
+                    <span class="text-muted small">Saat dilimi: {{ config('app.timezone') }}</span>
+                </div>
+                <div class="btn-group" role="group" aria-label="Tarih filtresi">
+                    <a href="{{ request()->fullUrlWithQuery(['range' => 'today']) }}" class="btn btn-outline-secondary btn-sm @if($selectedRange === 'today') active @endif">Bugün</a>
+                    <a href="{{ request()->fullUrlWithQuery(['range' => '7d']) }}" class="btn btn-outline-secondary btn-sm @if($selectedRange === '7d') active @endif">Son 7 Gün</a>
+                    <a href="{{ request()->fullUrlWithQuery(['range' => '30d']) }}" class="btn btn-outline-secondary btn-sm @if($selectedRange === '30d') active @endif">Son 30 Gün</a>
+                </div>
+            </div>
+
+            <x-ui-card title="Gösterge Özeti" subtitle="Bugünkü performans ve kısa özet">
+                <div class="row g-3">
+                    @foreach($kpiCards as $card)
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card shadow-sm h-100 border-0">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start justify-content-between">
+                                        <div>
+                                            <p class="text-muted text-uppercase fw-semibold small mb-1">{{ $card['label'] }}</p>
+                                            <div class="d-flex align-items-baseline gap-2">
+                                                <span class="display-6 fw-bold">{{ number_format($card['today']) }}</span>
+                                                <span class="badge text-bg-soft-primary">Bugün</span>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-primary-subtle text-primary-emphasis rounded-circle p-3">
+                                            <i class="{{ $card['icon'] }} fs-5" aria-hidden="true"></i>
+                                        </span>
+                                    </div>
+                                    <div class="mt-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-calendar-week text-muted" aria-hidden="true"></i>
+                                        <span class="text-muted small">Son 7 gün: {{ number_format($card['week']) }} kayıt</span>
                                     </div>
                                 </div>
-                                <span class="badge bg-primary-subtle text-primary-emphasis rounded-circle p-3">
-                                    <i class="{{ $card['icon'] }} fs-5" aria-hidden="true"></i>
-                                </span>
-                            </div>
-                            <div class="mt-3 d-flex align-items-center gap-2">
-                                <i class="bi bi-calendar-week text-muted" aria-hidden="true"></i>
-                                <span class="text-muted small">Son 7 gün: {{ number_format($card['week']) }} kayıt</span>
                             </div>
                         </div>
-                    </div>
+                    @endforeach
                 </div>
-            @endforeach
-        </div>
+            </x-ui-card>
 
-        <div class="row g-3 mt-1">
-            <div class="col-xl-8">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="h5 mb-1">Hızlı Aksiyonlar</h2>
-                            <p class="text-muted small mb-0">Sıklıkla kullanılan operasyon adımlarını tek tıkla başlatın.</p>
-                        </div>
-                    </div>
-                    <div class="card-body">
+            <div class="row g-4">
+                <div class="col-xl-8 d-flex flex-column gap-4">
+                    <x-ui-card title="Hızlı Aksiyonlar" subtitle="Sıklıkla kullanılan operasyon adımlarını tek tıkla başlatın">
                         <div class="row g-2" role="group" aria-label="Hızlı aksiyon düğmeleri">
                             @forelse($quickActions as $action)
                                 @php
@@ -105,14 +115,9 @@
                                 <p class="text-muted mb-0">Yetkinize uygun hızlı aksiyon bulunmuyor.</p>
                             @endforelse
                         </div>
-                    </div>
-                </div>
+                    </x-ui-card>
 
-                <div class="card shadow-sm mt-3">
-                    <div class="card-header">
-                        <h2 class="h5 mb-0">Uyarılar</h2>
-                    </div>
-                    <div class="card-body">
+                    <x-ui-card title="Uyarılar" subtitle="Operasyon notları ve kritik duyurular">
                         @forelse($alerts as $alert)
                             <div class="alert alert-warning d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3" role="alert" data-ui="alert">
                                 <div>
@@ -126,48 +131,43 @@
                                         </ul>
                                     @endif
                                 </div>
-                                    @if(!empty($alert['action']))
+                                @if(!empty($alert['action']))
                                     <a class="btn btn-sm btn-outline-warning" href="{{ $alert['action'] }}">Closeout’a git</a>
                                 @endif
                             </div>
                         @empty
                             <p class="text-muted mb-0">Şu an aksiyon gerektiren kritik bir durum yok.</p>
                         @endforelse
-                    </div>
+                    </x-ui-card>
                 </div>
-            </div>
-            <div class="col-xl-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header">
-                        <h2 class="h5 mb-0">Drive Hızlı Erişim</h2>
-                    </div>
-                    <div class="list-group list-group-flush">
-                        @forelse($recentMedia as $media)
-                            <a href="{{ route('admin.drive.media.download', $media) }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-3">
-                                    <span class="badge rounded-pill text-bg-secondary"><i class="{{ $driveIcon($media->ext) }}" aria-hidden="true"></i></span>
-                                    <div>
-                                        <p class="mb-0 fw-semibold text-truncate" style="max-width: 220px">{{ $media->original_name }}</p>
-                                        <span class="text-muted small">{{ $media->created_at?->diffForHumans() }}</span>
-                                    </div>
-                                </div>
-                                <span class="badge text-bg-light text-uppercase">{{ Str::upper($media->ext ?? 'N/A') }}</span>
-                            </a>
-                        @empty
-                            <div class="list-group-item text-muted">Henüz dosya yüklenmemiş.</div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="row g-3 mt-1">
-            <div class="col-lg-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header">
-                        <h2 class="h6 mb-0">Son Faturalar</h2>
-                    </div>
-                    <div class="card-body">
+                <div class="col-xl-4">
+                    <x-ui-card title="Drive Hızlı Erişim" subtitle="Son yüklenen dosyalar">
+                        <ul class="list-group list-group-flush">
+                            @forelse($recentMedia as $media)
+                                <li class="list-group-item p-0">
+                                    <a href="{{ route('admin.drive.media.download', $media) }}" class="d-flex align-items-center justify-content-between gap-3 px-3 py-2 text-decoration-none text-body">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge rounded-pill text-bg-secondary"><i class="{{ $driveIcon($media->ext) }}" aria-hidden="true"></i></span>
+                                            <div>
+                                                <p class="mb-0 fw-semibold text-truncate" style="max-width: 220px">{{ $media->original_name }}</p>
+                                                <span class="text-muted small">{{ $media->created_at?->diffForHumans() }}</span>
+                                            </div>
+                                        </div>
+                                        <span class="badge text-bg-light text-uppercase">{{ Str::upper($media->ext ?? 'N/A') }}</span>
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="list-group-item text-muted">Henüz dosya yüklenmemiş.</li>
+                            @endforelse
+                        </ul>
+                    </x-ui-card>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <x-ui-card title="Son Faturalar" subtitle="Gelir kalemleri">
                         <ul class="list-unstyled mb-0">
                             @forelse($recentInvoices as $invoice)
                                 <li class="d-flex justify-content-between align-items-start py-2 border-bottom border-light-subtle">
@@ -186,15 +186,10 @@
                                 <li class="text-muted">Kayıt bulunamadı.</li>
                             @endforelse
                         </ul>
-                    </div>
+                    </x-ui-card>
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header">
-                        <h2 class="h6 mb-0">Son Sevkiyatlar</h2>
-                    </div>
-                    <div class="card-body">
+                <div class="col-lg-4">
+                    <x-ui-card title="Son Sevkiyatlar" subtitle="Lojistik hareketleri">
                         <ul class="list-unstyled mb-0">
                             @forelse($recentShipments as $shipment)
                                 <li class="d-flex justify-content-between align-items-start py-2 border-bottom border-light-subtle">
@@ -213,15 +208,10 @@
                                 <li class="text-muted">Kayıt bulunamadı.</li>
                             @endforelse
                         </ul>
-                    </div>
+                    </x-ui-card>
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header">
-                        <h2 class="h6 mb-0">Son GRN Kayıtları</h2>
-                    </div>
-                    <div class="card-body">
+                <div class="col-lg-4">
+                    <x-ui-card title="Son GRN Kayıtları" subtitle="Depo girişleri">
                         <ul class="list-unstyled mb-0">
                             @forelse($recentGoodsReceipts as $receipt)
                                 <li class="d-flex justify-content-between align-items-start py-2 border-bottom border-light-subtle">
@@ -236,9 +226,9 @@
                                 <li class="text-muted">Kayıt bulunamadı.</li>
                             @endforelse
                         </ul>
-                    </div>
+                    </x-ui-card>
                 </div>
             </div>
         </div>
-    </div>
+    </x-ui-content>
 @endsection
