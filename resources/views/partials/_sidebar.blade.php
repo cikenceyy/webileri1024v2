@@ -1,7 +1,7 @@
 {{--
     Amaç: Yönetici kenar menüsünde TR dil birliğini ve tutarlı etiketleri sağlamak.
-    İlişkiler: PROMPT-1 — TR Dil Birliği.
-    Notlar: Rozet açıklamaları TR olarak güncellendi.
+    İlişkiler: PROMPT-1 — TR Dil Birliği, PROMPT-5 — Sidebar & Header İyileştirmeleri.
+    Notlar: Aktiflik sınıfları ve aria öznitelikleri tutarlı şekilde güncellendi.
 --}}
 @php
     use Illuminate\Support\Arr;
@@ -126,7 +126,7 @@
                             @endphp
 
                             <li
-                                class="ui-sidebar__item {{ $isOpen ? 'is-open' : '' }} {{ $hasChildren ? 'has-children' : '' }}"
+                                class="ui-sidebar__item {{ $isOpen ? 'is-open' : '' }} {{ $hasChildren ? 'has-children' : '' }} {{ $isOpen && ! $hasChildren ? 'is-active' : '' }}"
                                 @if($hasChildren)
                                     data-sidebar-collapsible="true"
                                     data-sidebar-id="{{ $collapseId }}"
