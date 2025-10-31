@@ -1,3 +1,8 @@
+{{--
+    Amaç: Order to Cash konsolu tablolarını TableKit yüzeyi ile hizalamak.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Console iş akışları korunurken yalnız sınıf kancaları eklendi.
+--}}
 @extends('layouts.admin')
 
 @php($module = 'Consoles')
@@ -109,14 +114,14 @@
                         </div>
                         <div class="card-body p-0">
                             @if(!empty($step['items']))
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0 align-middle">
-                                        <thead class="table-light">
+                                <div class="table-responsive tablekit-surface__wrapper">
+                                    <table class="table table-hover mb-0 align-middle tablekit-surface">
+                                        <thead>
                                         <tr>
-                                            <th style="width: 40px;"><input class="form-check-input" type="checkbox" data-console-select-all="{{ $key }}"></th>
-                                            <th>Belge</th>
-                                            <th>Durum</th>
-                                            <th>Detay</th>
+                                            <th scope="col" class="tablekit-surface__select"><input class="form-check-input" type="checkbox" data-console-select-all="{{ $key }}"></th>
+                                            <th scope="col">Belge</th>
+                                            <th scope="col">Durum</th>
+                                            <th scope="col">Detay</th>
                                         </tr>
                                         </thead>
                                         <tbody>

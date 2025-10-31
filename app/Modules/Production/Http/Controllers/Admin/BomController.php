@@ -2,6 +2,7 @@
 
 namespace App\Modules\Production\Http\Controllers\Admin;
 
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\Warehouse;
@@ -12,24 +13,50 @@ use App\Modules\Production\Http\Requests\Admin\BomStoreRequest;
 use App\Modules\Production\Http\Requests\Admin\BomUpdateRequest;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BomController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Bom::class);
 
-        $boms = Bom::query()
+        $query = Bom::query()
             ->with(['product', 'variant'])
             ->where('company_id', currentCompanyId())
-            ->orderBy('product_id')
-            ->paginate(15)
-            ->withQueryString();
+            ->orderByDesc('created_at');
+
+        $search = trim((string) $request->query('q', ''));
+        $statusFilters = Filters::multi($request, 'status');
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('code', 'like', "%{$search}%")
+                    ->orWhereHas('product', function ($productQuery) use ($search): void {
+                        $productQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn (string $status) => in_array($status, ['active', 'inactive'], true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('is_active', $normalizedStatuses->first() === 'active');
+        }
+
+        $perPage = (int) $request->integer('perPage', 25);
+        $perPage = max(10, min(100, $perPage));
 
         return view('production::admin.boms.index', [
-            'boms' => $boms,
+            'boms' => $query->paginate($perPage)->withQueryString(),
+            'filters' => [
+                'q' => $search,
+                'status' => $normalizedStatuses->all(),
+            ],
         ]);
     }
 

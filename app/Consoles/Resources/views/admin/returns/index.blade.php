@@ -1,3 +1,8 @@
+{{--
+    Amaç: Returns konsolu tablosunu TableKit ile görsel olarak eşitlemek.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Mevcut seçim davranışı korunarak tablo sınıfları güncellendi.
+--}}
 @extends('layouts.admin')
 
 @php($module = 'Consoles')
@@ -48,15 +53,15 @@
                     </div>
                     <div class="card-body p-0">
                         @if(!empty($state['returns']))
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0 align-middle">
-                                    <thead class="table-light">
+                            <div class="table-responsive tablekit-surface__wrapper">
+                                <table class="table table-hover mb-0 align-middle tablekit-surface">
+                                    <thead>
                                     <tr>
-                                        <th style="width: 40px;"></th>
-                                        <th>RMA</th>
-                                        <th>Müşteri</th>
-                                        <th>Durum</th>
-                                        <th>Detay</th>
+                                        <th scope="col" class="tablekit-surface__select"></th>
+                                        <th scope="col">RMA</th>
+                                        <th scope="col">Müşteri</th>
+                                        <th scope="col">Durum</th>
+                                        <th scope="col">Detay</th>
                                     </tr>
                                     </thead>
                                     <tbody>

@@ -40,6 +40,7 @@ class ViewServiceProvider extends ServiceProvider
             'inventory::products.index',
             'finance::admin.invoices.index',
             'finance::admin.receipts.index',
+            'finance::admin.cashbook.index',
             'logistics::shipments.index',
             'logistics::receipts.index',
             'logistics::admin.shipments.index',
@@ -48,7 +49,13 @@ class ViewServiceProvider extends ServiceProvider
             'marketing::orders.index',
             'marketing::admin.customers.index',
             'marketing::admin.orders.index',
+            'procurement::pos.index',
+            'procurement::admin.pos.index',
+            'procurement::grns.index',
+            'procurement::admin.grns.index',
+            'hr::admin.employees.index',
             'production::admin.workorders.index',
+            'production::admin.boms.index',
         ], TableKitComposer::class);
     }
 }

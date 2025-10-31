@@ -1,3 +1,8 @@
+{{--
+    Amaç: Quality konsolu tablolarını TableKit görünümüyle eşitlemek.
+    İlişkiler: Codex Prompt — Console & TableKit Tablo Görünümü Eşleştirme.
+    Notlar: Seçim kancaları korunarak görsel sınıflar güncellendi.
+--}}
 @extends('layouts.admin')
 
 @php($module = 'Consoles')
@@ -39,14 +44,14 @@
                         </div>
                         <div class="card-body p-0">
                             @if(!empty($state[$direction]))
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0 align-middle">
-                                        <thead class="table-light">
+                                <div class="table-responsive tablekit-surface__wrapper">
+                                    <table class="table table-hover mb-0 align-middle tablekit-surface">
+                                        <thead>
                                         <tr>
-                                            <th style="width: 40px;"></th>
-                                            <th>Belge</th>
-                                            <th>Durum</th>
-                                            <th>Son Kontrol</th>
+                                            <th scope="col" class="tablekit-surface__select"></th>
+                                            <th scope="col">Belge</th>
+                                            <th scope="col">Durum</th>
+                                            <th scope="col">Son Kontrol</th>
                                         </tr>
                                         </thead>
                                         <tbody>

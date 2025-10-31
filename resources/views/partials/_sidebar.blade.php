@@ -1,3 +1,8 @@
+{{--
+    Amaç: Yönetici kenar menüsünde TR dil birliğini ve tutarlı etiketleri sağlamak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği, PROMPT-5 — Sidebar & Header İyileştirmeleri.
+    Notlar: Aktiflik sınıfları ve aria öznitelikleri tutarlı şekilde güncellendi.
+--}}
 @php
     use Illuminate\Support\Arr;
     use Illuminate\Support\Str;
@@ -121,7 +126,7 @@
                             @endphp
 
                             <li
-                                class="ui-sidebar__item {{ $isOpen ? 'is-open' : '' }} {{ $hasChildren ? 'has-children' : '' }}"
+                                class="ui-sidebar__item {{ $isOpen ? 'is-open' : '' }} {{ $hasChildren ? 'has-children' : '' }} {{ $isOpen && ! $hasChildren ? 'is-active' : '' }}"
                                 @if($hasChildren)
                                     data-sidebar-collapsible="true"
                                     data-sidebar-id="{{ $collapseId }}"
@@ -141,7 +146,7 @@
                                         <span class="ui-sidebar__icon" aria-hidden="true"><i class="{{ $item['icon'] ?? 'bi bi-circle' }}"></i></span>
                                         <span class="ui-sidebar__label">{{ $item['label'] }}</span>
                                         @if($itemBadge > 0)
-                                            <span class="ui-sidebar__badge" aria-label="{{ $itemBadge }} {{ __('unread') }}">{{ $itemBadge }}</span>
+                                            <span class="ui-sidebar__badge" aria-label="{{ $itemBadge }} okunmamış">{{ $itemBadge }}</span>
                                         @endif
                                         <span class="ui-sidebar__caret" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
                                     </button>
@@ -170,7 +175,7 @@
                                                         <span class="ui-sidebar__bullet" aria-hidden="true"></span>
                                                         <span class="ui-sidebar__sublabel">{{ $child['label'] }}</span>
                                                         @if($childBadge > 0)
-                                                            <span class="ui-sidebar__badge" aria-label="{{ $childBadge }} {{ __('unread') }}">{{ $childBadge }}</span>
+                                                            <span class="ui-sidebar__badge" aria-label="{{ $childBadge }} okunmamış">{{ $childBadge }}</span>
                                                         @endif
                                                     </a>
                                                 </li>
@@ -185,7 +190,7 @@
                                         <span class="ui-sidebar__icon" aria-hidden="true"><i class="{{ $item['icon'] ?? 'bi bi-circle' }}"></i></span>
                                         <span class="ui-sidebar__label">{{ $item['label'] }}</span>
                                         @if($childBadge > 0)
-                                            <span class="ui-sidebar__badge" aria-label="{{ $childBadge }} {{ __('unread') }}">{{ $childBadge }}</span>
+                                            <span class="ui-sidebar__badge" aria-label="{{ $childBadge }} okunmamış">{{ $childBadge }}</span>
                                         @endif
                                     </a>
                                 @endif

@@ -3,6 +3,7 @@
 namespace App\Modules\Inventory\Http\Controllers;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\StockCount;
 use App\Modules\Inventory\Domain\Models\StockLedgerEntry;
@@ -12,6 +13,7 @@ use App\Modules\Inventory\Http\Requests\SaveStockCountRequest;
 use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -24,18 +26,56 @@ class StockCountController extends Controller
     ) {
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', StockCount::class);
 
+        $companyId = Auth::user()->company_id;
+        $statusFilters = Filters::multi($request, 'status');
+        $docNoFilter = Filters::scalar($request, 'doc_no');
+        $warehouseFilter = Filters::scalar($request, 'warehouse');
+        [$countedFrom, $countedTo] = Filters::range($request, 'counted_at');
+
+        $allowedStatuses = ['draft', 'counting', 'counted', 'reconciled'];
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, $allowedStatuses, true))
+            ->values();
+
         $counts = StockCount::query()
             ->with(['warehouse', 'bin'])
-            ->where('company_id', Auth::user()->company_id)
+            ->where('company_id', $companyId)
+            ->when(
+                $normalizedStatuses->isNotEmpty(),
+                fn ($query) => $query->whereIn('status', $normalizedStatuses->all())
+            )
+            ->when(
+                $normalizedStatuses->isEmpty() && $request->filled('status'),
+                function ($query) use ($request, $allowedStatuses, &$statusFilters, $normalizedStatuses): void {
+                    $legacy = $request->string('status')->trim()->value();
+                    if ($legacy !== '' && in_array($legacy, $allowedStatuses, true)) {
+                        $query->where('status', $legacy);
+                        $statusFilters = [$legacy];
+                        $normalizedStatuses->push($legacy);
+                    }
+                }
+            )
+            ->when($docNoFilter !== null, fn ($query) => $query->where('doc_no', 'like', "%{$docNoFilter}%"))
+            ->when($warehouseFilter !== null, function ($query) use ($warehouseFilter): void {
+                $query->whereHas('warehouse', function ($warehouseQuery) use ($warehouseFilter): void {
+                    $warehouseQuery->where('name', 'like', "%{$warehouseFilter}%");
+                });
+            })
+            ->when($countedFrom !== null, fn ($query) => $query->whereDate('counted_at', '>=', $countedFrom))
+            ->when($countedTo !== null, fn ($query) => $query->whereDate('counted_at', '<=', $countedTo))
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('inventory::counts.index', [
             'counts' => $counts,
+            'filters' => [
+                'status' => $normalizedStatuses->isNotEmpty() ? $normalizedStatuses->all() : $statusFilters,
+            ],
         ]);
     }
 

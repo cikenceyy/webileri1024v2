@@ -3,6 +3,7 @@
 namespace App\Modules\Logistics\Http\Controllers\Admin;
 
 use App\Core\Contracts\SettingsReader;
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventory\Domain\Models\Product;
 use App\Modules\Inventory\Domain\Models\Warehouse;
@@ -44,19 +45,51 @@ class ShipmentController extends Controller
         $this->authorize('viewAny', Shipment::class);
 
         $companyId = currentCompanyId();
-        $status = $request->string('status')->toString();
+        $statusFilters = Filters::multi($request, 'status');
+        $docNoFilter = Filters::scalar($request, 'doc_no');
+        $customerFilter = Filters::scalar($request, 'customer');
+        [$shippedFrom, $shippedTo] = Filters::range($request, 'shipped_at');
+
+        $allowedStatuses = ['draft', 'picking', 'packed', 'shipped', 'closed', 'cancelled'];
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn ($value) => in_array($value, $allowedStatuses, true))
+            ->values();
 
         $shipments = Shipment::query()
             ->with(['customer'])
             ->where('company_id', $companyId)
-            ->when($status, fn ($query) => $query->where('status', $status))
             ->orderByDesc('created_at')
+            ->when(
+                $normalizedStatuses->isNotEmpty(),
+                fn ($query) => $query->whereIn('status', $normalizedStatuses->all())
+            )
+            ->when(
+                $normalizedStatuses->isEmpty() && $request->filled('status'),
+                function ($query) use ($request, &$statusFilters, $allowedStatuses, $normalizedStatuses): void {
+                    $legacy = $request->string('status')->trim()->value();
+                    if ($legacy !== '' && in_array($legacy, $allowedStatuses, true)) {
+                        $query->where('status', $legacy);
+                        $statusFilters = [$legacy];
+                        $normalizedStatuses->push($legacy);
+                    }
+                }
+            )
+            ->when($docNoFilter !== null, fn ($query) => $query->where('doc_no', 'like', "%{$docNoFilter}%"))
+            ->when($customerFilter !== null, function ($query) use ($customerFilter): void {
+                $query->whereHas('customer', function ($customerQuery) use ($customerFilter): void {
+                    $customerQuery->where('name', 'like', "%{$customerFilter}%");
+                });
+            })
+            ->when($shippedFrom !== null, fn ($query) => $query->whereDate('shipped_at', '>=', $shippedFrom))
+            ->when($shippedTo !== null, fn ($query) => $query->whereDate('shipped_at', '<=', $shippedTo))
             ->paginate(20)
             ->withQueryString();
 
         return view('logistics::admin.shipments.index', [
             'shipments' => $shipments,
-            'filters' => ['status' => $status],
+            'filters' => [
+                'status' => $normalizedStatuses->isNotEmpty() ? $normalizedStatuses->all() : $statusFilters,
+            ],
         ]);
     }
 

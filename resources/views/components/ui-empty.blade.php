@@ -1,6 +1,11 @@
+{{--
+    Amaç: Boş durum bileşeninin varsayılan metinlerini TR dil birliğine taşımak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği.
+    Notlar: İlk kayıt yönlendirmesi TR olarak sadeleştirildi.
+--}}
 @props([
-    'title' => 'No data yet',
-    'description' => 'Get started by creating your first record.',
+    'title' => 'Henüz veri yok',
+    'description' => 'İlk kaydınızı oluşturarak başlayın.',
     'action' => null,
 ])
 

@@ -1,7 +1,12 @@
+{{--
+    Amaç: Satır içi düzenleme bileşenini TR dilinde varsayılanlarla sunmak.
+    İlişkiler: PROMPT-1 — TR Dil Birliği.
+    Notlar: Placeholder ve buton metinleri TR olarak güncellendi.
+--}}
 @props([
     'value' => null,
     'name' => null,
-    'placeholder' => 'Click to edit',
+    'placeholder' => 'Düzenlemek için tıklayın',
 ])
 
 @php($inputId = $name ? 'inline-' . $name : uniqid('inline-'))
@@ -22,8 +27,8 @@
         <label class="visually-hidden" for="{{ $inputId }}">{{ $placeholder }}</label>
         <input id="{{ $inputId }}" name="{{ $name }}" class="ui-inline-edit__input" value="{{ $value }}">
         <div class="ui-inline-edit__actions">
-            <x-ui-button type="submit" size="sm">Save</x-ui-button>
-            <x-ui-button type="button" size="sm" variant="ghost" data-action="cancel">Cancel</x-ui-button>
+            <x-ui-button type="submit" size="sm">Kaydet</x-ui-button>
+            <x-ui-button type="button" size="sm" variant="ghost" data-action="cancel">İptal</x-ui-button>
         </div>
     </form>
     <div class="ui-inline-edit__feedback" aria-live="polite" data-ui="inline-status"></div>

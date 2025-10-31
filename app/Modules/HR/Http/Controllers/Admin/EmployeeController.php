@@ -2,6 +2,7 @@
 
 namespace App\Modules\HR\Http\Controllers\Admin;
 
+use App\Core\Support\TableKit\Filters;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\HR\Domain\Models\Department;
@@ -27,11 +28,11 @@ class EmployeeController extends Controller
             ->where('company_id', $companyId)
             ->orderBy('name');
 
-        $search = trim((string) $request->query('q'));
-        $departmentId = (int) $request->query('department_id');
-        $titleId = (int) $request->query('title_id');
-        $employmentTypeId = (int) $request->query('employment_type_id');
-        $status = $request->query('status');
+        $search = trim((string) $request->query('q', ''));
+        $departmentId = Filters::scalar($request, 'department_id');
+        $titleId = Filters::scalar($request, 'title_id');
+        $employmentTypeId = Filters::scalar($request, 'employment_type_id');
+        $statusFilters = Filters::multi($request, 'status');
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {
@@ -41,24 +42,31 @@ class EmployeeController extends Controller
             });
         }
 
-        if ($departmentId > 0) {
-            $query->where('department_id', $departmentId);
+        if ($departmentId) {
+            $query->where('department_id', (int) $departmentId);
         }
 
-        if ($titleId > 0) {
-            $query->where('title_id', $titleId);
+        if ($titleId) {
+            $query->where('title_id', (int) $titleId);
         }
 
-        if ($employmentTypeId > 0) {
-            $query->where('employment_type_id', $employmentTypeId);
+        if ($employmentTypeId) {
+            $query->where('employment_type_id', (int) $employmentTypeId);
         }
 
-        if ($status && in_array($status, ['active', 'inactive'], true)) {
-            $query->where('is_active', $status === 'active');
+        $normalizedStatuses = collect($statusFilters)
+            ->filter(fn (string $value) => in_array($value, ['active', 'inactive'], true))
+            ->values();
+
+        if ($normalizedStatuses->count() === 1) {
+            $query->where('is_active', $normalizedStatuses->first() === 'active');
         }
+
+        $perPage = (int) $request->integer('perPage', 25);
+        $perPage = max(10, min(100, $perPage));
 
         /** @var LengthAwarePaginator $employees */
-        $employees = $query->paginate()->withQueryString();
+        $employees = $query->paginate($perPage)->withQueryString();
 
         return view('hr::admin.employees.index', [
             'employees' => $employees,
@@ -70,7 +78,7 @@ class EmployeeController extends Controller
                 'department_id' => $departmentId,
                 'title_id' => $titleId,
                 'employment_type_id' => $employmentTypeId,
-                'status' => $status,
+                'status' => $normalizedStatuses->all(),
             ],
         ]);
     }
